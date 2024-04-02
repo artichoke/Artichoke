@@ -102,7 +102,10 @@ impl From<EditMode> for rustyline::config::EditMode {
 /// > If the file existed and could be opened and read, 0 is returned, otherwise
 /// > errno is returned.
 ///
+/// The routine is also documented in [section 8.3 of the bash manual][readline-man].
+///
 /// [upstream]: https://git.savannah.gnu.org/cgit/readline.git/tree/bind.c?h=7274faabe97ce53d6b464272d7e6ab6c1392837b#n1032
+/// [readline-man]: https://www.gnu.org/software/bash/manual/bash.html#Readline-Init-File
 #[must_use]
 pub fn rl_read_init_file() -> Option<Vec<u8>> {
     if let Some(inputrc) = env::var_os("INPUTRC") {
@@ -170,6 +173,16 @@ fn home_dir() -> Option<PathBuf> {
 /// See [`rl_read_init_file`] for how to retrieve the contents of the effective
 /// inputrc file.
 ///
+/// This function looks for the `editing-mode` variable in the given inputrc
+/// bytes. Per the [manual, section 8.3.1]:
+///
+/// > `editing-mode`
+/// >
+/// > The `editing-mode` variable controls which default set of key bindings is
+/// > used. By default, Readline starts up in Emacs editing mode, where the
+/// > keystrokes are most similar to Emacs. This variable can be set to either
+/// > '`emacs`' or '`vi`'.
+///
 /// # Examples
 ///
 /// ```
@@ -182,6 +195,14 @@ fn home_dir() -> Option<PathBuf> {
 ///
 /// assert_eq!(get_readline_edit_mode(INPUTRC), Some(EditMode::Vi));
 /// ```
+///
+/// # Implementation Notes
+///
+/// This parser does not support GNU Readline's [conditional init constructs]
+/// (the `$if` construct).
+///
+/// [manual]: https://www.gnu.org/software/bash/manual/bash.html#Readline-Init-File-Syntax
+/// [conditional init constructs]: https://www.gnu.org/software/bash/manual/bash.html#Conditional-Init-Constructs
 #[must_use]
 pub fn get_readline_edit_mode(contents: impl AsRef<[u8]>) -> Option<EditMode> {
     fn inner(contents: &[u8]) -> Option<EditMode> {
@@ -204,14 +225,30 @@ pub fn get_readline_edit_mode(contents: impl AsRef<[u8]>) -> Option<EditMode> {
             // Skip leading whitespace.
             let line = trim_whitespace_front(line);
 
-            let line = match line.strip_prefix(b"editing-mode") {
-                Some(rest) => rest,
-                None => continue,
+            // Per the manual, section 8.3.1:
+            // https://www.gnu.org/software/bash/manual/bash.html#Readline-Init-File-Syntax
+            //
+            // > Variable names and values, where appropriate, are recognized
+            // > without regard to case. Unrecognized variable names are ignored.
+            //
+            // In this case `editing-mode` is a variable name.
+            let line = match line {
+                [b'e' | b'E', b'd' | b'D', b'i' | b'I', b't' | b'T', b'i' | b'I', b'n' | b'N', b'g' | b'G', b'-', b'm' | b'M', b'o' | b'O', b'd' | b'D', b'e' | b'E', rest @ ..] => {
+                    rest
+                }
+                _ => continue,
             };
             // Skip leading whitespace.
             let line = trim_whitespace_front(line);
 
-            // The values 'vi' and 'emacs' in the 'set' directive are case insensitive.
+            // Per the manual, section 8.3.1:
+            // https://www.gnu.org/software/bash/manual/bash.html#Readline-Init-File-Syntax
+            //
+            // > Variable names and values, where appropriate, are recognized
+            // > without regard to case. Unrecognized variable names are ignored.
+            //
+            // The values 'vi' and 'emacs' in the 'set' directive are case
+            // insensitive as they are the variable value.
             match line {
                 [b'v' | b'V', b'i' | b'I'] => {
                     // Last occurrence of editing mode directive takes effect.
@@ -261,7 +298,31 @@ mod tests {
     use super::{get_readline_edit_mode, EditMode};
 
     #[test]
-    fn test_parse_empty_and_blank_lines() {
+    fn test_default_edit_mode_is_emacs() {
+        assert_eq!(EditMode::default(), EditMode::Emacs);
+    }
+
+    #[test]
+    #[cfg(feature = "rustyline")]
+    fn test_edit_mode_rustyline_into() {
+        assert_eq!(rustyline::config::EditMode::Emacs, EditMode::Emacs.into());
+        assert_eq!(rustyline::config::EditMode::Vi, EditMode::Vi.into());
+    }
+
+    #[test]
+    fn test_get_readline_edit_mode_vi_mode() {
+        let config = "set editing-mode vi";
+        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
+    }
+
+    #[test]
+    fn test_get_readline_edit_mode_emacs_mode() {
+        let config = "set editing-mode emacs";
+        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
+    }
+
+    #[test]
+    fn test_get_readline_edit_mode_parse_empty_and_blank_lines() {
         let test_cases = [
             "",
             "              ",
@@ -272,21 +333,18 @@ mod tests {
             "              \r\n           ",
         ];
         for contents in test_cases {
-            let result = get_readline_edit_mode(contents);
-            assert_eq!(result, None);
+            assert_eq!(get_readline_edit_mode(contents), None);
         }
     }
 
     #[test]
-    fn test_default_edit_mode_is_emacs() {
-        assert_eq!(EditMode::default(), EditMode::Emacs);
-    }
-
-    #[test]
-    #[cfg(feature = "rustyline")]
-    fn test_edit_mode_rustyline_into() {
-        assert_eq!(rustyline::config::EditMode::Emacs, EditMode::Emacs.into());
-        assert_eq!(rustyline::config::EditMode::Vi, EditMode::Vi.into());
+    fn test_get_readline_edit_mode_whitespace_only_lines() {
+        let contents = "
+            \t
+            \n
+            \r
+        ";
+        assert_eq!(get_readline_edit_mode(contents), None);
     }
 
     #[test]
@@ -302,16 +360,6 @@ mod tests {
     }
 
     #[test]
-    fn test_get_readline_edit_mode_whitespace_only_lines() {
-        let contents = "
-            \t
-            \n
-            \r
-        ";
-        assert_eq!(get_readline_edit_mode(contents), None);
-    }
-
-    #[test]
     fn test_get_readline_edit_mode_comment_lines() {
         let contents = "
             # This is a comment
@@ -322,51 +370,124 @@ mod tests {
     }
 
     #[test]
-    fn test_get_readline_edit_mode_set_editing_mode_vi() {
-        let contents = "
-            set editing-mode vi
-        ";
-        assert_eq!(get_readline_edit_mode(contents), Some(EditMode::Vi));
+    fn test_get_readline_edit_mode_set_editing_mode_with_space_before_variable_name() {
+        let test_cases = [
+            ("set     editing-mode vi", EditMode::Vi),
+            ("set     editing-mode emacs", EditMode::Emacs),
+        ];
+
+        for (config, expected_mode) in test_cases {
+            assert_eq!(get_readline_edit_mode(config), Some(expected_mode));
+        }
     }
 
     #[test]
-    fn test_get_readline_edit_mode_set_editing_mode_emacs() {
-        let contents = "
-            set editing-mode emacs
-        ";
-        assert_eq!(get_readline_edit_mode(contents), Some(EditMode::Emacs));
+    fn test_get_readline_edit_mode_set_editing_mode_with_space_after_variable_name() {
+        let test_cases = [
+            ("set editing-mode    vi", EditMode::Vi),
+            ("set editing-mode    emacs", EditMode::Emacs),
+        ];
+
+        for (config, expected_mode) in test_cases {
+            assert_eq!(get_readline_edit_mode(config), Some(expected_mode));
+        }
     }
 
     #[test]
-    fn test_get_readline_edit_mode_set_editing_mode_vi_with_space() {
-        let contents = "
-            set editing-mode    vi
-        ";
-        assert_eq!(get_readline_edit_mode(contents), Some(EditMode::Vi));
+    fn test_get_readline_edit_mode_excess_whitespace() {
+        let test_cases = [
+            ("set editing-mode  \t vi  \t \r\n", EditMode::Vi),
+            ("set editing-mode  \t emacs  \t \r\n", EditMode::Emacs),
+            ("set editing-mode   vi  \t \n", EditMode::Vi),
+            ("set editing-mode   emacs  \t \n", EditMode::Emacs),
+        ];
+
+        for (config, expected_mode) in test_cases {
+            assert_eq!(get_readline_edit_mode(config), Some(expected_mode));
+        }
     }
 
     #[test]
-    fn test_get_readline_edit_mode_set_editing_mode_emacs_with_space() {
-        let contents = "
-            set editing-mode    emacs
-        ";
-        assert_eq!(get_readline_edit_mode(contents), Some(EditMode::Emacs));
+    fn test_get_readline_edit_mode_ignore_trailing_garbage() {
+        let test_cases = [
+            ("set editing-mode vi 1234", EditMode::Vi),
+            ("set editing-mode emacs 1234", EditMode::Emacs),
+            ("set editing-mode vi this-is-extra-content", EditMode::Vi),
+            ("set editing-mode emacs this-is-extra-content", EditMode::Emacs),
+        ];
+
+        for (config, expected_mode) in test_cases {
+            assert_eq!(get_readline_edit_mode(config), Some(expected_mode));
+        }
     }
 
     #[test]
-    fn test_get_readline_edit_mode_mixed_case_vi() {
-        let contents = "
-            set editing-mode vI
-        ";
-        assert_eq!(get_readline_edit_mode(contents), Some(EditMode::Vi));
+    fn test_get_readline_edit_mode_requires_lowercase_set() {
+        let test_cases = [
+            "SET editing-mode vi",
+            "SET editing-mode emacs",
+            "Set editing-mode vi",
+            "Set editing-mode emacs",
+            "sET editing-mode vi",
+            "sET editing-mode emacs",
+        ];
+
+        for config in test_cases {
+            assert_eq!(get_readline_edit_mode(config), None);
+        }
     }
 
     #[test]
-    fn test_get_readline_edit_mode_mixed_case_emacs() {
-        let contents = "
-            set editing-mode eMACS
-        ";
-        assert_eq!(get_readline_edit_mode(contents), Some(EditMode::Emacs));
+    fn test_get_readline_editing_mode_variable_name_case_insensitive() {
+        let test_cases = [
+            // Lowercase
+            ("set editing-mode vi", EditMode::Vi),
+            ("set editing-mode emacs", EditMode::Emacs),
+            // Uppercase
+            ("set EDITING-MODE emacs", EditMode::Emacs),
+            ("set EDITING-MODE vi", EditMode::Vi),
+            // Mixed case
+            ("set Editing-Mode vi", EditMode::Vi),
+            ("set Editing-Mode emacs", EditMode::Emacs),
+            ("set EdItInG-MoDe vi", EditMode::Vi),
+            ("set EdItInG-MoDe emacs", EditMode::Emacs),
+            ("set eDiTiNg-mOdE vi", EditMode::Vi),
+            ("set eDiTiNg-mOdE emacs", EditMode::Emacs),
+        ];
+
+        for (config, expected_mode) in test_cases {
+            assert_eq!(get_readline_edit_mode(config), Some(expected_mode));
+        }
+    }
+
+    #[test]
+    fn test_get_readline_editing_mode_variable_value_case_insensitive() {
+        let test_cases = [
+            // Lowercase
+            ("set editing-mode vi", EditMode::Vi),
+            ("set editing-mode emacs", EditMode::Emacs),
+            // Uppercase
+            ("set editing-mode VI", EditMode::Vi),
+            ("set editing-mode EMACS", EditMode::Emacs),
+            // Mixed case
+            ("set editing-mode Vi", EditMode::Vi),
+            ("set editing-mode vI", EditMode::Vi),
+            ("set editing-mode eMaCs", EditMode::Emacs),
+            ("set editing-mode EmAcS", EditMode::Emacs),
+            ("set editing-mode emACS", EditMode::Emacs),
+            ("set editing-mode EMacs", EditMode::Emacs),
+        ];
+
+        for (config, expected_mode) in test_cases {
+            assert_eq!(get_readline_edit_mode(config), Some(expected_mode));
+        }
+    }
+
+    #[test]
+    fn test_get_readline_editing_mode_ignores_unrecognized_variable_names() {
+        // Test handling unrecognized variable names
+        let input = "set unknown-variable foo";
+        assert_eq!(get_readline_edit_mode(input), None);
     }
 
     #[test]
@@ -385,30 +506,6 @@ mod tests {
     }
 
     #[test]
-    fn test_get_readline_edit_mode_emacs_mode() {
-        let config = "set editing-mode emacs\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_vi_mode() {
-        let config = "set editing-mode vi\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_vi_mode_excess_whitespace() {
-        let config = "set editing-mode  \t vi  \t \r\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_emacs_mode_excess_whitespace() {
-        let config = "set editing-mode   emacs  \t \n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
-    }
-
-    #[test]
     fn test_get_readline_edit_mode_no_mode_directive() {
         let config = "set blink-matching-paren on\n";
         assert_eq!(get_readline_edit_mode(config), None);
@@ -421,51 +518,33 @@ mod tests {
     }
 
     #[test]
-    fn test_get_readline_edit_mode_invalid_directive() {
-        let config = "set editing-modevim\n";
+    fn test_get_readline_edit_mode_invalid_variable_value() {
+        let config = "set editing-mode vim\n";
         assert_eq!(get_readline_edit_mode(config), None);
     }
 
     #[test]
-    fn test_get_readline_edit_mode_invalid_characters() {
+    fn test_get_readline_edit_mode_invalid_characters_variable_value() {
         let config = "set editing-mode vī\n";
         assert_eq!(get_readline_edit_mode(config), None);
     }
 
     #[test]
-    fn test_get_readline_edit_mode_emacs_mode_with_trailing_content() {
-        let config = "set editing-mode emacs this-is-extra-content\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
-    }
+    fn test_get_readline_edit_mode_with_posix_spaces() {
+        let test_cases = [
+            ("set editing-mode     vi", EditMode::Vi),
+            ("set editing-mode     emacs", EditMode::Emacs),
+            ("set editing-mode\tvi", EditMode::Vi),
+            ("set editing-mode\temacs", EditMode::Emacs),
+            ("set editing-mode     \t \tvi", EditMode::Vi),
+            ("set editing-mode     \t \temacs", EditMode::Emacs),
+            ("set editing-mode\t\t\t\t\tvi", EditMode::Vi),
+            ("set editing-mode\t\t\t\t\temacs", EditMode::Emacs),
+        ];
 
-    #[test]
-    fn test_get_readline_edit_mode_vi_mode_with_trailing_content() {
-        let config = "set editing-mode vi this-is-extra-content\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_emacs_mode_with_posix_spaces() {
-        let config = "set editing-mode     emacs\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_vi_mode_with_posix_spaces() {
-        let config = "set editing-mode\tvi\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_emacs_mode_with_multiple_posix_spaces() {
-        let config = "set editing-mode     \t \temacs\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_vi_mode_with_multiple_posix_spaces() {
-        let config = "set editing-mode\t\t\t\t\tvi\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
+        for (config, expected_mode) in test_cases {
+            assert_eq!(get_readline_edit_mode(config), Some(expected_mode));
+        }
     }
 
     #[test]
@@ -565,63 +644,22 @@ mod tests {
     }
 
     #[test]
-    fn test_get_readline_edit_mode_case_insensitive_emacs_all_caps() {
-        let config = "set editing-mode EMACS\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
-    }
+    fn test_get_readline_edit_mode_quotes() {
+        let test_cases = [
+            // Test cases for single quotes
+            "set editing-mode 'emacs'",
+            "set editing-mode 'vi'",
+            // Test cases for double quotes
+            "set editing-mode \"emacs\"",
+            "set editing-mode \"vi\"",
+            // Test cases for mixed quotes
+            "set editing-mode 'emacs\"",
+            "set editing-mode 'vi\"",
+        ];
 
-    #[test]
-    fn test_get_readline_edit_mode_case_insensitive_emacs_mixed_case() {
-        let config = "set editing-mode emACS\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Emacs));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_case_insensitive_vi_all_caps() {
-        let config = "set editing-mode VI\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_case_insensitive_vi_mixed_case() {
-        let config = "set editing-mode vI\n";
-        assert_eq!(get_readline_edit_mode(config), Some(EditMode::Vi));
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_quotes_single_emacs() {
-        let config = "set editing-mode 'emacs'\n";
-        assert_eq!(get_readline_edit_mode(config), None);
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_quotes_double_emacs() {
-        let config = "set editing-mode \"emacs\"\n";
-        assert_eq!(get_readline_edit_mode(config), None);
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_quotes_mixed_emacs() {
-        let config = "set editing-mode 'emacs\"\n";
-        assert_eq!(get_readline_edit_mode(config), None);
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_quotes_single_vi() {
-        let config = "set editing-mode 'vi'\n";
-        assert_eq!(get_readline_edit_mode(config), None);
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_quotes_double_vi() {
-        let config = "set editing-mode \"vi\"\n";
-        assert_eq!(get_readline_edit_mode(config), None);
-    }
-
-    #[test]
-    fn test_get_readline_edit_mode_quotes_mixed_vi() {
-        let config = "set editing-mode 'vi\"\n";
-        assert_eq!(get_readline_edit_mode(config), None);
+        for config in test_cases {
+            assert_eq!(get_readline_edit_mode(config), None);
+        }
     }
 
     #[test]
