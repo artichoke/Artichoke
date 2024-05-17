@@ -40,7 +40,7 @@ module Enumerable
     return to_enum :collect unless block
 
     ary = []
-    each { |val| ary.push(block.call(val)) }
+    each { |val| ary.push(block.call(val)) } # rubocop:disable Style/MapIntoArray
     ary
   end
 
@@ -179,7 +179,7 @@ module Enumerable
 
   def entries
     ary = []
-    each do |val|
+    each do |val| # rubocop:disable Style/MapIntoArray
       ary.push(val)
     end
     ary
