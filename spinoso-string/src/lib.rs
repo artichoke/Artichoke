@@ -48,7 +48,7 @@ use core::str;
 use bstr::ByteSlice;
 #[doc(inline)]
 #[cfg(feature = "casecmp")]
-#[cfg_attr(feature = "docsrs", doc(cfg(feature = "casecmp")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "casecmp")))]
 pub use focaccia::CaseFold;
 use scolapasta_strbuf::Buf;
 #[doc(inline)]
@@ -1396,7 +1396,7 @@ impl String {
     #[inline]
     #[must_use]
     #[cfg(feature = "casecmp")]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "casecmp")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "casecmp")))]
     pub fn ascii_casecmp(&self, other: &[u8]) -> Ordering {
         focaccia::ascii_casecmp(self.as_slice(), other)
     }
@@ -1404,7 +1404,7 @@ impl String {
     #[inline]
     #[must_use]
     #[cfg(feature = "casecmp")]
-    #[cfg_attr(feature = "docsrs", doc(cfg(feature = "casecmp")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "casecmp")))]
     pub fn unicode_casecmp(&self, other: &String, options: CaseFold) -> Option<bool> {
         let left = self.as_slice();
         let right = other.as_slice();

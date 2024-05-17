@@ -1275,7 +1275,7 @@ pub fn initialize_copy(interp: &mut Artichoke, mut value: Value, mut other: Valu
         }
     }
     // XXX: This should use the encoding of the given `other`.
-    let replacement = super::String::with_bytes_and_encoding(buf, super::Encoding::Utf8);
+    let replacement = super::String::with_bytes_and_encoding(buf, Encoding::Utf8);
     super::String::box_into_value(replacement, value, interp)
 }
 
