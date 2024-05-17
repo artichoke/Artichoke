@@ -6,7 +6,7 @@ const BASE64_CSTR: &CStr = qed::const_cstr_from_str!("Base64\0");
 static BASE64_RUBY_SOURCE: &[u8] = include_bytes!("vendor/base64.rb");
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {
-    let spec = crate::module::Spec::new(interp, "Base64", BASE64_CSTR, None)?;
+    let spec = module::Spec::new(interp, "Base64", BASE64_CSTR, None)?;
     interp.def_module::<Base64>(spec)?;
     interp.def_rb_source_file("base64.rb", BASE64_RUBY_SOURCE)?;
 
