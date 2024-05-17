@@ -94,7 +94,7 @@
 #![no_std]
 
 // Ensure code blocks in `README.md` compile
-#[cfg(all(doctest, alloc))]
+#[cfg(all(doctest, feature = "alloc"))]
 #[doc = include_str!("../README.md")]
 mod readme {}
 
