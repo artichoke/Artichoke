@@ -8,7 +8,7 @@ rust-version = "1.76.0"
 license = "MIT"
 
 [dependencies]
-serde = "1.0.197"
+serde = "1.0.203"
 
 [dependencies.bstr]
 version = "1.9.1"
