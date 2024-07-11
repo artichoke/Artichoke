@@ -51,7 +51,7 @@ module Artichoke
         from_str = from_str[1..-1]
         from = tr_expand_str(from_str)
         to = tr_expand_str(to_str)
-        tr_compose_str(src, result, from, to, skip_double, ->(index) { index.nil? }, ->(lookup, _) { lookup.last })
+        tr_compose_str(src, result, from, to, skip_double, lambda(&:nil?), ->(lookup, _) { lookup.last })
       else
         from = tr_expand_str(from_str)
         to = tr_expand_str(to_str)
