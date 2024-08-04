@@ -567,7 +567,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(feature = "regexp")]
+    #[cfg(feature = "core-regexp")]
     fn funcall_string_split_regexp() {
         let mut interp = interpreter();
 
