@@ -391,7 +391,9 @@ pub fn erfc(value: f64) -> Result<f64, NotImplementedError> {
 /// # use spinoso_math::E;
 /// use spinoso_math as math;
 /// assert_eq!(math::exp(0.0), 1.0);
-/// assert!((math::exp(1.0) - E).abs() < f64::EPSILON);
+/// # #[cfg(not(artichoke_sanitizers))]
+/// assert_eq!(math::exp(1.0), E);
+/// # #[cfg(not(artichoke_sanitizers))]
 /// assert!((math::exp(1.5) - 4.4816890703380645).abs() < f64::EPSILON);
 /// ```
 #[inline]
