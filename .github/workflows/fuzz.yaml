@@ -71,7 +71,7 @@ jobs:
     name: Compile and test with LeakSanitizer
     runs-on: ubuntu-latest
     env:
-      RUSTFLAGS: -Z sanitizer=leak
+      RUSTFLAGS: -Z sanitizer=leak --cfg artichoke_sanitizers
       RUST_BACKTRACE: 1
     steps:
       - name: Checkout repository
