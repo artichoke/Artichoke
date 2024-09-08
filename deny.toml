@@ -1,11 +1,7 @@
 [advisories]
-vulnerability = "deny"
-unmaintained = "deny"
-notice = "warn"
 ignore = []
 
 [licenses]
-unlicensed = "deny"
 allow = [
   "Apache-2.0",
   "BSD-3-Clause",
@@ -15,14 +11,11 @@ allow = [
   "MIT-0",
   "Unicode-DFS-2016",
 ]
-deny = []
-copyleft = "deny"
-allow-osi-fsf-free = "neither"
-default = "deny"
-confidence-threshold = 0.8
 
 [bans]
-multiple-versions = "warn" # bitflags transition to v2
+# bitflags transition to v2 and usually there are duplicates of `windows-sys` in
+# the lockfile.
+multiple-versions = "warn"
 wildcards = "deny"
 highlight = "all"
 allow = []
@@ -37,4 +30,3 @@ skip-tree = []
 [sources]
 unknown-registry = "deny"
 unknown-git = "deny"
-# allow-git = ["https://github.com/artichoke/rust-onig"]
