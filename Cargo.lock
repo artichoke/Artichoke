@@ -39,7 +39,7 @@ dependencies = [
  "scolapasta-path",
  "scolapasta-string-escape",
  "termcolor",
- "tz-rs",
+ "tz-rs 0.7.0",
 ]
 
 [[package]]
@@ -208,18 +208,18 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.5.15"
+version = "4.5.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11d8838454fda655dafd3accb2b6e2bea645b9e4078abe84a22ceb947235c5cc"
+checksum = "b97f376d85a664d5837dbae44bf546e6477a679ff6610010f17276f686d867e8"
 dependencies = [
  "clap_builder",
 ]
 
 [[package]]
 name = "clap_builder"
-version = "4.5.15"
+version = "4.5.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "216aec2b177652e3846684cbfe25c9964d18ec45234f0f5da5157b207ed1aab6"
+checksum = "19bc80abd44e4bed93ca373a0704ccbd1b710dc5749406201bb018272808dc54"
 dependencies = [
  "anstyle",
  "clap_lex",
@@ -425,17 +425,6 @@ name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
-
-[[package]]
-name = "mezzaluna-load-path"
-version = "0.1.0"
-
-[[package]]
-name = "mezzaluna-loaded-features"
-version = "0.10.0"
-dependencies = [
- "same-file",
-]
 
 [[package]]
 name = "mezzaluna-type-registry"
@@ -654,10 +643,6 @@ name = "scolapasta-aref"
 version = "0.1.0"
 
 [[package]]
-name = "scolapasta-fixable"
-version = "0.1.0"
-
-[[package]]
 name = "scolapasta-hex"
 version = "0.3.0"
 
@@ -822,7 +807,7 @@ dependencies = [
  "iana-time-zone",
  "regex",
  "strftime-ruby",
- "tz-rs",
+ "tz-rs 0.6.14",
  "tzdb",
 ]
 
@@ -889,12 +874,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "tz-rs"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1450bf2b99397e72070e7935c89facaa80092ac812502200375f1f7d33c71a1"
+
+[[package]]
 name = "tzdb"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b580f6b365fa89f5767cdb619a55d534d04a4e14c2d7e5b9a31e94598687fb1"
 dependencies = [
- "tz-rs",
+ "tz-rs 0.6.14",
  "tzdb_data",
 ]
 
@@ -904,7 +895,7 @@ version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d1889fdffac09d65c1d95c42d5202e9b21ad8c758f426e9fe09088817ea998d6"
 dependencies = [
- "tz-rs",
+ "tz-rs 0.6.14",
 ]
 
 [[package]]
