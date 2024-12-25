@@ -113,7 +113,6 @@ rake lint:clippy:restriction       # Lint Rust sources with Clippy restriction p
 rake lint:rubocop                  # Run RuboCop
 rake lint:rubocop:autocorrect      # Autocorrect RuboCop offenses (only when it's safe)
 rake lint:rubocop:autocorrect_all  # Autocorrect RuboCop offenses (safe and unsafe)
-rake release:markdown_link_check   # Check for broken links in markdown files
 rake sanitizer:leak                # Run Artichoke with LeakSanitizer
 rake spec                          # Run enforced ruby/spec suite
 rake test                          # Run Artichoke unit tests

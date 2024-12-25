@@ -175,25 +175,6 @@ end
 
 Bundler::Audit::Task.new
 
-namespace :release do
-  link_check_files = FileList.new('**/*.md') do |f|
-    f.exclude('node_modules/**/*')
-    f.exclude('**/target/**/*')
-    f.exclude('**/vendor/*/**/*')
-    f.include('*.md')
-    f.include('**/vendor/*.md')
-  end
-
-  link_check_files.uniq.sort.each do |markdown|
-    desc 'Check for broken links in markdown files'
-    task markdown_link_check: markdown do
-      command = ['npx', 'markdown-link-check', '--config', '.github/markdown-link-check.json', markdown]
-      sh command.shelljoin
-      sleep(rand(1..5))
-    end
-  end
-end
-
 namespace :toolchain do
   desc 'Sync Rust toolchain to all sources'
   task sync: %i[sync:manifests sync:ci]
@@ -246,6 +227,7 @@ KNOWN_WORKSPACE_PREFIXES = %w[
 ].freeze
 
 KNOWN_FIRST_PARTY = %w[
+  boba
   focaccia
   intaglio
   known-folders
