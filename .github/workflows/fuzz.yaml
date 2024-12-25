@@ -70,6 +70,8 @@ jobs:
   leak-san:
     name: Compile and test with LeakSanitizer
     runs-on: ubuntu-latest
+    # LeakSanitzier is broken: https://github.com/rust-lang/rust/issues/111073
+    if: false
     env:
       RUSTFLAGS: -Z sanitizer=leak --cfg artichoke_sanitizers
       RUSTDOCFLAGS: --cfg artichoke_sanitizers
