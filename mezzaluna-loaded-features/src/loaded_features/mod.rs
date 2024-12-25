@@ -9,7 +9,6 @@
 //! container for tracking disk and in-memory Ruby sources as they are
 //! evaluated on a Ruby interpreter using [`require`] and [`require_relative`].
 //!
-//! See [`LoadedFeatures`] for more documentation on how to use the types in
 //! this module.
 //!
 //! [required]: https://ruby-doc.org/core-3.1.2/Kernel.html#method-i-require
@@ -484,7 +483,7 @@ mod tests {
     }
 
     #[test]
-    fn insert_multiple_memort_features() {
+    fn insert_multiple_memory_features() {
         let mut features = LoadedFeatures::new();
         features.insert(Feature::with_in_memory_path("set.rb".into()));
         features.insert(Feature::with_in_memory_path("hash.rb".into()));
