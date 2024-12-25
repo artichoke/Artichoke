@@ -209,7 +209,7 @@ impl Radix {
                     // ```
                     Err(_) => {
                         // Unchecked negation is safe because we checked for
-                        // `i32::MAX` above.
+                        // `i32::MIN` above.
                         let num = -num;
                         return Err(InvalidRadixErrorKind::Invalid(num).into());
                     }
