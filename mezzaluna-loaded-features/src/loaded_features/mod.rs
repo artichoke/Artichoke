@@ -9,6 +9,7 @@
 //! container for tracking disk and in-memory Ruby sources as they are
 //! evaluated on a Ruby interpreter using [`require`] and [`require_relative`].
 //!
+//! See [`LoadedFeatures`] for more documentation on how to use the types in
 //! this module.
 //!
 //! [required]: https://ruby-doc.org/core-3.1.2/Kernel.html#method-i-require
