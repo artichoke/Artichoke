@@ -484,7 +484,7 @@ mod tests {
     }
 
     #[test]
-    fn insert_multiple_memort_features() {
+    fn insert_multiple_memory_features() {
         let mut features = LoadedFeatures::new();
         features.insert(Feature::with_in_memory_path("set.rb".into()));
         features.insert(Feature::with_in_memory_path("hash.rb".into()));
