@@ -200,7 +200,7 @@ impl<'a> TryFrom<&'a String> for Codepoints<'a> {
     }
 }
 
-impl<'a> Iterator for Codepoints<'a> {
+impl Iterator for Codepoints<'_> {
     type Item = u32;
 
     #[inline]
@@ -209,4 +209,4 @@ impl<'a> Iterator for Codepoints<'a> {
     }
 }
 
-impl<'a> FusedIterator for Codepoints<'a> {}
+impl FusedIterator for Codepoints<'_> {}

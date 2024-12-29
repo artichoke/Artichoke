@@ -37,13 +37,13 @@ enum State<'a> {
     Utf8(utf8::Codepoints<'a>),
 }
 
-impl<'a> Default for State<'a> {
+impl Default for State<'_> {
     fn default() -> Self {
         Self::Ascii(ascii::Codepoints::default())
     }
 }
 
-impl<'a> Iterator for Codepoints<'a> {
+impl Iterator for Codepoints<'_> {
     type Item = u32;
 
     #[inline]
@@ -56,4 +56,4 @@ impl<'a> Iterator for Codepoints<'a> {
     }
 }
 
-impl<'a> FusedIterator for Codepoints<'a> {}
+impl FusedIterator for Codepoints<'_> {}

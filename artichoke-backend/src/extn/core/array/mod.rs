@@ -310,7 +310,7 @@ impl BoxUnboxVmValue for Array {
     }
 }
 
-impl<'a> Deref for UnboxedValueGuard<'a, Array> {
+impl Deref for UnboxedValueGuard<'_, Array> {
     type Target = Array;
 
     fn deref(&self) -> &Self::Target {

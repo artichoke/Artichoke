@@ -12,7 +12,7 @@ impl<'a> Codepoints<'a> {
     }
 }
 
-impl<'a> Iterator for Codepoints<'a> {
+impl Iterator for Codepoints<'_> {
     type Item = u32;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -20,7 +20,7 @@ impl<'a> Iterator for Codepoints<'a> {
     }
 }
 
-impl<'a> Default for Codepoints<'a> {
+impl Default for Codepoints<'_> {
     #[inline]
     fn default() -> Self {
         Self::new(b"")

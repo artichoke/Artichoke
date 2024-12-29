@@ -123,7 +123,7 @@ pub struct Center<'a, 'b> {
     pub right: Take<Cycle<slice::Iter<'b, u8>>>,
 }
 
-impl<'a, 'b> Default for Center<'a, 'b> {
+impl Default for Center<'_, '_> {
     #[inline]
     fn default() -> Self {
         Self::with_chars_width_and_padding(Chars::new(), 0, &[])
@@ -147,7 +147,7 @@ impl<'a, 'b> Center<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Iterator for Center<'a, 'b> {
+impl Iterator for Center<'_, '_> {
     type Item = u8;
 
     #[inline]
@@ -173,6 +173,6 @@ impl<'a, 'b> Iterator for Center<'a, 'b> {
     }
 }
 
-impl<'a, 'b> FusedIterator for Center<'a, 'b> {}
+impl FusedIterator for Center<'_, '_> {}
 
-impl<'a, 'b> ExactSizeIterator for Center<'a, 'b> {}
+impl ExactSizeIterator for Center<'_, '_> {}

@@ -141,7 +141,7 @@ impl BoxUnboxVmValue for String {
     }
 }
 
-impl<'a> Deref for UnboxedValueGuard<'a, String> {
+impl Deref for UnboxedValueGuard<'_, String> {
     type Target = String;
 
     fn deref(&self) -> &Self::Target {

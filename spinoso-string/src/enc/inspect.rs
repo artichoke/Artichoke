@@ -34,7 +34,7 @@ enum State<'a> {
     Utf8(utf8::Inspect<'a>),
 }
 
-impl<'a> Default for State<'a> {
+impl Default for State<'_> {
     /// Construct a `State` that will render debug output for the empty slice.
     ///
     /// This constructor produces inspect contents like `""`.
@@ -44,7 +44,7 @@ impl<'a> Default for State<'a> {
     }
 }
 
-impl<'a> Iterator for Inspect<'a> {
+impl Iterator for Inspect<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -56,4 +56,4 @@ impl<'a> Iterator for Inspect<'a> {
     }
 }
 
-impl<'a> FusedIterator for Inspect<'a> {}
+impl FusedIterator for Inspect<'_> {}

@@ -135,7 +135,7 @@ impl<'a> Debug<'a> {
     }
 }
 
-impl<'a> Iterator for Debug<'a> {
+impl Iterator for Debug<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -229,7 +229,7 @@ impl<'a> Iterator for Debug<'a> {
     }
 }
 
-impl<'a> FusedIterator for Debug<'a> {}
+impl FusedIterator for Debug<'_> {}
 
 #[cfg(test)]
 mod tests {

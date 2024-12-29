@@ -93,7 +93,7 @@ impl Output for Captured {
     }
 }
 
-impl<'a> Output for &'a mut Captured {
+impl Output for &'_ mut Captured {
     fn write_stdout<T: AsRef<[u8]>>(&mut self, bytes: T) -> io::Result<()> {
         self.stdout.extend_from_slice(bytes.as_ref());
         Ok(())

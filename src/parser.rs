@@ -210,7 +210,7 @@ impl<'a> Parser<'a> {
     }
 }
 
-impl<'a> Drop for Parser<'a> {
+impl Drop for Parser<'_> {
     fn drop(&mut self) {
         let Self { interp, parser, .. } = self;
 

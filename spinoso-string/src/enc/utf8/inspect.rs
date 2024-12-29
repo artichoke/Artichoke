@@ -50,7 +50,7 @@ impl<'a> Inspect<'a> {
     }
 }
 
-impl<'a> Default for Inspect<'a> {
+impl Default for Inspect<'_> {
     /// Construct an `Inspect` that will render debug output for the empty
     /// slice.
     ///
@@ -61,7 +61,7 @@ impl<'a> Default for Inspect<'a> {
     }
 }
 
-impl<'a> Iterator for Inspect<'a> {
+impl Iterator for Inspect<'_> {
     type Item = char;
 
     #[inline]
@@ -107,7 +107,7 @@ impl<'a> Iterator for Inspect<'a> {
     }
 }
 
-impl<'a> FusedIterator for Inspect<'a> {}
+impl FusedIterator for Inspect<'_> {}
 
 #[cfg(test)]
 mod tests {

@@ -119,7 +119,7 @@ impl<'a> FromIterator<&'a Option<Value>> for Array {
 #[derive(Debug)]
 pub struct Iter<'a>(slice::Iter<'a, sys::mrb_value>);
 
-impl<'a> Iterator for Iter<'a> {
+impl Iterator for Iter<'_> {
     type Item = Value;
 
     fn next(&mut self) -> Option<Self::Item> {

@@ -76,7 +76,7 @@ impl<'a> From<&'a [u8]> for Inspect<'a> {
     }
 }
 
-impl<'a> Iterator for Inspect<'a> {
+impl Iterator for Inspect<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -84,9 +84,9 @@ impl<'a> Iterator for Inspect<'a> {
     }
 }
 
-impl<'a> FusedIterator for Inspect<'a> {}
+impl FusedIterator for Inspect<'_> {}
 
-impl<'a> Inspect<'a> {
+impl Inspect<'_> {
     /// Write an `Inspect` iterator into the given destination using the debug
     /// representation of the interned byte slice associated with the symbol in
     /// the underlying interner.
@@ -274,7 +274,7 @@ impl<'a> State<'a> {
     }
 }
 
-impl<'a> Default for State<'a> {
+impl Default for State<'_> {
     /// Construct a `State` that will render debug output for the empty slice.
     ///
     /// This constructor produces inspect contents like `:""`.
@@ -284,7 +284,7 @@ impl<'a> Default for State<'a> {
     }
 }
 
-impl<'a> Iterator for State<'a> {
+impl Iterator for State<'_> {
     type Item = char;
 
     #[inline]
@@ -334,7 +334,7 @@ impl<'a> Iterator for State<'a> {
     }
 }
 
-impl<'a> FusedIterator for State<'a> {}
+impl FusedIterator for State<'_> {}
 
 #[cfg(test)]
 mod tests {

@@ -211,7 +211,7 @@ impl<'a> Guard<'a> {
     }
 }
 
-impl<'a> Deref for Guard<'a> {
+impl Deref for Guard<'_> {
     type Target = Artichoke;
 
     #[inline]
@@ -220,14 +220,14 @@ impl<'a> Deref for Guard<'a> {
     }
 }
 
-impl<'a> DerefMut for Guard<'a> {
+impl DerefMut for Guard<'_> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.0
     }
 }
 
-impl<'a> Drop for Guard<'a> {
+impl Drop for Guard<'_> {
     fn drop(&mut self) {
         let state = self.0.state.take();
         let state = state.unwrap_or_else(|| panic!("Dropping Guard with no State"));
