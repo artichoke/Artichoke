@@ -55,13 +55,13 @@ impl<'a> Iter<'a> {
     /// ```
     #[inline]
     #[must_use]
-    pub fn as_slice(&self) -> &[u8] {
+    pub fn as_slice(&self) -> &'a [u8] {
         self.0.as_slice()
     }
 }
 
 impl<'a> AsRef<[u8]> for Iter<'a> {
-    fn as_ref(&self) -> &[u8] {
+    fn as_ref(&self) -> &'a [u8] {
         self.as_slice()
     }
 }
