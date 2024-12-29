@@ -78,7 +78,7 @@ impl fmt::Display for CaughtException {
     fn fmt(&self, mut f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.name())?;
         f.write_str(" (")?;
-        format_debug_escape_into(&mut f, &self.message())?;
+        format_debug_escape_into(&mut f, self.message())?;
         f.write_str(")")?;
         Ok(())
     }
