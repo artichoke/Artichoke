@@ -213,6 +213,12 @@ impl fmt::Display for RegexpError {
 
 impl error::Error for RegexpError {}
 
+impl Default for RegexpError {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RegexpError {
     /// Construct a new, default regexp error.
     ///
@@ -306,6 +312,12 @@ impl fmt::Display for SyntaxError {
 }
 
 impl error::Error for SyntaxError {}
+
+impl Default for SyntaxError {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl SyntaxError {
     /// Construct a new, default syntax error.

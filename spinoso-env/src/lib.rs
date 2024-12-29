@@ -346,6 +346,12 @@ impl From<Vec<u8>> for InvalidError {
     }
 }
 
+impl Default for InvalidError {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InvalidError {
     /// Construct a new, default invalid error.
     ///
