@@ -640,12 +640,9 @@ fn is_symbolic_method_name(name: &[u8]) -> bool {
 fn is_const_name(name: &[u8]) -> bool {
     match name {
         [] => false,
-        name if name.is_ascii() => name.iter().next().map(u8::is_ascii_uppercase).unwrap_or_default(),
-        name if name.is_utf8() => name
-            .chars()
-            .next()
-            .map(char::is_uppercase) // uses Unicode `Uppercase` property
-            .unwrap_or_default(),
+        name if name.is_ascii() => name.iter().next().is_some_and(u8::is_ascii_uppercase),
+        // uses Unicode `Uppercase` property
+        name if name.is_utf8() => name.chars().next().is_some_and(char::is_uppercase),
         _ => false,
     }
 }
