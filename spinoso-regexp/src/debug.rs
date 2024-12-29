@@ -151,10 +151,13 @@ impl<'a> Iterator for Debug<'a> {
         }
         if !self.source.is_empty() {
             let (ch, size) = bstr::decode_utf8(self.source);
+            // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+            let (chunk, remainder) = unsafe { self.source.split_at_unchecked(size) };
+            self.source = remainder;
+
             return match ch {
                 // '/' is the `Regexp` literal delimiter, so escape it.
                 Some('/') => {
-                    self.source = &self.source[1..];
                     // While not an invalid byte, we rely on the documented
                     // behavior of `InvalidUtf8ByteSequence` to always escape
                     // any bytes given to it.
@@ -162,48 +165,33 @@ impl<'a> Iterator for Debug<'a> {
                     Some('\\')
                 }
                 Some('\x07') => {
-                    self.source = &self.source[1..];
                     let (&next, tail) = br"\x07".split_first().unwrap();
                     self.non_standard_control_escapes = tail;
                     Some(next.into())
                 }
                 Some('\x08') => {
-                    self.source = &self.source[1..];
                     let (&next, tail) = br"\x08".split_first().unwrap();
                     self.non_standard_control_escapes = tail;
                     Some(next.into())
                 }
                 Some('\x1B') => {
-                    self.source = &self.source[1..];
                     let (&next, tail) = br"\x1B".split_first().unwrap();
                     self.non_standard_control_escapes = tail;
                     Some(next.into())
                 }
-                Some(ch @ ('"' | '\'' | '\\')) => {
-                    self.source = &self.source[1..];
-                    Some(ch)
-                }
-                Some(ch) if ch.is_ascii() && posix_space::is_space(ch as u8) => {
-                    self.source = &self.source[1..];
-                    Some(ch)
-                }
+                Some(ch @ ('"' | '\'' | '\\')) => Some(ch),
+                Some(ch) if ch.is_ascii() && posix_space::is_space(ch as u8) => Some(ch),
                 Some(ch) if ch.is_ascii() => {
-                    self.source = &self.source[1..];
                     // While not an invalid byte, we rely on the documented
                     // behavior of `InvalidUtf8ByteSequence` to always escape
                     // any bytes given to it.
                     self.literal = InvalidUtf8ByteSequence::with_byte(ch as u8);
                     self.literal.next()
                 }
-                Some(ch) => {
-                    self.source = &self.source[size..];
-                    Some(ch)
-                }
+                Some(ch) => Some(ch),
                 // Otherwise, we've gotten invalid UTF-8, which means this is not a
                 // printable char.
                 None => {
-                    let (chunk, remainder) = self.source.split_at(size);
-                    self.source = remainder;
                     // This conversion is safe to unwrap due to the documented
                     // behavior of `bstr::decode_utf8` and `InvalidUtf8ByteSequence`
                     // which indicate that `size` is always in the range of 0..=3.
