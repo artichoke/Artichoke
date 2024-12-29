@@ -1,10 +1,10 @@
-/// Macros for use within the Artichoke VM.
-///
-/// This module contains macros for working with interpreters and Ruby values.
-/// This module should be included first in `lib.rs` with the `#[macro_use]`
-/// attribute, which makes all macros available for all modules in this crate.
-///
-/// Macros that relate to manipulating the underlying mruby VM are exported.
+//! Macros for use within the Artichoke VM.
+//!
+//! This module contains macros for working with interpreters and Ruby values.
+//! This module should be included first in `lib.rs` with the `#[macro_use]`
+//! attribute, which makes all macros available for all modules in this crate.
+//!
+//! Macros that relate to manipulating the underlying mruby VM are exported.
 
 /// Log a fatal error to stderr and suppress all errors.
 ///
