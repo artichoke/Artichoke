@@ -1,6 +1,5 @@
 use core::fmt::{self, Write};
 use core::iter::FusedIterator;
-use core::mem;
 
 use crate::enc::{self};
 use crate::String;
@@ -112,7 +111,7 @@ impl InvalidCodepointError {
     pub fn message(self) -> alloc::string::String {
         // The longest error message is 27 bytes + a hex-encoded codepoint
         // formatted as `0x...`.
-        const MESSAGE_MAX_LENGTH: usize = 27 + 2 + mem::size_of::<u32>() * 2;
+        const MESSAGE_MAX_LENGTH: usize = 27 + 2 + size_of::<u32>() * 2;
         let mut s = alloc::string::String::with_capacity(MESSAGE_MAX_LENGTH);
         // In practice, the errors from `write!` below are safe to ignore
         // because the `core::fmt::Write` impl for `String` will never panic
