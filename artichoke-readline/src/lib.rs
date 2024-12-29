@@ -2,6 +2,7 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
 #![allow(clippy::manual_let_else)]
+#![allow(clippy::multiple_crate_versions)]
 #![allow(clippy::question_mark)] // https://github.com/rust-lang/rust-clippy/issues/8281
 #![allow(unknown_lints)]
 #![warn(missing_docs)]

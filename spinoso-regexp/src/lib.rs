@@ -2,6 +2,7 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
 #![allow(clippy::manual_let_else)]
+#![allow(clippy::multiple_crate_versions)]
 #![cfg_attr(test, allow(clippy::non_ascii_literal))]
 #![allow(unknown_lints)]
 #![allow(clippy::module_name_repetitions)]

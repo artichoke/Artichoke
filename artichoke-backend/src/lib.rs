@@ -3,8 +3,9 @@
 #![warn(clippy::cargo)]
 #![allow(clippy::let_underscore_untyped)] // https://github.com/rust-lang/rust-clippy/pull/10442#issuecomment-1516570154
 #![allow(clippy::manual_let_else)]
-#![allow(clippy::module_name_repetitions)]
 #![allow(clippy::missing_errors_doc)]
+#![allow(clippy::module_name_repetitions)]
+#![allow(clippy::multiple_crate_versions)]
 #![allow(clippy::question_mark)] // https://github.com/rust-lang/rust-clippy/issues/8281
 #![allow(clippy::unnecessary_lazy_evaluations)] // https://github.com/rust-lang/rust-clippy/issues/8109
 #![cfg_attr(test, allow(clippy::non_ascii_literal))]
