@@ -185,15 +185,15 @@ impl<'a> Iterator for ConventionallyUtf8<'a> {
             return Some(slice);
         }
         let (ch, size) = bstr::decode_utf8(self.bytes);
+        // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+        let (chunk, remainder) = unsafe { self.bytes.split_at_unchecked(size) };
+        self.bytes = remainder;
+
         if ch.is_some() {
-            let (ch, remainder) = self.bytes.split_at(size);
-            self.bytes = remainder;
-            Some(ch)
+            Some(chunk)
         } else {
-            let (invalid_utf8_bytes, remainder) = self.bytes.split_at(size);
             // Invalid UTF-8 bytes are yielded as byte slices one byte at a time.
-            self.invalid_bytes = InvalidBytes::with_bytes(invalid_utf8_bytes);
-            self.bytes = remainder;
+            self.invalid_bytes = InvalidBytes::with_bytes(chunk);
             self.invalid_bytes.next()
         }
     }

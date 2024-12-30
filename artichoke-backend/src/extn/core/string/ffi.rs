@@ -8,9 +8,9 @@ use core::ptr;
 use core::slice;
 use core::str;
 use std::collections::TryReserveError;
-use std::ffi::{c_void, CStr};
+use std::ffi::{c_char, c_double, c_int, c_void, CStr};
 use std::io::Write as _;
-use std::os::raw::{c_char, c_double, c_int};
+use std::ptr::NonNull;
 
 use artichoke_core::convert::Convert;
 use artichoke_core::hash::Hash as _;
@@ -711,7 +711,11 @@ unsafe extern "C" fn mrb_byte_hash_step(s: *const u8, len: sys::mrb_int, mut hva
 unsafe extern "C" fn mrb_gc_free_str(mrb: *mut sys::mrb_state, string: *mut sys::RString) {
     let _ = mrb;
 
-    let ptr = (*string).as_.heap.ptr;
+    let Some(ptr) = NonNull::<c_char>::new((*string).as_.heap.ptr) else {
+        // An allocated but uninitialized string has no backing byte buffer, so
+        // there is nothing to free.
+        return;
+    };
     let length = (*string).as_.heap.len as usize;
     let capacity = (*string).as_.heap.aux.capa as usize;
 
@@ -719,7 +723,7 @@ unsafe extern "C" fn mrb_gc_free_str(mrb: *mut sys::mrb_state, string: *mut sys:
     // it into the `RString` flags as a `u32`.
 
     let raw_parts = RawParts {
-        ptr: ptr.cast::<u8>(),
+        ptr: ptr.cast::<u8>().as_mut(),
         length,
         capacity,
     };

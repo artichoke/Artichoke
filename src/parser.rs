@@ -3,8 +3,7 @@
 //! The REPL needs to check if code is valid to determine whether it should
 //! enter multiline editing mode.
 
-use std::ffi::CStr;
-use std::os::raw::c_char;
+use std::ffi::{c_char, CStr};
 use std::ptr::NonNull;
 
 use crate::backend::sys;

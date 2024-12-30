@@ -77,6 +77,10 @@ impl Iterator for Inspect<'_> {
             return Some(ch);
         }
         let (ch, size) = bstr::decode_utf8(self.bytes);
+        // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+        let (chunk, remainder) = unsafe { self.bytes.split_at_unchecked(size) };
+        self.bytes = remainder;
+
         match ch.map(|ch| {
             ascii_char_with_escape(ch)
                 .and_then(|esc| esc.as_bytes().split_first())
@@ -84,22 +88,19 @@ impl Iterator for Inspect<'_> {
         }) {
             Some(Ok((&head, tail))) => {
                 self.escaped_bytes = tail;
-                self.bytes = &self.bytes[size..];
                 return Some(head.into());
             }
             Some(Err(ch)) => {
-                self.bytes = &self.bytes[size..];
                 return Some(ch);
             }
             None if size == 0 => {}
             None => {
-                let (invalid_utf8_bytes, remainder) = self.bytes.split_at(size);
+                let invalid_utf8_bytes = chunk;
                 // This conversion is safe to unwrap due to the documented
                 // behavior of `bstr::decode_utf8` and `InvalidUtf8ByteSequence`
                 // which indicate that `size` is always in the range of 0..=3.
                 self.byte_literal = InvalidUtf8ByteSequence::try_from(invalid_utf8_bytes)
                     .expect("Invalid UTF-8 byte sequence should be at most 3 bytes long");
-                self.bytes = remainder;
                 return self.byte_literal.next();
             }
         };

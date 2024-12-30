@@ -180,36 +180,34 @@ impl Utf8String {
         let mut replacement = Vec::with_capacity(self.len());
         let mut bytes = self.inner.as_slice();
 
-        match bstr::decode_utf8(bytes) {
-            (Some(ch), size) => {
-                // Converting a UTF-8 character to uppercase may yield
-                // multiple codepoints.
-                for ch in ch.to_uppercase() {
-                    replacement.push_char(ch);
-                }
-                bytes = &bytes[size..];
+        let (ch, size) = bstr::decode_utf8(bytes);
+        // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+        let (chunk, remainder) = unsafe { bytes.split_at_unchecked(size) };
+        bytes = remainder;
+
+        if let Some(ch) = ch {
+            // Converting a UTF-8 character to uppercase may yield multiple codepoints.
+            for ch in ch.to_uppercase() {
+                replacement.push_char(ch);
             }
-            (None, 0) => return,
-            (None, size) => {
-                let (substring, remainder) = bytes.split_at(size);
-                replacement.extend_from_slice(substring);
-                bytes = remainder;
-            }
+        } else {
+            replacement.extend_from_slice(chunk);
         }
 
         while !bytes.is_empty() {
             let (ch, size) = bstr::decode_utf8(bytes);
+            // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+            let (chunk, remainder) = unsafe { bytes.split_at_unchecked(size) };
+            bytes = remainder;
+
             if let Some(ch) = ch {
                 // Converting a UTF-8 character to lowercase may yield
                 // multiple codepoints.
                 for ch in ch.to_lowercase() {
                     replacement.push_char(ch);
                 }
-                bytes = &bytes[size..];
             } else {
-                let (substring, remainder) = bytes.split_at(size);
-                replacement.extend_from_slice(substring);
-                bytes = remainder;
+                replacement.extend_from_slice(chunk);
             }
         }
         self.inner = replacement.into();
@@ -229,17 +227,18 @@ impl Utf8String {
 
         while !bytes.is_empty() {
             let (ch, size) = bstr::decode_utf8(bytes);
+            // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+            let (chunk, remainder) = unsafe { bytes.split_at_unchecked(size) };
+            bytes = remainder;
+
             if let Some(ch) = ch {
                 // Converting a UTF-8 character to lowercase may yield
                 // multiple codepoints.
                 for ch in ch.to_lowercase() {
                     replacement.push_char(ch);
                 }
-                bytes = &bytes[size..];
             } else {
-                let (substring, remainder) = bytes.split_at(size);
-                replacement.extend_from_slice(substring);
-                bytes = remainder;
+                replacement.extend_from_slice(chunk);
             }
         }
         self.inner = replacement.into();
@@ -259,17 +258,18 @@ impl Utf8String {
 
         while !bytes.is_empty() {
             let (ch, size) = bstr::decode_utf8(bytes);
+            // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+            let (chunk, remainder) = unsafe { bytes.split_at_unchecked(size) };
+            bytes = remainder;
+
             if let Some(ch) = ch {
                 // Converting a UTF-8 character to lowercase may yield
                 // multiple codepoints.
                 for ch in ch.to_uppercase() {
                     replacement.push_char(ch);
                 }
-                bytes = &bytes[size..];
             } else {
-                let (substring, remainder) = bytes.split_at(size);
-                replacement.extend_from_slice(substring);
-                bytes = remainder;
+                replacement.extend_from_slice(chunk);
             }
         }
         self.inner = replacement.into();

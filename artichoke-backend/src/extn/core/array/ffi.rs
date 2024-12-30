@@ -1,3 +1,4 @@
+use std::ptr::NonNull;
 use std::slice;
 
 use crate::extn::core::array::{Array, RawParts};
@@ -286,9 +287,17 @@ unsafe extern "C" fn mrb_ary_unshift(
 unsafe extern "C" fn mrb_ary_artichoke_free(mrb: *mut sys::mrb_state, ary: *mut sys::RArray) {
     let _ = mrb;
 
-    let ptr = (*ary).as_.heap.ptr;
+    let Some(mut ptr) = NonNull::new((*ary).as_.heap.ptr) else {
+        // An allocated but uninitialized array has a null pointer, so there is
+        // nothing to free.
+        return;
+    };
     let length = (*ary).as_.heap.len as usize;
     let capacity = (*ary).as_.heap.aux.capa as usize;
 
-    drop(Array::from_raw_parts(RawParts { ptr, length, capacity }));
+    drop(Array::from_raw_parts(RawParts {
+        ptr: ptr.as_mut(),
+        length,
+        capacity,
+    }));
 }

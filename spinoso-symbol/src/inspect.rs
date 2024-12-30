@@ -303,13 +303,15 @@ impl Iterator for State<'_> {
             return Some(ch);
         }
         let (ch, size) = bstr::decode_utf8(self.bytes);
+        // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+        let (chunk, remainder) = unsafe { self.bytes.split_at_unchecked(size) };
+        self.bytes = remainder;
+
         match ch {
             Some('"' | '\\') if self.flags.is_ident() => {
-                self.bytes = &self.bytes[size..];
                 return ch;
             }
             Some(ch) => {
-                self.bytes = &self.bytes[size..];
                 if let Some([head, tail @ ..]) = ascii_char_with_escape(ch).map(str::as_bytes) {
                     self.escaped_bytes = tail;
                     return Some(char::from(*head));
@@ -318,12 +320,10 @@ impl Iterator for State<'_> {
             }
             None if size == 0 => {}
             None => {
-                let (invalid_utf8_bytes, remainder) = self.bytes.split_at(size);
                 // This conversion is safe to unwrap due to the documented
                 // behavior of `bstr::decode_utf8` and `InvalidUtf8ByteSequence`
                 // which indicate that `size` is always in the range of 0..=3.
-                self.forward_byte_literal = InvalidUtf8ByteSequence::try_from(invalid_utf8_bytes).unwrap();
-                self.bytes = remainder;
+                self.forward_byte_literal = InvalidUtf8ByteSequence::try_from(chunk).unwrap();
                 return self.forward_byte_literal.next();
             }
         };
