@@ -1205,6 +1205,17 @@ pub fn index(
 }
 
 pub fn initialize(interp: &mut Artichoke, mut value: Value, from: Option<Value>) -> Result<Value, Error> {
+    if value.is_frozen(interp) && from.is_some() {
+        return Err(FrozenError::from("can't modify frozen String").into());
+    }
+    if from.is_none() {
+        // Calling `initialize` on an already initialized `String` with no arguments
+        // is a no-op. If the string is not yet initialized, we will subsequently
+        // initialize it when unpacking the `Value` in the `String::unbox_from_value`
+        // call.
+        return Ok(value);
+    };
+
     // We must convert `from` to a byte buffer first in case `#to_str` raises.
     //
     // If we don't, the following scenario could leave `value` with a dangling
