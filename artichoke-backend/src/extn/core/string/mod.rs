@@ -267,4 +267,36 @@ mod tests {
         let result = interp.eval(test.as_bytes());
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
     }
+
+    #[test]
+    #[should_panic = "String.allocate.encoding is not binary"]
+    fn freshly_allocated_string_has_binary_encoding() {
+        let mut interp = interpreter();
+        // ```console
+        // $ irb
+        // [3.3.6] > s = String.new
+        // => ""
+        // [3.3.6] > s.encoding == Encoding::BINARY
+        // => true
+        // [3.3.6] > s << "abc"
+        // => "abc"
+        // [3.3.6] > s.encoding == Encoding::UTF_8
+        // => false
+        // [3.3.6] > s.encoding
+        // => #<Encoding:ASCII-8BIT>
+        // [3.3.6] > s << "❤️"
+        // => "abc❤️"
+        // [3.3.6] > s.encoding == Encoding::UTF_8
+        // ```
+        let test = r#"
+            s = String.new
+            raise 'String.allocate.encoding is not binary' unless s.encoding == Encoding::BINARY
+            s << "abc"
+            raise 'String.allocate.encoding is not binary after appending ASCII' unless s.encoding == Encoding::BINARY
+            s << "❤️"
+            raise 'String.allocate.encoding is not UTF-8 after appending UTF-8' unless s.encoding == Encoding::UTF_8
+        "#;
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
 }
