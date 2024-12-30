@@ -297,4 +297,39 @@ mod tests {
         let result = interp.eval(test.as_bytes());
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
     }
+
+    #[test]
+    fn reinitializing_a_frozen_string_with_no_args_is_permitted() {
+        let mut interp = interpreter();
+        let test = r"
+            raise 'reinitializing empty frozen string failed' unless String.new.freeze.send(:initialize) == ''
+            raise 'reinitializing non-empty frozen string failed' unless String.new('hello').freeze.send(:initialize) == 'hello'
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+
+    #[test]
+    fn reinitializing_a_frozen_string_with_args_raises_frozen_error() {
+        let mut interp = interpreter();
+        let test = r"
+            begin
+                String.new.freeze.send(:initialize, 'world')
+            rescue FrozenError
+                # expected
+            else
+                raise 'reinitializing frozen empty string with args did not raise FrozenError'
+            end
+
+            begin
+                String.new('hello').freeze.send(:initialize, 'world')
+            rescue FrozenError
+                # expected
+            else
+                raise 'reinitializing frozen non-empty string with args did not raise FrozenError'
+            end
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
 }
