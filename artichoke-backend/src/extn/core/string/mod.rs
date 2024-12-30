@@ -3,6 +3,7 @@
 use core::ops::Deref;
 use std::ffi::c_void;
 use std::os::raw::c_char;
+use std::ptr::NonNull;
 
 use artichoke_core::value::Value as _;
 use spinoso_exception::TypeError;
@@ -49,7 +50,10 @@ impl BoxUnboxVmValue for String {
         // holds an `RString*` in the `p` variant.
         let string = sys::mrb_sys_basic_ptr(value).cast::<sys::RString>();
 
-        let ptr = (*string).as_.heap.ptr;
+        let Some(ptr) = NonNull::<c_char>::new((*string).as_.heap.ptr) else {
+            // An allocated but uninitialized string has a null pointer, so swap in an empty string.
+            return Ok(UnboxedValueGuard::new(String::new()));
+        };
         let length = (*string).as_.heap.len as usize;
         let capacity = (*string).as_.heap.aux.capa as usize;
 
@@ -61,7 +65,7 @@ impl BoxUnboxVmValue for String {
 
         let s = String::from_raw_parts_with_encoding(
             RawParts {
-                ptr: ptr.cast::<u8>(),
+                ptr: ptr.cast::<u8>().as_mut(),
                 length,
                 capacity,
             },
