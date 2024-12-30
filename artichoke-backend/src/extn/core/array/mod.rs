@@ -333,4 +333,17 @@ mod tests {
         let result = interp.eval(b"spec");
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
     }
+
+    #[test]
+    fn allocated_but_uninitialized_array_can_be_garbage_collected() {
+        let mut interp = interpreter();
+        let test = r"
+            1_000_000.times do
+              Array.allocate
+            end
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+        interp.full_gc().unwrap();
+    }
 }
