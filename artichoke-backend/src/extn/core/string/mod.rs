@@ -142,6 +142,7 @@ impl BoxUnboxVmValue for String {
         // `String` should not have a destructor registered in the class
         // registry.
         let _ = data;
+        unreachable!("<String as BoxUnboxVmValue>::free is never called");
     }
 }
 

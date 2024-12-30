@@ -316,6 +316,7 @@ impl BoxUnboxVmValue for Array {
         //
         // Array should not have a destructor registered in the class registry.
         let _ = data;
+        unreachable!("<Array as BoxUnboxVmValue>::free is never called");
     }
 }
 
