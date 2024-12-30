@@ -113,7 +113,7 @@ impl<'a> ArenaIndex<'a> {
     }
 }
 
-impl<'a> Deref for ArenaIndex<'a> {
+impl Deref for ArenaIndex<'_> {
     type Target = Artichoke;
 
     #[inline]
@@ -122,14 +122,14 @@ impl<'a> Deref for ArenaIndex<'a> {
     }
 }
 
-impl<'a> DerefMut for ArenaIndex<'a> {
+impl DerefMut for ArenaIndex<'_> {
     #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.interp
     }
 }
 
-impl<'a> Drop for ArenaIndex<'a> {
+impl Drop for ArenaIndex<'_> {
     fn drop(&mut self) {
         let idx = self.index;
         // We can't panic in a drop impl, so ignore errors when crossing the

@@ -118,13 +118,13 @@ pub struct ReleaseMetadata<'a> {
     pub compiler_version: Option<&'a str>,
 }
 
-impl<'a> Default for ReleaseMetadata<'a> {
+impl Default for ReleaseMetadata<'_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a> release_metadata::ReleaseMetadata for ReleaseMetadata<'a> {
+impl release_metadata::ReleaseMetadata for ReleaseMetadata<'_> {
     fn ruby_copyright(&self) -> &str {
         self.copyright
     }

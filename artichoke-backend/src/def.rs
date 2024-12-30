@@ -152,7 +152,7 @@ impl EnclosingRubyScope {
         Self::Class(ClassScope {
             name: String::from(spec.name()).into_boxed_str(),
             name_cstr,
-            enclosing_scope: spec.enclosing_scope().map(Clone::clone).map(Box::new),
+            enclosing_scope: spec.enclosing_scope().cloned().map(Box::new),
         })
     }
 
@@ -168,7 +168,7 @@ impl EnclosingRubyScope {
             name: String::from(spec.name()).into_boxed_str(),
             name_cstr,
             name_symbol: spec.name_symbol(),
-            enclosing_scope: spec.enclosing_scope().map(Clone::clone).map(Box::new),
+            enclosing_scope: spec.enclosing_scope().cloned().map(Box::new),
         })
     }
 

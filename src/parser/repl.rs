@@ -35,9 +35,9 @@ impl<'a> Parser<'a> {
     }
 }
 
-impl<'a> Helper for Parser<'a> {}
+impl Helper for Parser<'_> {}
 
-impl<'a> Completer for Parser<'a> {
+impl Completer for Parser<'_> {
     type Candidate = String;
 
     fn update(&self, _line: &mut LineBuffer, _start: usize, _elected: &str, _cl: &mut Changeset) {
@@ -45,13 +45,13 @@ impl<'a> Completer for Parser<'a> {
     }
 }
 
-impl<'a> Hinter for Parser<'a> {
+impl Hinter for Parser<'_> {
     type Hint = String;
 }
 
-impl<'a> Highlighter for Parser<'a> {}
+impl Highlighter for Parser<'_> {}
 
-impl<'a> Validator for Parser<'a> {
+impl Validator for Parser<'_> {
     fn validate(&self, ctx: &mut ValidationContext<'_>) -> Result<ValidationResult, ReadlineError> {
         let mut parser = self.inner.lock().unwrap_or_else(PoisonError::into_inner);
 

@@ -274,7 +274,7 @@ pub struct Hex<'a> {
     escaped_byte: Option<EscapedByte>,
 }
 
-impl<'a> Hex<'a> {
+impl Hex<'_> {
     /// Returns the number of remaining hex encoded characters in the iterator.
     ///
     /// # Examples
@@ -365,7 +365,7 @@ impl<'a, const N: usize> From<&'a [u8; N]> for Hex<'a> {
     }
 }
 
-impl<'a> Iterator for Hex<'a> {
+impl Iterator for Hex<'_> {
     type Item = char;
 
     #[inline]
@@ -402,9 +402,9 @@ impl<'a> Iterator for Hex<'a> {
     }
 }
 
-impl<'a> FusedIterator for Hex<'a> {}
+impl FusedIterator for Hex<'_> {}
 
-impl<'a> ExactSizeIterator for Hex<'a> {}
+impl ExactSizeIterator for Hex<'_> {}
 
 /// Map from a `u8` to a hex encoded string literal.
 ///

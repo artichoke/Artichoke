@@ -21,7 +21,7 @@ pub struct UnboxedValueGuard<'a, T> {
     phantom: PhantomData<&'a mut T>,
 }
 
-impl<'a, T> fmt::Debug for UnboxedValueGuard<'a, T>
+impl<T> fmt::Debug for UnboxedValueGuard<'_, T>
 where
     T: fmt::Debug,
 {
@@ -32,7 +32,7 @@ where
     }
 }
 
-impl<'a, T> UnboxedValueGuard<'a, T> {
+impl<T> UnboxedValueGuard<'_, T> {
     /// Construct a new guard around the given `T`.
     ///
     /// `UnboxedValueGuard` allows passing around a `&mut` reference without
@@ -95,7 +95,7 @@ impl<T> HeapAllocated<T> {
     }
 }
 
-impl<'a, T> Deref for UnboxedValueGuard<'a, HeapAllocated<T>> {
+impl<T> Deref for UnboxedValueGuard<'_, HeapAllocated<T>> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -103,7 +103,7 @@ impl<'a, T> Deref for UnboxedValueGuard<'a, HeapAllocated<T>> {
     }
 }
 
-impl<'a, T> DerefMut for UnboxedValueGuard<'a, HeapAllocated<T>> {
+impl<T> DerefMut for UnboxedValueGuard<'_, HeapAllocated<T>> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         // SAFETY: `HeapAllocated` data objects are boxed and the raw box
         // pointer is stored in the `mrb_value`. Because `Deref::Target` is `T`,
@@ -126,7 +126,7 @@ impl<T> Immediate<T> {
     }
 }
 
-impl<'a, T> Deref for UnboxedValueGuard<'a, Immediate<T>> {
+impl<T> Deref for UnboxedValueGuard<'_, Immediate<T>> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -134,7 +134,7 @@ impl<'a, T> Deref for UnboxedValueGuard<'a, Immediate<T>> {
     }
 }
 
-impl<'a, T> DerefMut for UnboxedValueGuard<'a, Immediate<T>> {
+impl<T> DerefMut for UnboxedValueGuard<'_, Immediate<T>> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.guarded.deref_mut().0
     }

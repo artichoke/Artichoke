@@ -74,7 +74,7 @@ where
     }
 }
 
-impl<'a, T> From<Array<T>> for Cow<'a, [T]>
+impl<T> From<Array<T>> for Cow<'_, [T]>
 where
     T: Clone,
 {

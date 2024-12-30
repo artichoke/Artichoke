@@ -1,6 +1,5 @@
-use std::ffi::c_void;
+use std::ffi::{c_char, c_void};
 use std::mem;
-use std::os::raw::c_char;
 use std::ptr::{self, NonNull};
 
 use crate::sys;
@@ -68,7 +67,7 @@ struct Funcall<'a> {
     block: Option<sys::mrb_value>,
 }
 
-impl<'a> Protect for Funcall<'a> {
+impl Protect for Funcall<'_> {
     unsafe extern "C" fn run(mrb: *mut sys::mrb_state, data: sys::mrb_value) -> sys::mrb_value {
         let ptr = sys::mrb_sys_cptr_ptr(data);
         // `protect` must be `Copy` because the call to a function in the
@@ -101,7 +100,7 @@ struct Eval<'a> {
     code: &'a [u8],
 }
 
-impl<'a> Protect for Eval<'a> {
+impl Protect for Eval<'_> {
     unsafe extern "C" fn run(mrb: *mut sys::mrb_state, data: sys::mrb_value) -> sys::mrb_value {
         let ptr = sys::mrb_sys_cptr_ptr(data);
         let Self { context, code } = *Box::from_raw(ptr.cast::<Self>());

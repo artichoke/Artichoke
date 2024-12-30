@@ -2,6 +2,7 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
 #![allow(clippy::manual_let_else)]
+#![allow(clippy::multiple_crate_versions)]
 #![cfg_attr(test, allow(clippy::non_ascii_literal))]
 #![allow(unknown_lints)]
 #![allow(clippy::module_name_repetitions)]
@@ -14,7 +15,6 @@
 #![warn(trivial_casts, trivial_numeric_casts)]
 #![warn(unused_qualifications)]
 #![warn(variant_size_differences)]
-#![forbid(unsafe_code)]
 // Enable feature callouts in generated documentation:
 // https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html
 //

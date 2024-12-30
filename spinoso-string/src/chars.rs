@@ -35,9 +35,9 @@ impl<'a> Iterator for Chars<'a> {
     }
 }
 
-impl<'a> FusedIterator for Chars<'a> {}
+impl FusedIterator for Chars<'_> {}
 
-impl<'a> Chars<'a> {
+impl Chars<'_> {
     pub(crate) fn new() -> Self {
         const EMPTY: &[u8] = &[];
         Self(State::Binary(Bytes::from(EMPTY)))
@@ -51,7 +51,7 @@ enum State<'a> {
     Binary(Bytes<'a>),
 }
 
-impl<'a> Default for State<'a> {
+impl Default for State<'_> {
     fn default() -> Self {
         Self::Utf8(ConventionallyUtf8::new())
     }
@@ -69,7 +69,7 @@ impl<'a> Iterator for State<'a> {
     }
 }
 
-impl<'a> FusedIterator for State<'a> {}
+impl FusedIterator for State<'_> {}
 
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 struct Bytes<'a> {
@@ -95,19 +95,16 @@ impl<'a> Iterator for Bytes<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.bytes.is_empty() {
-            None
-        } else {
-            // Splitting the byte slice is guaranteed to not panic because the
-            // slice is non-empty.
-            let (next, remainder) = self.bytes.split_at(1);
+        if let Some((next, remainder)) = self.bytes.split_at_checked(1) {
             self.bytes = remainder;
             Some(next)
+        } else {
+            None
         }
     }
 }
 
-impl<'a> FusedIterator for Bytes<'a> {}
+impl FusedIterator for Bytes<'_> {}
 
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 struct InvalidBytes<'a> {
@@ -137,19 +134,16 @@ impl<'a> Iterator for InvalidBytes<'a> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        if self.bytes.is_empty() {
-            None
-        } else {
-            // Splitting the byte slice is guaranteed to not panic because the
-            // slice is non-empty.
-            let (next, remainder) = self.bytes.split_at(1);
+        if let Some((next, remainder)) = self.bytes.split_at_checked(1) {
             self.bytes = remainder;
             Some(next)
+        } else {
+            None
         }
     }
 }
 
-impl<'a> FusedIterator for InvalidBytes<'a> {}
+impl FusedIterator for InvalidBytes<'_> {}
 
 #[derive(Default, Debug, Clone)]
 pub struct ConventionallyUtf8<'a> {
@@ -191,18 +185,18 @@ impl<'a> Iterator for ConventionallyUtf8<'a> {
             return Some(slice);
         }
         let (ch, size) = bstr::decode_utf8(self.bytes);
+        // SAFETY: bstr guarantees that the size is within the bounds of the slice.
+        let (chunk, remainder) = unsafe { self.bytes.split_at_unchecked(size) };
+        self.bytes = remainder;
+
         if ch.is_some() {
-            let (ch, remainder) = self.bytes.split_at(size);
-            self.bytes = remainder;
-            Some(ch)
+            Some(chunk)
         } else {
-            let (invalid_utf8_bytes, remainder) = self.bytes.split_at(size);
             // Invalid UTF-8 bytes are yielded as byte slices one byte at a time.
-            self.invalid_bytes = InvalidBytes::with_bytes(invalid_utf8_bytes);
-            self.bytes = remainder;
+            self.invalid_bytes = InvalidBytes::with_bytes(chunk);
             self.invalid_bytes.next()
         }
     }
 }
 
-impl<'a> FusedIterator for ConventionallyUtf8<'a> {}
+impl FusedIterator for ConventionallyUtf8<'_> {}

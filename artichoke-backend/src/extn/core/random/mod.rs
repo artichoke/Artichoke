@@ -19,8 +19,6 @@
 //!
 //! [`Random`]: https://ruby-doc.org/core-3.1.2/Random.html
 
-use core::mem;
-
 use spinoso_random::{InitializeError, NewSeedError, UrandomError};
 #[doc(inline)]
 pub use spinoso_random::{Max, Rand, Random};
@@ -68,14 +66,11 @@ impl Seed {
 
     #[must_use]
     pub fn from_mt_seed_lossy(seed: [u32; 4]) -> Self {
-        qed::const_assert_size_eq!([u32; 4], i128);
-        let seed = unsafe { mem::transmute::<_, i128>(seed) };
-
         // TODO: return a bignum instead of truncating.
-        let seed_bytes = seed.to_ne_bytes();
-        let mut buf = [0_u8; mem::size_of::<i64>()];
-        buf.copy_from_slice(&seed_bytes[..mem::size_of::<i64>()]);
-        let seed = i64::from_ne_bytes(buf);
+        let seed = {
+            let [hi, lo, _, _] = seed;
+            ((i64::from(hi)) << 32) | i64::from(lo)
+        };
 
         Self::New(seed)
     }
@@ -199,5 +194,65 @@ impl From<UrandomError> for Error {
     fn from(err: UrandomError) -> Self {
         let err = RuntimeError::from(err.message());
         err.into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Seed;
+
+    #[test]
+    fn test_seed_new() {
+        let seed = Seed::new();
+        assert_eq!(seed, Seed::None);
+    }
+
+    #[test]
+    fn test_from_mt_seed_lossy_basic() {
+        let input = [0x1234_5678, 0x9ABC_DEF0, 0x0, 0x0];
+        let seed = Seed::from_mt_seed_lossy(input);
+        // High 32 bits: 0x1234_5678, Low 32 bits: 0x9ABC_DEF0
+        assert_eq!(seed, Seed::New(0x123_45678_i64 << 32 | 0x9ABC_DEF0));
+    }
+
+    #[test]
+    fn test_from_mt_seed_lossy_max_values() {
+        let input = [u32::MAX, u32::MAX, 0x0, 0x0];
+        let seed = Seed::from_mt_seed_lossy(input);
+        // High 32 bits: u32::MAX, Low 32 bits: u32::MAX
+        assert_eq!(seed, Seed::New(i64::from(u32::MAX) << 32 | i64::from(u32::MAX)));
+    }
+
+    #[test]
+    fn test_from_mt_seed_lossy_discarded_values() {
+        let input = [0x1234_5678, 0x9AB_CDEF0, 0xDEAD_BEEF, 0xFEED_FACE];
+        let seed = Seed::from_mt_seed_lossy(input);
+        // High 32 bits: 0x12345678, Low 32 bits: 0x9ABCDEF0
+        // The other values are discarded
+        assert_eq!(seed, Seed::New(0x1234_5678_i64 << 32 | 0x9ABC_DEF0));
+    }
+
+    #[test]
+    fn test_from_mt_seed_lossy_zero_values() {
+        let input = [0x0, 0x0, 0x0, 0x0];
+        let seed = Seed::from_mt_seed_lossy(input);
+        // All values are zero
+        assert_eq!(seed, Seed::New(0));
+    }
+
+    #[test]
+    fn test_from_mt_seed_lossy_high_only() {
+        let input = [0x1234_5678, 0x0, 0x0, 0x0];
+        let seed = Seed::from_mt_seed_lossy(input);
+        // High 32 bits: 0x1234_5678, Low 32 bits: 0x0
+        assert_eq!(seed, Seed::New(0x1234_5678 << 32));
+    }
+
+    #[test]
+    fn test_from_mt_seed_lossy_low_only() {
+        let input = [0x0, 0x9ABC_DEF0, 0x0, 0x0];
+        let seed = Seed::from_mt_seed_lossy(input);
+        // High 32 bits: 0x0, Low 32 bits: 0x9ABC_DEF0
+        assert_eq!(seed, Seed::New(0x9ABC_DEF0));
     }
 }

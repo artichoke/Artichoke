@@ -319,7 +319,7 @@ impl<const N: usize> TryFrom<Buf> for [u8; N] {
     }
 }
 
-impl<'a> From<Buf> for Cow<'a, [u8]> {
+impl From<Buf> for Cow<'_, [u8]> {
     #[inline]
     fn from(buf: Buf) -> Self {
         Cow::Owned(buf.into())

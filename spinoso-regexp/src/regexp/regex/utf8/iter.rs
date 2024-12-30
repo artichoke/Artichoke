@@ -41,7 +41,7 @@ impl<'a> Iterator for Captures<'a> {
     }
 }
 
-impl<'a> FusedIterator for Captures<'a> {}
+impl FusedIterator for Captures<'_> {}
 
 #[derive(Debug)]
 #[must_use = "this `CaptureIndices` is an `Iterator`, which should be consumed if constructed"]
@@ -64,7 +64,7 @@ impl<'a, 'b> CaptureIndices<'a, 'b> {
     }
 }
 
-impl<'a, 'b> Iterator for CaptureIndices<'a, 'b> {
+impl Iterator for CaptureIndices<'_, '_> {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -78,4 +78,4 @@ impl<'a, 'b> Iterator for CaptureIndices<'a, 'b> {
     }
 }
 
-impl<'a, 'b> FusedIterator for CaptureIndices<'a, 'b> {}
+impl FusedIterator for CaptureIndices<'_, '_> {}

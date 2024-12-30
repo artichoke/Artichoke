@@ -9,7 +9,7 @@ use core::str;
 
 use super::Utf8Str;
 
-impl<'a> Default for &'a Utf8Str {
+impl Default for &'_ Utf8Str {
     #[inline]
     fn default() -> Self {
         Utf8Str::empty()

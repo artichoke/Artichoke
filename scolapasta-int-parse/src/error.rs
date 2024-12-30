@@ -35,19 +35,19 @@ impl<'a> From<&'a [u8]> for Error<'a> {
     }
 }
 
-impl<'a> From<InvalidRadixError> for Error<'a> {
+impl From<InvalidRadixError> for Error<'_> {
     fn from(err: InvalidRadixError) -> Self {
         Self::Radix(err)
     }
 }
 
-impl<'a> From<InvalidRadixErrorKind> for Error<'a> {
+impl From<InvalidRadixErrorKind> for Error<'_> {
     fn from(err: InvalidRadixErrorKind) -> Self {
         Self::Radix(err.into())
     }
 }
 
-impl<'a> fmt::Display for Error<'a> {
+impl fmt::Display for Error<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Argument(err) => write!(f, "{err}"),
@@ -57,7 +57,7 @@ impl<'a> fmt::Display for Error<'a> {
 }
 
 #[cfg(feature = "std")]
-impl<'a> std::error::Error for Error<'a> {}
+impl std::error::Error for Error<'_> {}
 
 /// Error that indicates the byte string input to [`parse`] was invalid.
 ///
@@ -120,7 +120,7 @@ impl<'a> From<&'a [u8]> for ArgumentError<'a> {
     }
 }
 
-impl<'a> fmt::Display for ArgumentError<'a> {
+impl fmt::Display for ArgumentError<'_> {
     fn fmt(&self, mut f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(r#"invalid value for Integer(): ""#)?;
         // FIXME: this should actually be `String#inspect`, which is encoding
@@ -132,7 +132,7 @@ impl<'a> fmt::Display for ArgumentError<'a> {
 }
 
 #[cfg(feature = "std")]
-impl<'a> std::error::Error for ArgumentError<'a> {}
+impl std::error::Error for ArgumentError<'_> {}
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum InvalidRadixErrorKind {

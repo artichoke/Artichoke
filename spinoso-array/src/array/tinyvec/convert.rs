@@ -83,7 +83,7 @@ where
     }
 }
 
-impl<'a, T> From<TinyArray<T>> for Cow<'a, [T]>
+impl<T> From<TinyArray<T>> for Cow<'_, [T]>
 where
     T: Clone + Default,
 {

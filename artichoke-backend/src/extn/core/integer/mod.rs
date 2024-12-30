@@ -1,5 +1,4 @@
 use std::fmt::{self, Write as _};
-use std::mem;
 
 use crate::extn::core::numeric::{self, Coercion, Outcome};
 use crate::extn::prelude::*;
@@ -206,7 +205,7 @@ impl Integer {
 
     #[must_use]
     pub const fn size() -> usize {
-        const SIZE_OF_INT: usize = mem::size_of::<i64>();
+        const SIZE_OF_INT: usize = size_of::<i64>();
 
         SIZE_OF_INT
     }

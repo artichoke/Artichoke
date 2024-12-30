@@ -121,13 +121,13 @@ pub struct PromptConfig<'a, 'b, 'c> {
     pub result_prefix: &'c str,
 }
 
-impl<'a, 'b, 'c> Default for PromptConfig<'a, 'b, 'c> {
+impl Default for PromptConfig<'_, '_, '_> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'a, 'b, 'c> PromptConfig<'a, 'b, 'c> {
+impl PromptConfig<'_, '_, '_> {
     /// Create a new, default REPL prompt.
     ///
     /// # Default configuration

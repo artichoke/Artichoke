@@ -75,9 +75,9 @@ use std::iter::FusedIterator;
 #[derive(Debug, Clone)]
 pub struct TypeSpecs<'a, T>(Values<'a, TypeId, Box<T>>);
 
-impl<'a, T> ExactSizeIterator for TypeSpecs<'a, T> {}
+impl<T> ExactSizeIterator for TypeSpecs<'_, T> {}
 
-impl<'a, T> FusedIterator for TypeSpecs<'a, T> {}
+impl<T> FusedIterator for TypeSpecs<'_, T> {}
 
 impl<'a, T> Iterator for TypeSpecs<'a, T> {
     type Item = &'a T;

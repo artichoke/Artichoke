@@ -44,13 +44,13 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
-impl<'a> ExactSizeIterator for Iter<'a> {
+impl ExactSizeIterator for Iter<'_> {
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
 
-impl<'a> FusedIterator for Iter<'a> {}
+impl FusedIterator for Iter<'_> {}
 
 /// An iterator over the features in a `LoadedFeatures`.
 ///
@@ -88,10 +88,10 @@ impl<'a> Iterator for Features<'a> {
     }
 }
 
-impl<'a> ExactSizeIterator for Features<'a> {
+impl ExactSizeIterator for Features<'_> {
     fn len(&self) -> usize {
         self.inner.len()
     }
 }
 
-impl<'a> FusedIterator for Features<'a> {}
+impl FusedIterator for Features<'_> {}

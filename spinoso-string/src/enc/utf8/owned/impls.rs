@@ -228,7 +228,7 @@ impl<const N: usize> TryFrom<Utf8String> for [u8; N] {
     }
 }
 
-impl<'a> From<Utf8String> for Cow<'a, [u8]> {
+impl From<Utf8String> for Cow<'_, [u8]> {
     #[inline]
     fn from(content: Utf8String) -> Self {
         let buf = content.into();
@@ -253,7 +253,7 @@ impl TryFrom<Utf8String> for String {
     }
 }
 
-impl<'a> TryFrom<Utf8String> for Cow<'a, str> {
+impl TryFrom<Utf8String> for Cow<'_, str> {
     type Error = Utf8String;
 
     #[inline]
@@ -263,7 +263,7 @@ impl<'a> TryFrom<Utf8String> for Cow<'a, str> {
     }
 }
 
-impl<'a> From<Utf8String> for Cow<'a, Utf8Str> {
+impl From<Utf8String> for Cow<'_, Utf8Str> {
     #[inline]
     fn from(content: Utf8String) -> Self {
         Cow::Owned(content)

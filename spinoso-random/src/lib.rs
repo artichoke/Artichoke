@@ -452,6 +452,12 @@ enum ArgumentErrorInner {
     Rand(Max),
 }
 
+impl Default for ArgumentError {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ArgumentError {
     /// Construct a new, default argument error.
     ///

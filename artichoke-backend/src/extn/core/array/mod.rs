@@ -1,6 +1,7 @@
 use std::ffi::c_void;
 use std::fmt::Write as _;
 use std::ops::Deref;
+use std::ptr::NonNull;
 
 use crate::convert::{implicitly_convert_to_int, implicitly_convert_to_string, UnboxedValueGuard};
 use crate::extn::prelude::*;
@@ -250,10 +251,18 @@ impl BoxUnboxVmValue for Array {
         // holds an `RArray*` in the `p` variant.
         let ary = sys::mrb_sys_basic_ptr(value).cast::<sys::RArray>();
 
-        let ptr = (*ary).as_.heap.ptr;
+        let Some(mut ptr) = NonNull::new((*ary).as_.heap.ptr) else {
+            // An allocated but uninitialized array has a null pointer, so swap in an empty array.
+            return Ok(UnboxedValueGuard::new(Array::new()));
+        };
         let length = (*ary).as_.heap.len as usize;
         let capacity = (*ary).as_.heap.aux.capa as usize;
-        let array = Array::from_raw_parts(RawParts { ptr, length, capacity });
+
+        let array = Array::from_raw_parts(RawParts {
+            ptr: ptr.as_mut(),
+            length,
+            capacity,
+        });
 
         Ok(UnboxedValueGuard::new(array))
     }
@@ -307,10 +316,11 @@ impl BoxUnboxVmValue for Array {
         //
         // Array should not have a destructor registered in the class registry.
         let _ = data;
+        unreachable!("<Array as BoxUnboxVmValue>::free is never called");
     }
 }
 
-impl<'a> Deref for UnboxedValueGuard<'a, Array> {
+impl Deref for UnboxedValueGuard<'_, Array> {
     type Target = Array;
 
     fn deref(&self) -> &Self::Target {
@@ -331,6 +341,76 @@ mod tests {
         let result = interp.eval(FUNCTIONAL_TEST);
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
         let result = interp.eval(b"spec");
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+
+    #[test]
+    fn allocated_but_uninitialized_array_can_be_garbage_collected() {
+        let mut interp = interpreter();
+        let test = r"
+            1_000_000.times do
+              Array.allocate
+            end
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+        interp.full_gc().unwrap();
+    }
+
+    #[test]
+    fn allocated_but_uninitialized_array_can_be_read() {
+        let mut interp = interpreter();
+        // See the ruby specs for `Array.allocate` for more details:
+        // spec-runner/vendor/spec/core/array/allocate_spec.rb
+        //
+        // ```console
+        // [3.3.6] > a = Array.allocate
+        // => []
+        // [3.3.6] > a.empty?
+        // => true
+        // [3.3.6] > a.size
+        // => 0
+        // [3.3.6] > a.inspect.is_a? String
+        // => true
+        // [3.3.6] > a.inspect == "[]"
+        // => true
+        // ```
+        let test = r"
+            a = Array.allocate
+            raise 'Array.allocate is not an instance of Array' unless a.is_a?(Array)
+            raise 'Array.allocate is not empty' unless a.empty?
+            raise 'Array.allocate.size is not 0' unless a.size == 0
+            raise 'Array.allocate.inspect is not a String' unless a.inspect.is_a?(String)
+            raise 'Array.allocate.inspect is not empty' unless a.inspect == '[]'
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+
+    #[test]
+    fn allocated_but_uninitialized_array_can_be_modified() {
+        let mut interp = interpreter();
+        // ```console
+        // $ irb
+        // [3.3.6] > a = Array.allocate
+        // => []
+        // [3.3.6] > a.push 1
+        // => [1]
+        // [3.3.6] > a.push 2
+        // => [1, 2]
+        // [3.3.6] > a.size
+        // => 2
+        // [3.3.6] > a
+        // => [1, 2]
+        // ```
+        let test = r#"
+            a = Array.allocate
+            a.push(1)
+            a.push(2)
+            raise "expected 2 elements" unless a.size == 2
+            raise "array had unexpected contents" unless a == [1, 2]
+        "#;
+        let result = interp.eval(test.as_bytes());
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
     }
 }

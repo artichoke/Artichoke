@@ -69,7 +69,7 @@ use crate::enc;
 #[must_use = "this `Inspect` is an `Iterator`, which should be consumed if constructed"]
 pub struct Inspect<'a>(enc::Inspect<'a>);
 
-impl<'a> Iterator for Inspect<'a> {
+impl Iterator for Inspect<'_> {
     type Item = char;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -77,7 +77,7 @@ impl<'a> Iterator for Inspect<'a> {
     }
 }
 
-impl<'a> FusedIterator for Inspect<'a> {}
+impl FusedIterator for Inspect<'_> {}
 
 impl<'a> Inspect<'a> {
     pub(crate) fn new(value: enc::Inspect<'a>) -> Self {

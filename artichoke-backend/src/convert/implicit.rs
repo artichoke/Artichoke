@@ -613,7 +613,10 @@ pub unsafe fn implicitly_convert_to_spinoso_string<'a>(
             // successful conversion: `#to_str` returned a string.
             //
             // XXX: lifetime extension.
-            Ok(mem::transmute(s))
+            Ok(mem::transmute::<
+                UnboxedValueGuard<'_, spinoso_string::String>,
+                UnboxedValueGuard<'a, spinoso_string::String>,
+            >(s))
         } else {
             // Non `String` types returned from `#to_str` result in a
             // `TypeError`:

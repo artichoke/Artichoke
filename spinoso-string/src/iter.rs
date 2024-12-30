@@ -55,13 +55,13 @@ impl<'a> Iter<'a> {
     /// ```
     #[inline]
     #[must_use]
-    pub fn as_slice(&self) -> &[u8] {
+    pub fn as_slice(&self) -> &'a [u8] {
         self.0.as_slice()
     }
 }
 
 impl<'a> AsRef<[u8]> for Iter<'a> {
-    fn as_ref(&self) -> &[u8] {
+    fn as_ref(&self) -> &'a [u8] {
         self.as_slice()
     }
 }
@@ -95,7 +95,7 @@ impl<'a> Iterator for Iter<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Iter<'a> {
+impl DoubleEndedIterator for Iter<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back()
@@ -107,9 +107,9 @@ impl<'a> DoubleEndedIterator for Iter<'a> {
     }
 }
 
-impl<'a> FusedIterator for Iter<'a> {}
+impl FusedIterator for Iter<'_> {}
 
-impl<'a> ExactSizeIterator for Iter<'a> {}
+impl ExactSizeIterator for Iter<'_> {}
 
 /// Mutable [`String`] byte iterator.
 ///
@@ -198,7 +198,7 @@ impl<'a> Iterator for IterMut<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for IterMut<'a> {
+impl DoubleEndedIterator for IterMut<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back()
@@ -210,9 +210,9 @@ impl<'a> DoubleEndedIterator for IterMut<'a> {
     }
 }
 
-impl<'a> FusedIterator for IterMut<'a> {}
+impl FusedIterator for IterMut<'_> {}
 
-impl<'a> ExactSizeIterator for IterMut<'a> {}
+impl ExactSizeIterator for IterMut<'_> {}
 
 /// An iterator that moves out of a string.
 ///
@@ -390,12 +390,12 @@ impl<'a> Bytes<'a> {
     /// ```
     #[inline]
     #[must_use]
-    pub fn as_slice(&self) -> &[u8] {
+    pub fn as_slice(&self) -> &'a [u8] {
         self.0.as_slice()
     }
 }
 
-impl<'a> Iterator for Bytes<'a> {
+impl Iterator for Bytes<'_> {
     type Item = u8;
 
     #[inline]
@@ -424,7 +424,7 @@ impl<'a> Iterator for Bytes<'a> {
     }
 }
 
-impl<'a> DoubleEndedIterator for Bytes<'a> {
+impl DoubleEndedIterator for Bytes<'_> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back().copied()
@@ -436,6 +436,6 @@ impl<'a> DoubleEndedIterator for Bytes<'a> {
     }
 }
 
-impl<'a> FusedIterator for Bytes<'a> {}
+impl FusedIterator for Bytes<'_> {}
 
-impl<'a> ExactSizeIterator for Bytes<'a> {}
+impl ExactSizeIterator for Bytes<'_> {}

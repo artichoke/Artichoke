@@ -98,7 +98,7 @@ impl<'a> TryConvertMut<Value, &'a [u8]> for Artichoke {
         //
         // FIXME: does this unbound lifetime and transmute below allow
         // extracting `&'static [u8]`?
-        let slice = unsafe { mem::transmute(s.as_slice()) };
+        let slice = unsafe { mem::transmute::<&'_ [u8], &'a [u8]>(s.as_slice()) };
         Ok(slice)
     }
 }
