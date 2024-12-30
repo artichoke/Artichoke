@@ -1,6 +1,7 @@
 use std::ffi::c_void;
 use std::fmt::Write as _;
 use std::ops::Deref;
+use std::ptr::NonNull;
 
 use crate::convert::{implicitly_convert_to_int, implicitly_convert_to_string, UnboxedValueGuard};
 use crate::extn::prelude::*;
@@ -250,10 +251,18 @@ impl BoxUnboxVmValue for Array {
         // holds an `RArray*` in the `p` variant.
         let ary = sys::mrb_sys_basic_ptr(value).cast::<sys::RArray>();
 
-        let ptr = (*ary).as_.heap.ptr;
+        let Some(mut ptr) = NonNull::new((*ary).as_.heap.ptr) else {
+            // An allocated but uninitialized array has a null pointer, so swap in an empty array.
+            return Ok(UnboxedValueGuard::new(Array::new()));
+        };
         let length = (*ary).as_.heap.len as usize;
         let capacity = (*ary).as_.heap.aux.capa as usize;
-        let array = Array::from_raw_parts(RawParts { ptr, length, capacity });
+
+        let array = Array::from_raw_parts(RawParts {
+            ptr: ptr.as_mut(),
+            length,
+            capacity,
+        });
 
         Ok(UnboxedValueGuard::new(array))
     }
