@@ -207,4 +207,60 @@ mod tests {
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
         interp.full_gc().unwrap();
     }
+
+    #[test]
+    fn allocated_but_uninitialized_string_can_be_read() {
+        let mut interp = interpreter();
+        // See the ruby specs for `String.allocate` for more details:
+        // spec-runner/vendor/spec/core/string/allocate_spec.rb
+        //
+        // ```console
+        // [3.3.6] > s = String.allocate
+        // => ""
+        // [3.3.6] > s.empty?
+        // => true
+        // [3.3.6] > s.size == 0
+        // => true
+        // [3.3.6] > s.inspect.is_a? String
+        // => true
+        // [3.3.6] > s.inspect == '""'
+        // => true
+        // ```
+        let test = r#"
+            s = String.allocate
+            raise 'String.allocate is not an instance of String' unless s.is_a?(String)
+            raise 'String.allocate.inspect is not a String' unless s.inspect.is_a?(String)
+            raise 'String.allocate is not empty' unless s.empty?
+            raise 'String.allocate.size is not 0' unless s.size == 0
+            raise 'String.allocate.inspect is not empty' unless s.inspect == '""'
+        "#;
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+
+    #[test]
+    fn string_allocate_can_be_modified() {
+        let mut interp = interpreter();
+        // ```console
+        // [3.3.6] > s = String.allocate
+        // => ""
+        // [3.3.6] > s.empty?
+        // => true
+        // [3.3.6] > s.size == 0
+        // => true
+        // [3.3.6] > s.inspect.is_a? String
+        // => true
+        // [3.3.6] > s.inspect == '""'
+        // => true
+        // ```
+        let test = r"
+            s = String.allocate
+            s << 'hello'
+            s << 'world'
+            raise 'String.allocate was not grown to correct size' unless s.size == 10
+            raise 'String.allocate was not appendable' unless s == 'helloworld'
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
 }
