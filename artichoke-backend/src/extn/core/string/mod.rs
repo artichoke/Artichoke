@@ -70,9 +70,7 @@ impl BoxUnboxVmValue for String {
             },
             encoding,
         );
-        let s = UnboxedValueGuard::new(s);
-
-        Ok(s)
+        Ok(UnboxedValueGuard::new(s))
     }
 
     fn alloc_value(value: Self::Unboxed, interp: &mut Artichoke) -> Result<Value, Error> {
