@@ -8,9 +8,8 @@ use core::ptr;
 use core::slice;
 use core::str;
 use std::collections::TryReserveError;
-use std::ffi::{c_void, CStr};
+use std::ffi::{c_char, c_double, c_int, c_void, CStr};
 use std::io::Write as _;
-use std::os::raw::{c_char, c_double, c_int};
 use std::ptr::NonNull;
 
 use artichoke_core::convert::Convert;

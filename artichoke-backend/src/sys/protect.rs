@@ -1,6 +1,5 @@
-use std::ffi::c_void;
+use std::ffi::{c_char, c_void};
 use std::mem;
-use std::os::raw::c_char;
 use std::ptr::{self, NonNull};
 
 use crate::sys;

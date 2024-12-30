@@ -1,8 +1,7 @@
 #![allow(clippy::cast_possible_wrap)]
 
 use core::ops::Deref;
-use std::ffi::c_void;
-use std::os::raw::c_char;
+use std::ffi::{c_char, c_void};
 use std::ptr::NonNull;
 
 use artichoke_core::value::Value as _;
