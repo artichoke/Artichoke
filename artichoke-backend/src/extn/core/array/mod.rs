@@ -346,4 +346,61 @@ mod tests {
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
         interp.full_gc().unwrap();
     }
+
+    #[test]
+    fn allocated_but_uninitialized_array_can_be_read() {
+        let mut interp = interpreter();
+        // See the ruby specs for `Array.allocate` for more details:
+        // spec-runner/vendor/spec/core/array/allocate_spec.rb
+        //
+        // ```console
+        // [3.3.6] > a = Array.allocate
+        // => []
+        // [3.3.6] > a.empty?
+        // => true
+        // [3.3.6] > a.size
+        // => 0
+        // [3.3.6] > a.inspect.is_a? String
+        // => true
+        // [3.3.6] > a.inspect == "[]"
+        // => true
+        // ```
+        let test = r"
+            a = Array.allocate
+            raise 'Array.allocate is not an instance of Array' unless a.is_a?(Array)
+            raise 'Array.allocate is not empty' unless a.empty?
+            raise 'Array.allocate.size is not 0' unless a.size == 0
+            raise 'Array.allocate.inspect is not a String' unless a.inspect.is_a?(String)
+            raise 'Array.allocate.inspect is not empty' unless a.inspect == '[]'
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+
+    #[test]
+    fn allocated_but_uninitialized_array_can_be_modified() {
+        let mut interp = interpreter();
+        // ```console
+        // $ irb
+        // [3.3.6] > a = Array.allocate
+        // => []
+        // [3.3.6] > a.push 1
+        // => [1]
+        // [3.3.6] > a.push 2
+        // => [1, 2]
+        // [3.3.6] > a.size
+        // => 2
+        // [3.3.6] > a
+        // => [1, 2]
+        // ```
+        let test = r#"
+            a = Array.allocate
+            a.push(1)
+            a.push(2)
+            raise "expected 2 elements" unless a.size == 2
+            raise "array had unexpected contents" unless a == [1, 2]
+        "#;
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
 }
