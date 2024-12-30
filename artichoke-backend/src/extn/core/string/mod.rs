@@ -332,4 +332,36 @@ mod tests {
         let result = interp.eval(test.as_bytes());
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
     }
+
+    #[test]
+    fn reinitializing_a_string_with_no_args_is_a_noop() {
+        let mut interp = interpreter();
+        let test = "
+            s = String.new
+            s.send(:initialize)
+            raise 'reinitializing empty string failed' unless s == ''
+
+            s = String.new('hello')
+            s.send(:initialize)
+            raise 'reinitializing non-empty string failed' unless s == 'hello'
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+
+    #[test]
+    fn reinitializing_a_string_with_args_replaces_the_string_contents() {
+        let mut interp = interpreter();
+        let test = "
+            s = String.new
+            s.send(:initialize, 'world')
+            raise 'reinitializing empty string with args failed' unless s == 'world'
+
+            s = String.new('hello')
+            s.send(:initialize, 'world')
+            raise 'reinitializing non-empty string with args failed' unless s == 'world'
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
 }
