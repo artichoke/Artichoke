@@ -351,3 +351,20 @@ impl MatchData {
         self.regexp.inner().capture0(haystack)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::test::prelude::*;
+
+    const SUBJECT: &str = "MatchData";
+    const FUNCTIONAL_TEST: &[u8] = include_bytes!("matchdata_functional_test.rb");
+
+    #[test]
+    fn functional() {
+        let mut interp = interpreter();
+        let result = interp.eval(FUNCTIONAL_TEST);
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+        let result = interp.eval(b"spec");
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+}
