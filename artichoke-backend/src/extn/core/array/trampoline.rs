@@ -248,11 +248,19 @@ pub fn first(interp: &mut Artichoke, mut ary: Value, num: Option<Value>) -> Resu
 
 pub fn initialize(
     interp: &mut Artichoke,
-    into: Value,
+    mut value: Value,
     first: Option<Value>,
     second: Option<Value>,
     block: Option<Block>,
 ) -> Result<Value, Error> {
+    // If we are calling `initialize` on an already initialized `Array`,
+    // pluck out the inner buffer and drop it so we don't leak memory.
+    if let Ok(a) = unsafe { Array::unbox_from_value(&mut value, interp) } {
+        unsafe {
+            let inner = a.take();
+            drop(inner);
+        }
+    }
     // Pack an empty `Array` into the given uninitialized `RArray *` so it can
     // be safely marked if an mruby allocation occurs and a GC is triggered in
     // `Array::initialize`.
@@ -260,9 +268,9 @@ pub fn initialize(
     // Allocations are likely in the case where a block is passed to
     // `Array#initialize` or when the first and second args must be coerced with
     // the `#to_*` family of methods.
-    Array::box_into_value(Array::new(), into, interp)?;
+    Array::box_into_value(Array::new(), value, interp)?;
     let array = super::initialize(interp, first, second, block)?;
-    Array::box_into_value(array, into, interp)
+    Array::box_into_value(array, value, interp)
 }
 
 pub fn initialize_copy(interp: &mut Artichoke, ary: Value, mut from: Value) -> Result<Value, Error> {
