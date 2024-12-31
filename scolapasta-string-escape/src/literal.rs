@@ -408,8 +408,7 @@ impl ByteSequenceTooLongError {
 
 impl fmt::Display for ByteSequenceTooLongError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        const MESSAGE: &str = ByteSequenceTooLongError::new().message();
-        f.write_str(MESSAGE)
+        f.write_str(const { ByteSequenceTooLongError::new().message() })
     }
 }
 

@@ -47,6 +47,5 @@ pub fn is_nobits(interp: &mut Artichoke, value: Value, mask: Value) -> Result<Va
 #[allow(clippy::unnecessary_wraps)]
 pub fn size(interp: &Artichoke) -> Result<Value, Error> {
     qed::const_assert!(Integer::size() < i8::MAX as usize);
-    const SIZE: i64 = Integer::size() as i64;
-    Ok(interp.convert(SIZE))
+    Ok(interp.convert(const { Integer::size() as i64 }))
 }

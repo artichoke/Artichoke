@@ -40,6 +40,7 @@ impl FusedIterator for Chars<'_> {}
 impl Chars<'_> {
     pub(crate) fn new() -> Self {
         const EMPTY: &[u8] = &[];
+
         Self(State::Binary(Bytes::from(EMPTY)))
     }
 }
