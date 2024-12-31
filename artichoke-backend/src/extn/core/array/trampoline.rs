@@ -253,6 +253,9 @@ pub fn initialize(
     second: Option<Value>,
     block: Option<Block>,
 ) -> Result<Value, Error> {
+    if value.is_frozen(interp) {
+        return Err(FrozenError::with_message("can't modify frozen Array").into());
+    }
     // If we are calling `initialize` on an already initialized `Array`,
     // pluck out the inner buffer and drop it so we don't leak memory.
     if let Ok(a) = unsafe { Array::unbox_from_value(&mut value, interp) } {
