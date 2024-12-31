@@ -205,9 +205,7 @@ impl Integer {
 
     #[must_use]
     pub const fn size() -> usize {
-        const SIZE_OF_INT: usize = size_of::<i64>();
-
-        SIZE_OF_INT
+        const { size_of::<i64>() }
     }
 }
 
