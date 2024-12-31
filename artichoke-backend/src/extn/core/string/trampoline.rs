@@ -1208,7 +1208,8 @@ pub fn initialize(interp: &mut Artichoke, mut value: Value, from: Option<Value>)
     if value.is_frozen(interp) && from.is_some() {
         return Err(FrozenError::from("can't modify frozen String").into());
     }
-    if from.is_none() {
+
+    let Some(mut from) = from else {
         // Calling `initialize` on an already initialized `String` with no arguments
         // is a no-op. If the string is not yet initialized, we will subsequently
         // initialize it when unpacking the `Value` in the `String::unbox_from_value`
@@ -1236,15 +1237,10 @@ pub fn initialize(interp: &mut Artichoke, mut value: Value, from: Option<Value>)
     // [3.0.2] > s
     // => "abc"
     // ```
-    let buf = if let Some(mut from) = from {
-        // SAFETY: The extracted slice is immediately copied to an owned buffer.
-        // No intervening operations on the mruby VM occur.
-        let from = unsafe { implicitly_convert_to_string(interp, &mut from)? };
-        from.to_vec()
-    } else {
-        Vec::new()
-    };
-
+    // SAFETY: The extracted slice is immediately copied to an owned buffer.
+    // No intervening operations on the mruby VM occur.
+    let from = unsafe { implicitly_convert_to_string(interp, &mut from)? };
+    let buf = from.to_vec();
     // If we are calling `initialize` on an already initialized `String`,
     // pluck out the inner buffer and drop it so we don't leak memory.
     //
