@@ -1,7 +1,7 @@
 use std::io::{self, Write as _};
 use std::slice;
 use std::str;
-use std::sync::OnceLock;
+use std::sync::LazyLock;
 
 use regex::Regex;
 use tz::timezone::{LocalTimeType, TimeZoneRef};
@@ -49,12 +49,12 @@ pub const MIN_OFFSET_SECONDS: i32 = -MAX_OFFSET_SECONDS;
 fn local_time_zone() -> TimeZoneRef<'static> {
     // Per the docs, it is suggested to cache the result of fetching the
     // local timezone: https://docs.rs/tzdb/latest/tzdb/fn.local_tz.html.
-    static LOCAL_TZ: OnceLock<TimeZoneRef<'static>> = OnceLock::new();
-
-    *LOCAL_TZ.get_or_init(|| {
+    static LOCAL_TZ: LazyLock<TimeZoneRef<'static>> = LazyLock::new(|| {
         let tz = iana_time_zone::get_timezone().ok().and_then(tzdb::tz_by_name);
         tz.unwrap_or(GMT)
-    })
+    });
+
+    *LOCAL_TZ
 }
 
 #[inline]
@@ -307,9 +307,7 @@ impl TryFrom<&str> for Offset {
             // ```
             "Z" | "UTC" => Ok(Self::utc()),
             _ => {
-                static HH_MM_MATCHER: OnceLock<Regex> = OnceLock::new();
-
-                let hh_mm_matcher = HH_MM_MATCHER.get_or_init(|| {
+                static HH_MM_MATCHER: LazyLock<Regex> = LazyLock::new(|| {
                     // With `Regex`, `\d` is a "Unicode friendly" Perl character
                     // class which matches Unicode property `Nd`. The `Nd` property
                     // includes all sorts of numerals, including Devanagari and
@@ -326,7 +324,7 @@ impl TryFrom<&str> for Offset {
                     Regex::new(r"^([\-\+]{1})([[:digit:]]{2}):?([[:digit:]]{2})$").unwrap()
                 });
 
-                let caps = hh_mm_matcher.captures(input).ok_or_else(TzStringError::new)?;
+                let caps = HH_MM_MATCHER.captures(input).ok_or_else(TzStringError::new)?;
 
                 // Special handling of the +/- sign is required because `-00:30`
                 // must parse to a negative offset and `i32::from_str_radix`
@@ -393,7 +391,7 @@ impl TryFrom<i32> for Offset {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::OnceLock;
+    use std::sync::LazyLock;
 
     use tz::timezone::Transition;
     use tz::{LocalTimeType, TimeZone};
@@ -606,9 +604,7 @@ mod tests {
     // https://github.com/x-hgg-x/tz-rs/issues/34#issuecomment-1206140198
     #[test]
     fn tzrs_gh_34_handle_missing_transition_tzif_v1() {
-        static TZ: OnceLock<TimeZone> = OnceLock::new();
-
-        let tz = TZ.get_or_init(|| {
+        static TZ: LazyLock<TimeZone> = LazyLock::new(|| {
             let local_time_types = vec![
                 LocalTimeType::new(0, false, None).unwrap(),
                 LocalTimeType::new(3600, false, None).unwrap(),
@@ -624,7 +620,7 @@ mod tests {
         });
 
         let offset = Offset {
-            inner: OffsetType::Tz(tz.as_ref()),
+            inner: OffsetType::Tz(TZ.as_ref()),
         };
         assert!(matches!(
             Time::new(1970, 1, 2, 12, 0, 0, 0, offset).unwrap_err(),
