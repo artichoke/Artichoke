@@ -79,7 +79,7 @@
 //! # use core::iter;
 //! # use spinoso_array::Array;
 //! let ary: Array<i32> = Array::from(vec![1, 2, 3, 4]);
-//! let ary2: Array<i32> = iter::repeat(1).take(10).collect();
+//! let ary2: Array<i32> = iter::repeat_n(1, 10).collect();
 //! ```
 //!
 //! You can [`push`](Array::push) values onto the end of an array (which will
