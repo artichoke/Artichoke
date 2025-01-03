@@ -40,7 +40,7 @@ class Numeric
 
   def nonzero?
     if self == 0 # rubocop:disable Style/NumericPredicate
-      nil
+      nil # rubocop:disable Style/ReturnNilInPredicateMethodDefinition
     else
       self
     end
