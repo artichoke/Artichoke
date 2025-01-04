@@ -472,6 +472,11 @@ where
 #[cfg(test)]
 mod tests {
     use std::path::Path;
+    #[cfg(feature = "disk")]
+    use std::path::PathBuf;
+
+    #[cfg(feature = "disk")]
+    use same_file::Handle;
 
     use super::{Feature, LoadedFeatures};
 
@@ -504,16 +509,11 @@ mod tests {
     #[cfg(feature = "disk")]
     #[should_panic(expected = "duplicate feature inserted at Cargo.toml")]
     fn duplicate_disk_insert_panics() {
-        use same_file::Handle;
-
         let mut features = LoadedFeatures::new();
         loop {
-            let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
-            let handle = Handle::from_path(&path).unwrap();
-            features.insert(Feature::with_handle_and_path(
-                handle,
-                path.strip_prefix(env!("CARGO_MANIFEST_DIR")).unwrap().to_owned(),
-            ));
+            let path = Path::new(env!("CARGO_MANIFEST_PATH"));
+            let handle = Handle::from_path(path).unwrap();
+            features.insert(Feature::with_handle_and_path(handle, PathBuf::from("Cargo.toml")));
         }
     }
 
@@ -537,16 +537,11 @@ mod tests {
         should_panic(expected = "duplicate feature inserted at src\\..\\Cargo.toml")
     )]
     fn duplicate_disk_insert_with_different_path_panics() {
-        use same_file::Handle;
-
         let mut features = LoadedFeatures::new();
 
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
-        let handle = Handle::from_path(&path).unwrap();
-        features.insert(Feature::with_handle_and_path(
-            handle,
-            path.strip_prefix(env!("CARGO_MANIFEST_DIR")).unwrap().to_owned(),
-        ));
+        let path = Path::new(env!("CARGO_MANIFEST_PATH"));
+        let handle = Handle::from_path(path).unwrap();
+        features.insert(Feature::with_handle_and_path(handle, PathBuf::from("Cargo.toml")));
 
         let path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("src")
@@ -562,16 +557,11 @@ mod tests {
     #[test]
     #[cfg(feature = "disk")]
     fn insert_multiple_disk_features() {
-        use same_file::Handle;
-
         let mut features = LoadedFeatures::new();
 
-        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
-        let handle = Handle::from_path(&path).unwrap();
-        features.insert(Feature::with_handle_and_path(
-            handle,
-            path.strip_prefix(env!("CARGO_MANIFEST_DIR")).unwrap().to_owned(),
-        ));
+        let path = Path::new(env!("CARGO_MANIFEST_PATH"));
+        let handle = Handle::from_path(path).unwrap();
+        features.insert(Feature::with_handle_and_path(handle, PathBuf::from("Cargo.toml")));
 
         let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("LICENSE");
         let handle = Handle::from_path(&path).unwrap();
