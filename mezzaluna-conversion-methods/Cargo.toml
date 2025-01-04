@@ -1,0 +1,16 @@
+[package]
+name = "mezzaluna-conversion-methods"
+version = "1.0.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+
+[dependencies]
+
+[dependencies.intaglio]
+version = "1.9.1"
+default-features = false
+features = ["bytes"]
