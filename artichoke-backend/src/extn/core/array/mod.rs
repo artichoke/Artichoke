@@ -413,4 +413,99 @@ mod tests {
         let result = interp.eval(test.as_bytes());
         unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
     }
+
+    #[test]
+    fn reinitializing_a_frozen_array_raises_frozen_error() {
+        let mut interp = interpreter();
+        // ```console
+        // [3.3.6] > x = [1,2,3].freeze
+        // => [1, 2, 3]
+        // [3.3.6] > x.send(:initialize)
+        // (irb):3:in `initialize': can't modify frozen Array: [1, 2, 3] (FrozenError)
+        // ```
+        let test = r"
+            x = [1, 2, 3].freeze
+            begin
+              x.send(:initialize)
+            rescue FrozenError
+              # expected
+            else
+              raise 'expected FrozenError for zero arg form'
+            end
+
+            begin
+              x.send(:initialize, 3)
+            rescue FrozenError
+              # expected
+            else
+              raise 'expected FrozenError for 1 arg form'
+            end
+
+            begin
+              x.send(:initialize, 3, 4)
+            rescue FrozenError
+              # expected
+            else
+              raise 'expected FrozenError for 2 arg form'
+            end
+
+            begin
+              x.send(:initialize, 3) { 2 }
+            rescue FrozenError
+              # expected
+            else
+              raise 'expected FrozenError for block form'
+            end
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
+
+    #[test]
+    fn reinitializing_an_array_replaces_the_array_contents() {
+        let mut interp = interpreter();
+        // ```console
+        // [3.3.6] > x = [1,2,3]
+        // => [1, 2, 3]
+        // [3.3.6] > x.send(:initialize)
+        // => []
+        // [3.3.6] > x = [1,2,3]
+        // => [1, 2, 3]
+        // [3.3.6] > x.send(:initialize, 3)
+        // => [nil, nil, nil]
+        // [3.3.6] > x = [1,2,3]
+        // => [1, 2, 3]
+        // [3.3.6] > x.send(:initialize, 3, 4)
+        // => [4, 4, 4]
+        // [3.3.6] > x = [1,2,3]
+        // => [1, 2, 3]
+        // [3.3.6] > x.send(:initialize, 3) { 2 }
+        // => [2, 2, 2]
+        // ```
+        let test = r"
+            x = [1, 2, 3]
+            x.send(:initialize)
+            raise 'expected empty array from zero arg form' unless x == []
+
+            x = [1, 2, 3]
+            x.send(:initialize, 5)
+            raise 'expected array of nils from 1 arg form' unless x == [nil, nil, nil, nil, nil]
+            x.send(:initialize, 0)
+            raise 'expected empty array from 1 arg form with zero val' unless x == []
+
+            x = [1, 2, 3]
+            x.send(:initialize, 5, 4)
+            raise 'expected array of 4s from 2 arg form' unless x == [4, 4, 4, 4, 4]
+            x.send(:initialize, 0, 4)
+            raise 'expected empty array from 2 arg form with zero val' unless x == []
+
+            x = [1, 2, 3]
+            x.send(:initialize, 5) { 2 }
+            raise 'expected array of 2s from block form' unless x == [2, 2, 2, 2, 2]
+            x.send(:initialize, 0) { 2 }
+            raise 'expected empty array from block form with zero val' unless x == []
+        ";
+        let result = interp.eval(test.as_bytes());
+        unwrap_or_panic_with_backtrace(&mut interp, SUBJECT, result);
+    }
 }
