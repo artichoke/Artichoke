@@ -1,0 +1,21 @@
+[package]
+name = "mezzaluna-conversion-methods"
+version = "1.0.0"
+authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
+description = "Vocabulary types for implementing Ruby conversion methods"
+keywords = ["artichoke", "artichoke-ruby", "conversions", "ruby"]
+categories = ["data-structures"]
+readme = "README.md"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+
+[dependencies]
+
+[dependencies.intaglio]
+version = "1.9.1"
+default-features = false
+features = ["bytes"]

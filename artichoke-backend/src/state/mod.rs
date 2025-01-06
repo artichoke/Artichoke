@@ -2,6 +2,7 @@ use core::hash::BuildHasherDefault;
 use std::collections::hash_map::RandomState;
 
 use intaglio::bytes::SymbolTable;
+use mezzaluna_conversion_methods::ConvMethods;
 use mezzaluna_type_registry::Registry;
 use rustc_hash::FxHasher;
 
@@ -40,6 +41,7 @@ pub struct State {
     pub hash_builder: RandomState,
     #[cfg(feature = "core-random")]
     pub prng: Random,
+    pub conv_method_table: ConvMethods,
 }
 
 impl State {
@@ -80,6 +82,7 @@ impl State {
             hash_builder: RandomState::new(),
             #[cfg(feature = "core-random")]
             prng: Random::new().map_err(|_| InterpreterAllocError::new())?,
+            conv_method_table: ConvMethods::new(),
         })
     }
 

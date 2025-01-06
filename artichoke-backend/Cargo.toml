@@ -37,6 +37,10 @@ version = "1.9.1"
 default-features = false
 features = ["bytes"]
 
+[dependencies.mezzaluna-conversion-methods]
+version = "1.0.0"
+path = "../mezzaluna-conversion-methods"
+
 [dependencies.mezzaluna-type-registry]
 version = "2.0.0"
 path = "../mezzaluna-type-registry"
@@ -139,10 +143,7 @@ version = "1.0.72"
 features = ["parallel"]
 
 [features]
-default = [
-  "core-full",
-  "stdlib-full",
-]
+default = ["core-full", "stdlib-full"]
 
 core-full = [
   "core-env",
@@ -163,8 +164,13 @@ core-regexp = ["dep:spinoso-regexp"]
 core-regexp-oniguruma = ["core-regexp", "spinoso-regexp?/oniguruma", "dep:onig"]
 core-time = ["dep:spinoso-time"]
 
-load-path-native-file-system-loader = ["artichoke-load-path/native-file-system-loader"]
-load-path-rubylib-native-file-system-loader = ["load-path-native-file-system-loader", "artichoke-load-path/rubylib-native-file-system-loader"]
+load-path-native-file-system-loader = [
+  "artichoke-load-path/native-file-system-loader",
+]
+load-path-rubylib-native-file-system-loader = [
+  "load-path-native-file-system-loader",
+  "artichoke-load-path/rubylib-native-file-system-loader",
+]
 
 output-strategy-capture = []
 output-strategy-null = ["output-strategy-capture"]

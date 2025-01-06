@@ -6,7 +6,7 @@ description = """
 Implementation of the Ruby Math module
 """
 keywords = ["libm", "math", "no_std", "spinoso"]
-categories = ["algorithms", "no-std"]
+categories = ["algorithms", "mathematics", "no-std"]
 readme = "README.md"
 edition.workspace = true
 rust-version.workspace = true

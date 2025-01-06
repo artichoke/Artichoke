@@ -1,18 +1,22 @@
-//! Implicit conversion routines based on `convert_type_with_id` in MRI.
+//! Implicit conversion routines based on `convert_type_with_id` in CRuby.
 //!
-//! See: <https://github.com/ruby/ruby/blob/v3_1_2/object.c#L2908-L3018>.
-
-use std::ffi::CStr;
-use std::sync::OnceLock;
+//! See: <https://github.com/ruby/ruby/blob/v3_4_1/object.c#L3095-L3235>.
 
 use artichoke_core::debug::Debug as _;
 use artichoke_core::value::Value as _;
-use qed::const_cstr_from_str as cstr;
-use spinoso_exception::TypeError;
+use mezzaluna_conversion_methods::{ConvMethod, InitError};
+use spinoso_exception::{Fatal, TypeError};
 
+use crate::ffi::InterpreterExtractError;
 use crate::types::Ruby;
 use crate::value::Value;
 use crate::{Artichoke, Error};
+
+impl From<InitError> for Error {
+    fn from(err: InitError) -> Self {
+        Self::from(Fatal::with_message(err.message()))
+    }
+}
 
 /// Strategy to use for handling errors in [`convert_type`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -23,46 +27,17 @@ pub enum ConvertOnError {
     ReturnNil,
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-struct ConvMethod {
-    method: &'static str,
-    cstr: &'static CStr,
-    id: u32,
-    is_implicit_conversion: bool,
-}
+impl Artichoke {
+    fn find_conversion_method(&mut self, method: &str) -> Result<ConvMethod, Error> {
+        let state = self.state.as_deref_mut().ok_or_else(InterpreterExtractError::new)?;
+        let symbols = &mut state.symbols;
 
-fn conv_method_table(interp: &mut Artichoke) -> &'static [ConvMethod; 12] {
-    // https://github.com/ruby/ruby/blob/v3_1_2/object.c#L2908-L2928
-    #[rustfmt::skip]
-    const METHODS: [(&str, &CStr, bool); 12] = [
-        ("to_int",  cstr!("to_int\0"),   true),
-        ("to_ary",  cstr!("to_ary\0"),   true),
-        ("to_str",  cstr!("to_str\0"),   true),
-        ("to_sym",  cstr!("to_sym\0"),   true),
-        ("to_hash", cstr!("to_hash\0"),  true),
-        ("to_proc", cstr!("to_proc\0"),  true),
-        ("to_io",   cstr!("to_io\0"),    true),
-        ("to_a",    cstr!("to_a\0"),    false),
-        ("to_s",    cstr!("to_s\0"),    false),
-        ("to_i",    cstr!("to_i\0"),    false),
-        ("to_f",    cstr!("to_f\0"),    false),
-        ("to_r",    cstr!("to_r\0"),    false),
-    ];
-
-    static CONV_METHOD_TABLE: OnceLock<[ConvMethod; 12]> = OnceLock::new();
-
-    CONV_METHOD_TABLE.get_or_init(|| {
-        METHODS.map(|(method, method_cstr, is_implicit_conversion)| {
-            let bytes = method_cstr.to_bytes_with_nul();
-            let sym = interp.intern_bytes_with_trailing_nul(bytes).unwrap();
-            ConvMethod {
-                method,
-                cstr: method_cstr,
-                id: sym,
-                is_implicit_conversion,
-            }
-        })
-    })
+        let conv = state
+            .conv_method_table
+            .find_method(symbols, method)?
+            .ok_or_else(|| Fatal::from(format!("{method} is not a valid conversion method")))?;
+        Ok(conv)
+    }
 }
 
 /// Attempt a fallible conversion of a Ruby value to a given type tag.
@@ -125,14 +100,8 @@ pub fn convert_type(
     if value.ruby_type() == convert_to {
         return Ok(value);
     }
-    let converted = {
-        let conversion = conv_method_table(interp)
-            .iter()
-            .find(|conversion| conversion.method == method)
-            .unwrap_or_else(|| panic!("{method} is not a valid conversion method"));
-
-        convert_type_inner(interp, value, type_name, conversion, raise)?
-    };
+    let conversion = interp.find_conversion_method(method)?;
+    let converted = convert_type_inner(interp, value, type_name, &conversion, raise)?;
 
     if converted.ruby_type() != convert_to {
         return Err(conversion_mismatch(interp, value, type_name, method, converted).into());
@@ -202,14 +171,8 @@ pub fn check_convert_type(
     if value.ruby_type() == convert_to && convert_to != Ruby::Data {
         return Ok(value);
     }
-    let converted = {
-        let conversion = conv_method_table(interp)
-            .iter()
-            .find(|conversion| conversion.method == method)
-            .unwrap_or_else(|| panic!("{method} is not a valid conversion method"));
-
-        convert_type_inner(interp, value, type_name, conversion, ConvertOnError::ReturnNil)?
-    };
+    let conversion = interp.find_conversion_method(method)?;
+    let converted = convert_type_inner(interp, value, type_name, &conversion, ConvertOnError::ReturnNil)?;
 
     match converted.ruby_type() {
         Ruby::Nil => Ok(Value::nil()),
@@ -223,15 +186,15 @@ fn convert_type_inner(
     interp: &mut Artichoke,
     value: Value,
     type_name: &str,
-    conversion: &'static ConvMethod,
+    conversion: &ConvMethod,
     raise: ConvertOnError,
 ) -> Result<Value, Error> {
-    if value.respond_to(interp, conversion.method)? {
-        return value.funcall(interp, conversion.method, &[], None);
+    if value.respond_to(interp, conversion.name())? {
+        return value.funcall(interp, conversion.name(), &[], None);
     }
     let mut message = match raise {
         ConvertOnError::ReturnNil => return Ok(Value::nil()),
-        ConvertOnError::Raise if conversion.is_implicit_conversion => String::from("no implicit conversion of "),
+        ConvertOnError::Raise if conversion.is_implicit() => String::from("no implicit conversion of "),
         ConvertOnError::Raise => String::from("can't convert "),
     };
     match value.try_convert_into::<Option<bool>>(interp) {
@@ -272,12 +235,8 @@ fn conversion_mismatch(
 
 #[inline]
 fn try_to_int(interp: &mut Artichoke, val: Value, method: &str, raise: ConvertOnError) -> Result<Value, Error> {
-    let conversion = conv_method_table(interp)
-        .iter()
-        .find(|conversion| conversion.method == method)
-        .unwrap_or_else(|| panic!("{method} is not a valid conversion method"));
-
-    convert_type_inner(interp, val, "Integer", conversion, raise)
+    let conversion = interp.find_conversion_method(method)?;
+    convert_type_inner(interp, val, "Integer", &conversion, raise)
 }
 
 /// Fallible conversion of the given value to a Ruby `Integer` via `#to_int`.
@@ -485,157 +444,8 @@ pub fn check_to_a(interp: &mut Artichoke, value: Value) -> Result<Value, Error> 
 mod tests {
     use bstr::ByteSlice;
 
-    use super::{conv_method_table, convert_type, to_int, ConvertOnError};
+    use super::{convert_type, to_int, ConvertOnError};
     use crate::test::prelude::*;
-
-    #[test]
-    fn conv_method_table_is_built() {
-        let mut interp = interpreter();
-        assert_eq!(
-            conv_method_table(&mut interp).as_ptr(),
-            conv_method_table(&mut interp).as_ptr()
-        );
-    }
-
-    #[test]
-    fn seven_implicit_conversions() {
-        let mut interp = interpreter();
-        for (idx, conv) in conv_method_table(&mut interp).iter().enumerate() {
-            if idx < 7 {
-                assert!(
-                    conv.is_implicit_conversion,
-                    "{} should be implicit conversion",
-                    conv.method
-                );
-            } else {
-                assert!(
-                    !conv.is_implicit_conversion,
-                    "{} should NOT be implicit conversion",
-                    conv.method
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn to_int_is_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_int")
-            .unwrap();
-        assert!(conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_ary_is_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_ary")
-            .unwrap();
-        assert!(conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_str_is_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_str")
-            .unwrap();
-        assert!(conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_sym_is_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_sym")
-            .unwrap();
-        assert!(conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_hash_is_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_hash")
-            .unwrap();
-        assert!(conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_proc_is_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_proc")
-            .unwrap();
-        assert!(conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_io_is_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_io")
-            .unwrap();
-        assert!(conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_a_is_not_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_a")
-            .unwrap();
-        assert!(!conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_s_is_not_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_s")
-            .unwrap();
-        assert!(!conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_i_is_not_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_i")
-            .unwrap();
-        assert!(!conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_f_is_not_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_f")
-            .unwrap();
-        assert!(!conv.is_implicit_conversion);
-    }
-
-    #[test]
-    fn to_r_is_not_implicit_conversion() {
-        let mut interp = interpreter();
-        let conv = conv_method_table(&mut interp)
-            .iter()
-            .find(|conv| conv.method == "to_r")
-            .unwrap();
-        assert!(!conv.is_implicit_conversion);
-    }
 
     #[test]
     fn implicit_to_int_reflexive() {
