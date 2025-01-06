@@ -14,7 +14,15 @@ updates:
     labels:
       - A-deps
   - package-ecosystem: cargo
-    directory: "/"
+    directories:
+      - "/"
+      - "/artichoke-*"
+      - "/mezzaluna-*"
+      - "/scolapasta-*"
+      - "/spinoso-*"
+      - "/fuzz"
+      - "/spec-runner"
+      - "/ui-tests"
     schedule:
       interval: monthly
     groups:
