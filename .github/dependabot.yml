@@ -13,23 +13,6 @@ updates:
       - lopopolo
     labels:
       - A-deps
-  - package-ecosystem: cargo
-    directories:
-      - "/"
-      - "/artichoke-*"
-      - "/mezzaluna-*"
-      - "/scolapasta-*"
-      - "/spinoso-*"
-    schedule:
-      interval: monthly
-    groups:
-      cargo-deps:
-        patterns:
-          - "*"
-    assignees:
-      - lopopolo
-    labels:
-      - A-deps
   - package-ecosystem: bundler
     directory: "/"
     schedule:
