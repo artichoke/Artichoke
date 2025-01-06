@@ -72,12 +72,14 @@ pub enum ConversionType {
 impl ConversionType {
     /// Returns whether the conversion is implicit.
     #[inline]
+    #[must_use]
     pub const fn is_implicit(&self) -> bool {
         matches!(self, Self::Implicit)
     }
 
     /// Returns whether the conversion is a coercion.
     #[inline]
+    #[must_use]
     pub const fn is_coercion(&self) -> bool {
         matches!(self, Self::Coercion)
     }
@@ -150,8 +152,10 @@ impl InitError {
     ///
     /// ```
     /// use mezzaluna_conversion_methods::InitError;
+    ///
     /// const ERR: InitError = InitError::new();
     /// ```
+    #[must_use]
     pub const fn new() -> Self {
         Self { cause: None }
     }
@@ -162,9 +166,11 @@ impl InitError {
     ///
     /// ```
     /// use mezzaluna_conversion_methods::InitError;
+    ///
     /// const ERR: InitError = InitError::new();
     /// assert_eq!(ERR.message(), "conversion method table initialization failed");
     /// ```
+    #[must_use]
     pub const fn message(&self) -> &'static str {
         "conversion method table initialization failed"
     }
@@ -191,28 +197,36 @@ pub struct ConvMethod {
 
 impl ConvMethod {
     /// Returns the name of the conversion method.
+    #[inline]
+    #[must_use]
     pub fn name(&self) -> &str {
         self.method
     }
 
     /// Returns the C string representation of the conversion method.
+    #[inline]
+    #[must_use]
     pub fn cstr(&self) -> &CStr {
         self.cstr
     }
 
     /// Returns the interned symbol id for the conversion method.
+    #[inline]
+    #[must_use]
     pub fn symbol(&self) -> u32 {
         self.id
     }
 
     /// Returns whether the conversion method is an implicit conversion.
     #[inline]
+    #[must_use]
     pub const fn is_implicit(&self) -> bool {
         self.conversion_type.is_implicit()
     }
 
     /// Returns whether the conversion method is a coercion.
     #[inline]
+    #[must_use]
     pub const fn is_coercion(&self) -> bool {
         self.conversion_type.is_coercion()
     }
@@ -238,6 +252,7 @@ impl ConvMethods {
     /// use mezzaluna_conversion_methods::ConvMethods;
     /// let methods = ConvMethods::new();
     /// ```
+    #[must_use]
     pub const fn new() -> Self {
         Self { table: OnceLock::new() }
     }
@@ -255,6 +270,7 @@ impl ConvMethods {
     /// let methods = ConvMethods::new();
     /// assert!(methods.get().is_none());
     /// ```
+    #[must_use]
     pub fn get(&self) -> Option<&[ConvMethod; 12]> {
         self.table.get()
     }
@@ -292,7 +308,7 @@ impl ConvMethods {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn get_or_init<'a, 'b, S>(&'a self, symbols: &'b mut SymbolTable<S>) -> Result<&'a [ConvMethod; 12], InitError>
+    pub fn get_or_init<'a, S>(&'a self, symbols: &mut SymbolTable<S>) -> Result<&'a [ConvMethod; 12], InitError>
     where
         S: BuildHasher,
     {
@@ -300,14 +316,14 @@ impl ConvMethods {
             let mut metadata = [ConvMethod {
                 method: "",
                 cstr: c"",
-                id: 0,
+                id: u32::MAX,
                 conversion_type: ConversionType::Implicit,
             }; CONVERSION_METHODS.len()];
 
             for (cell, (method, cstr, conversion_type)) in metadata.iter_mut().zip(CONVERSION_METHODS) {
                 // NOTE: This relies on internals of how Artichoke stores the
                 // symbol with a trailing NUL byte. It is not great that we
-                // can't go through `<Artichoke as // Intern>::intern_bytes_with_trailing_nul`,
+                // can't go through `<Artichoke as Intern>::intern_bytes_with_trailing_nul`,
                 // but this is necessary because we need mutable access to a
                 // different part of the state.
                 let bytes = cstr.to_bytes_with_nul();
@@ -348,17 +364,15 @@ impl ConvMethods {
     where
         S: BuildHasher,
     {
-        Ok(self
-            .get_or_init(symbols)?
-            .iter()
-            .copied()
-            .find(|conv| conv.method == method))
+        let table = self.get_or_init(symbols)?;
+        let method = table.iter().find(|conv| conv.method == method).copied();
+        Ok(method)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::ptr;
+    use std::{error::Error, ptr};
 
     use intaglio::bytes::SymbolTable;
 
@@ -366,7 +380,6 @@ mod tests {
 
     #[test]
     fn test_conversion_type_is_implicit() {
-        // Check that `is_implicit` correctly identifies `Implicit`
         let conversion = ConversionType::Implicit;
         assert!(conversion.is_implicit());
         assert!(!conversion.is_coercion());
@@ -374,7 +387,6 @@ mod tests {
 
     #[test]
     fn test_conversion_type_is_coercion() {
-        // Check that `is_coercion` correctly identifies `Coercion`
         let conversion = ConversionType::Coercion;
         assert!(conversion.is_coercion());
         assert!(!conversion.is_implicit());
@@ -382,17 +394,37 @@ mod tests {
 
     #[test]
     fn test_conversion_type_equality() {
-        // Verify equality comparisons
         assert_eq!(ConversionType::Implicit, ConversionType::Implicit);
         assert_eq!(ConversionType::Coercion, ConversionType::Coercion);
         assert_ne!(ConversionType::Implicit, ConversionType::Coercion);
+        assert_ne!(ConversionType::Coercion, ConversionType::Implicit);
     }
 
     #[test]
     fn test_conversion_type_debug() {
-        // Ensure the Debug implementation produces expected output
         assert_eq!(format!("{:?}", ConversionType::Implicit), "Implicit");
         assert_eq!(format!("{:?}", ConversionType::Coercion), "Coercion");
+    }
+
+    #[test]
+    fn test_error_default() {
+        let error = InitError::default();
+        assert!(error.cause.is_none());
+        assert!(error.source().is_none());
+    }
+
+    #[test]
+    fn test_error_from_symbol_overflow_error() {
+        let error = SymbolOverflowError::new();
+        let init_error = InitError::from(error);
+        assert!(init_error.cause.is_some());
+        assert!(init_error.source().is_some());
+    }
+
+    #[test]
+    fn test_error_display() {
+        let error = InitError::default();
+        assert_eq!(error.to_string(), "conversion method table initialization failed");
     }
 
     #[test]
@@ -543,12 +575,10 @@ mod tests {
 
         for conv in iter.by_ref().take(7) {
             assert!(conv.is_implicit(), "{} should be implicit conversion", conv.method);
-            assert!(!conv.is_coercion(), "{} should NOT be coercion", conv.method);
             assert_eq!(conv.conversion_type, ConversionType::Implicit);
         }
 
         for conv in iter {
-            assert!(!conv.is_implicit(), "{} should NOT be implicit conversion", conv.method);
             assert!(conv.is_coercion(), "{} should be coercion", conv.method);
             assert_eq!(conv.conversion_type, ConversionType::Coercion);
         }
@@ -565,7 +595,6 @@ mod tests {
                 panic!("conversion method {method} should be found");
             };
             assert!(conv.is_implicit(), "{method} should be implicit conversion");
-            assert!(!conv.is_coercion(), "{method} should NOT be coercion");
         }
     }
 
@@ -579,8 +608,19 @@ mod tests {
             let Some(conv) = conv else {
                 panic!("conversion method {method} should be found");
             };
-            assert!(!conv.is_implicit(), "{method} should NOT be implicit conversion");
             assert!(conv.is_coercion(), "{method} should be coercion");
+        }
+    }
+
+    #[test]
+    fn array_is_fully_initialized() {
+        let mut symbols = SymbolTable::new();
+        let conv_methods = ConvMethods::new();
+        let table = conv_methods.get_or_init(&mut symbols).unwrap();
+        for conv in table {
+            assert!(!conv.method.is_empty());
+            assert!(!conv.cstr.to_bytes().is_empty());
+            assert_ne!(conv.id, u32::MAX);
         }
     }
 }

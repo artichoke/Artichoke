@@ -28,15 +28,6 @@ pub enum ConvertOnError {
 }
 
 impl Artichoke {
-    #[cfg(test)]
-    fn conv_method_table(&mut self) -> Result<&[ConvMethod; 12], Error> {
-        let state = self.state.as_deref_mut().ok_or_else(InterpreterExtractError::new)?;
-        let symbols = &mut state.symbols;
-
-        let conv_methods = state.conv_method_table.get_or_init(symbols)?;
-        Ok(conv_methods)
-    }
-
     fn find_conversion_method(&mut self, method: &str) -> Result<ConvMethod, Error> {
         let state = self.state.as_deref_mut().ok_or_else(InterpreterExtractError::new)?;
         let symbols = &mut state.symbols;
