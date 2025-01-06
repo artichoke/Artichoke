@@ -20,9 +20,6 @@ updates:
       - "/mezzaluna-*"
       - "/scolapasta-*"
       - "/spinoso-*"
-      - "/fuzz"
-      - "/spec-runner"
-      - "/ui-tests"
     schedule:
       interval: monthly
     groups:
