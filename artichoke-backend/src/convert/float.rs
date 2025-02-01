@@ -42,8 +42,8 @@ mod tests {
 
     #[test]
     fn prop_convert_to_float() {
+        let mut interp = interpreter();
         run_arbitrary::<f64>(|f| {
-            let mut interp = interpreter();
             let value = interp.convert_mut(f);
             assert_eq!(value.ruby_type(), Ruby::Float);
         });
@@ -51,8 +51,8 @@ mod tests {
 
     #[test]
     fn prop_float_with_value() {
+        let mut interp = interpreter();
         run_arbitrary::<f64>(|f| {
-            let mut interp = interpreter();
             let value = interp.convert_mut(f);
             let inner = value.inner();
             let cdouble = unsafe { sys::mrb_sys_float_to_cdouble(inner) };
@@ -74,8 +74,8 @@ mod tests {
 
     #[test]
     fn prop_roundtrip() {
+        let mut interp = interpreter();
         run_arbitrary::<f64>(|f| {
-            let mut interp = interpreter();
             let value = interp.convert_mut(f);
             let roundtrip_value = value.try_convert_into::<f64>(&interp).unwrap();
             if f.is_nan() {
@@ -96,8 +96,8 @@ mod tests {
 
     #[test]
     fn prop_roundtrip_err() {
+        let interp = interpreter();
         run_arbitrary::<bool>(|b| {
-            let interp = interpreter();
             let value = interp.convert(b);
             let result = value.try_convert_into::<f64>(&interp);
             assert!(result.is_err());

@@ -120,32 +120,25 @@ impl TryConvertMut<Value, Vec<(Value, Value)>> for Artichoke {
 mod tests {
     use std::collections::HashMap;
 
-    use quickcheck::quickcheck;
-
     use crate::test::prelude::*;
 
-    quickcheck! {
-        fn roundtrip_kv(hash: HashMap<Vec<u8>, Vec<u8>>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_roundtrip_kv() {
+        let mut interp = interpreter();
+        run_arbitrary::<HashMap<Vec<u8>, Vec<u8>>>(|hash| {
             let value = interp.try_convert_mut(hash.clone()).unwrap();
             let len = value.funcall(&mut interp, "length", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != hash.len() {
-                return false;
-            }
+            assert_eq!(len, hash.len());
+
             let recovered = value.try_convert_into_mut::<Vec<(Value, Value)>>(&mut interp).unwrap();
-            if recovered.len() != hash.len() {
-                return false;
-            }
+            assert_eq!(recovered.len(), hash.len());
+
             for (key, val) in recovered {
                 let key = key.try_convert_into_mut::<Vec<u8>>(&mut interp).unwrap();
                 let val = val.try_convert_into_mut::<Vec<u8>>(&mut interp).unwrap();
-                match hash.get(&key) {
-                    Some(retrieved) if retrieved == &val => {}
-                    _ => return false,
-                }
+                assert_eq!(hash.get(&key), Some(&val));
             }
-            true
-        }
+        });
     }
 }

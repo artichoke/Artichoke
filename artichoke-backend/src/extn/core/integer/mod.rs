@@ -216,109 +216,103 @@ mod tests {
 
     #[test]
     fn positive_integer_division_vm_opcode() {
-        run_arbitrary::<(u8, u8)>(|(x, y)| {
-            let mut interp = interpreter();
-            match (x, y) {
-                (0, 0) => {
-                    assert!(interp.eval(b"0 / 0").is_err());
+        let mut interp = interpreter();
+        run_arbitrary::<(u8, u8)>(|(x, y)| match (x, y) {
+            (0, 0) => {
+                assert!(interp.eval(b"0 / 0").is_err());
+            }
+            (x, 0) | (0, x) => {
+                let expr = format!("{x} / 0");
+                if interp.eval(expr.as_bytes()).is_ok() {
+                    panic!("expected error for division by zero: {}", expr);
                 }
-                (x, 0) | (0, x) => {
-                    let expr = format!("{x} / 0");
-                    if interp.eval(expr.as_bytes()).is_ok() {
-                        panic!("expected error for division by zero: {}", expr);
-                    }
-                    let expr = format!("0 / {x}");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    assert_eq!(quotient, 0);
-                }
-                (x, y) => {
-                    let expr = format!("{x} / {y}");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    let expected = i64::from(x) / i64::from(y);
-                    assert_eq!(quotient, expected);
-                }
+                let expr = format!("0 / {x}");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                assert_eq!(quotient, 0);
+            }
+            (x, y) => {
+                let expr = format!("{x} / {y}");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                let expected = i64::from(x) / i64::from(y);
+                assert_eq!(quotient, expected);
             }
         });
     }
 
     #[test]
     fn positive_integer_division_send() {
-        run_arbitrary::<(u8, u8)>(|(x, y)| {
-            let mut interp = interpreter();
-            match (x, y) {
-                (0, 0) => {
-                    assert!(interp.eval(b"0.send('/', 0)").is_err());
+        let mut interp = interpreter();
+        run_arbitrary::<(u8, u8)>(|(x, y)| match (x, y) {
+            (0, 0) => {
+                assert!(interp.eval(b"0.send('/', 0)").is_err());
+            }
+            (x, 0) | (0, x) => {
+                let expr = format!("{x}.send('/', 0)");
+                if interp.eval(expr.as_bytes()).is_ok() {
+                    panic!("expected error for division by zero: {}", expr);
                 }
-                (x, 0) | (0, x) => {
-                    let expr = format!("{x}.send('/', 0)");
-                    if interp.eval(expr.as_bytes()).is_ok() {
-                        panic!("expected error for division by zero: {}", expr);
-                    }
-                    let expr = format!("0.send('/', {x})");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    assert_eq!(quotient, 0);
-                }
-                (x, y) => {
-                    let expr = format!("{x}.send('/', {y})");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    let expected = i64::from(x) / i64::from(y);
-                    assert_eq!(quotient, expected);
-                }
+                let expr = format!("0.send('/', {x})");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                assert_eq!(quotient, 0);
+            }
+            (x, y) => {
+                let expr = format!("{x}.send('/', {y})");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                let expected = i64::from(x) / i64::from(y);
+                assert_eq!(quotient, expected);
             }
         });
     }
 
     #[test]
     fn negative_integer_division_vm_opcode() {
-        run_arbitrary::<(u8, u8)>(|(x, y)| {
-            let mut interp = interpreter();
-            match (x, y) {
-                (0, 0) => {
-                    assert!(interp.eval(b"-0 / 0").is_err());
+        let mut interp = interpreter();
+        run_arbitrary::<(u8, u8)>(|(x, y)| match (x, y) {
+            (0, 0) => {
+                assert!(interp.eval(b"-0 / 0").is_err());
+            }
+            (x, 0) | (0, x) => {
+                let expr = format!("-{x} / 0");
+                if interp.eval(expr.as_bytes()).is_ok() {
+                    panic!("expected error for division by zero: {}", expr);
                 }
-                (x, 0) | (0, x) => {
-                    let expr = format!("-{x} / 0");
-                    if interp.eval(expr.as_bytes()).is_ok() {
-                        panic!("expected error for division by zero: {}", expr);
-                    }
-                    let expr = format!("0 / -{x}");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    assert_eq!(quotient, 0);
-                }
-                (x, y) => {
-                    let expr = format!("-{x} / {y}");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    if x % y == 0 {
-                        let expected = -i64::from(x) / i64::from(y);
-                        assert_eq!(quotient, expected);
-                    } else {
-                        let expected = (-i64::from(x) / i64::from(y)) - 1;
-                        assert_eq!(quotient, expected);
-                    }
+                let expr = format!("0 / -{x}");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                assert_eq!(quotient, 0);
+            }
+            (x, y) => {
+                let expr = format!("-{x} / {y}");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                if x % y == 0 {
+                    let expected = -i64::from(x) / i64::from(y);
+                    assert_eq!(quotient, expected);
+                } else {
+                    let expected = (-i64::from(x) / i64::from(y)) - 1;
+                    assert_eq!(quotient, expected);
                 }
             }
         });
@@ -326,39 +320,37 @@ mod tests {
 
     #[test]
     fn negative_integer_division_send() {
-        run_arbitrary::<(u8, u8)>(|(x, y)| {
-            let mut interp = interpreter();
-            match (x, y) {
-                (0, 0) => {
-                    assert!(interp.eval(b"-0.send('/', 0)").is_err());
+        let mut interp = interpreter();
+        run_arbitrary::<(u8, u8)>(|(x, y)| match (x, y) {
+            (0, 0) => {
+                assert!(interp.eval(b"-0.send('/', 0)").is_err());
+            }
+            (x, 0) | (0, x) => {
+                let expr = format!("-{x}.send('/', 0)");
+                if interp.eval(expr.as_bytes()).is_ok() {
+                    panic!("expected error for division by zero: {}", expr);
                 }
-                (x, 0) | (0, x) => {
-                    let expr = format!("-{x}.send('/', 0)");
-                    if interp.eval(expr.as_bytes()).is_ok() {
-                        panic!("expected error for division by zero: {}", expr);
-                    }
-                    let expr = format!("0.send('/', -{x})");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    assert_eq!(quotient, 0);
-                }
-                (x, y) => {
-                    let expr = format!("-{x}.send('/', {y})");
-                    let quotient = interp
-                        .eval(expr.as_bytes())
-                        .unwrap()
-                        .try_convert_into::<i64>(&interp)
-                        .unwrap();
-                    if x % y == 0 {
-                        let expected = -i64::from(x) / i64::from(y);
-                        assert_eq!(quotient, expected);
-                    } else {
-                        let expected = (-i64::from(x) / i64::from(y)) - 1;
-                        assert_eq!(quotient, expected);
-                    }
+                let expr = format!("0.send('/', -{x})");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                assert_eq!(quotient, 0);
+            }
+            (x, y) => {
+                let expr = format!("-{x}.send('/', {y})");
+                let quotient = interp
+                    .eval(expr.as_bytes())
+                    .unwrap()
+                    .try_convert_into::<i64>(&interp)
+                    .unwrap();
+                if x % y == 0 {
+                    let expected = -i64::from(x) / i64::from(y);
+                    assert_eq!(quotient, expected);
+                } else {
+                    let expected = (-i64::from(x) / i64::from(y)) - 1;
+                    assert_eq!(quotient, expected);
                 }
             }
         });

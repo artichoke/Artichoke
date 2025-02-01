@@ -76,8 +76,8 @@ mod tests {
 
     #[test]
     fn prop_convert_to_bool() {
+        let interp = interpreter();
         for b in [true, false] {
-            let interp = interpreter();
             let value = interp.convert(b);
             assert_eq!(value.ruby_type(), Ruby::Bool);
         }
@@ -85,8 +85,8 @@ mod tests {
 
     #[test]
     fn prop_convert_to_nilable_bool() {
+        let interp = interpreter();
         for b in [Some(true), Some(false), None] {
-            let interp = interpreter();
             let value = interp.convert(b);
             if b.is_some() {
                 assert_eq!(value.ruby_type(), Ruby::Bool);
@@ -153,8 +153,8 @@ mod tests {
 
     #[test]
     fn prop_roundtrip() {
+        let interp = interpreter();
         for b in [true, false] {
-            let interp = interpreter();
             let value = interp.convert(b);
             let roundtrip: bool = value.try_convert_into(&interp).unwrap();
             assert_eq!(roundtrip, b);
@@ -163,8 +163,8 @@ mod tests {
 
     #[test]
     fn prop_nilable_roundtrip() {
+        let interp = interpreter();
         for b in [Some(true), Some(false), None] {
-            let interp = interpreter();
             let value = interp.convert(b);
             let roundtrip: Option<bool> = value.try_convert_into(&interp).unwrap();
             assert_eq!(roundtrip, b);
@@ -173,8 +173,8 @@ mod tests {
 
     #[test]
     fn prop_roundtrip_err() {
+        let interp = interpreter();
         run_arbitrary::<i64>(|i_val| {
-            let interp = interpreter();
             let value = interp.convert(i_val);
             let result: Result<bool, _> = value.try_convert_into(&interp);
             assert!(result.is_err());
