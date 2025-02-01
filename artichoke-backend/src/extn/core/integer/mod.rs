@@ -211,31 +211,8 @@ impl Integer {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Debug;
-
-    use arbitrary::{Arbitrary, Unstructured};
-    use getrandom;
-
     use crate::extn::prelude::*;
     use crate::test::prelude::*;
-
-    /// Helper for property tests: repeatedly generate an arbitrary value of type `T`
-    /// from random bytes and then run the closure `f` on it.
-    fn run_arbitrary<T>(f: impl Fn(T))
-    where
-        T: for<'a> Arbitrary<'a> + Debug,
-    {
-        for _ in 0..4096 {
-            // Choose a random seed size up to 1024 bytes.
-            let size: usize = usize::try_from(getrandom::u32().unwrap() % 1024).unwrap();
-            let mut seed = vec![0; size];
-            getrandom::fill(&mut seed).unwrap();
-            let mut unstructured = Unstructured::new(&seed);
-            if let Ok(value) = T::arbitrary(&mut unstructured) {
-                f(value);
-            }
-        }
-    }
 
     #[test]
     fn positive_integer_division_vm_opcode() {

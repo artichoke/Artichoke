@@ -63,8 +63,6 @@ impl TryConvert<Value, Option<bool>> for Artichoke {
 
 #[cfg(test)]
 mod tests {
-    use quickcheck::quickcheck;
-
     use crate::test::prelude::*;
 
     #[test]
@@ -76,109 +74,110 @@ mod tests {
         assert!(result.is_err());
     }
 
-    quickcheck! {
-        fn convert_to_bool(b: bool) -> bool {
+    #[test]
+    fn prop_convert_to_bool() {
+        for b in [true, false] {
             let interp = interpreter();
             let value = interp.convert(b);
-            value.ruby_type() == Ruby::Bool
+            assert_eq!(value.ruby_type(), Ruby::Bool);
         }
+    }
 
-        fn convert_to_nilable_bool(b: Option<bool>) -> bool {
+    #[test]
+    fn prop_convert_to_nilable_bool() {
+        for b in [Some(true), Some(false), None] {
             let interp = interpreter();
             let value = interp.convert(b);
             if b.is_some() {
-                value.ruby_type() == Ruby::Bool
+                assert_eq!(value.ruby_type(), Ruby::Bool);
             } else {
-                value.ruby_type() == Ruby::Nil
+                assert_eq!(value.ruby_type(), Ruby::Nil);
             }
         }
+    }
 
-        fn bool_with_value(b: bool) -> bool {
+    #[test]
+    fn test_bool_true_with_value() {
+        let interp = interpreter();
+        let value = interp.convert(true);
+        let inner = value.inner();
+        // When true, the inner value should be true and not false or nil.
+        assert!(!unsafe { sys::mrb_sys_value_is_false(inner) });
+        assert!(unsafe { sys::mrb_sys_value_is_true(inner) });
+        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+    }
+
+    #[test]
+    fn test_bool_false_with_value() {
+        let interp = interpreter();
+        let value = interp.convert(false);
+        let inner = value.inner();
+        // When false, the inner value should be false and not true or nil.
+        assert!(unsafe { sys::mrb_sys_value_is_false(inner) });
+        assert!(!unsafe { sys::mrb_sys_value_is_true(inner) });
+        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+    }
+
+    #[test]
+    fn test_convert_some_true() {
+        let interp = interpreter();
+        let value = interp.convert(Some(true));
+        let inner = value.inner();
+        // For Some(true), the inner value should be true.
+        assert!(!unsafe { sys::mrb_sys_value_is_false(inner) });
+        assert!(unsafe { sys::mrb_sys_value_is_true(inner) });
+        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+    }
+
+    #[test]
+    fn test_convert_some_false() {
+        let interp = interpreter();
+        let value = interp.convert(Some(false));
+        let inner = value.inner();
+        // For Some(false), the inner value should be false.
+        assert!(unsafe { sys::mrb_sys_value_is_false(inner) });
+        assert!(!unsafe { sys::mrb_sys_value_is_true(inner) });
+        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+    }
+
+    #[test]
+    fn test_convert_none() {
+        let interp = interpreter();
+        let value = interp.convert(None::<bool>);
+        let inner = value.inner();
+        // For None, the converted value should be Ruby's nil.
+        assert!(!unsafe { sys::mrb_sys_value_is_false(inner) });
+        assert!(!unsafe { sys::mrb_sys_value_is_true(inner) });
+        assert!(unsafe { sys::mrb_sys_value_is_nil(inner) });
+    }
+
+    #[test]
+    fn prop_roundtrip() {
+        for b in [true, false] {
             let interp = interpreter();
             let value = interp.convert(b);
-            let value = value.inner();
-            if b {
-                if unsafe { sys::mrb_sys_value_is_false(value) } {
-                    return false;
-                }
-                if !unsafe { sys::mrb_sys_value_is_true(value) } {
-                    return false;
-                }
-            } else {
-                if !unsafe { sys::mrb_sys_value_is_false(value) } {
-                    return false;
-                }
-                if unsafe { sys::mrb_sys_value_is_true(value) } {
-                    return false;
-                }
-            }
-            if unsafe { sys::mrb_sys_value_is_nil(value) } {
-                return false;
-            }
-            true
+            let roundtrip: bool = value.try_convert_into(&interp).unwrap();
+            assert_eq!(roundtrip, b);
         }
+    }
 
-        fn nilable_bool_with_value(b: Option<bool>) -> bool {
+    #[test]
+    fn prop_nilable_roundtrip() {
+        for b in [Some(true), Some(false), None] {
             let interp = interpreter();
             let value = interp.convert(b);
-            let value = value.inner();
-            match b {
-                Some(true) => {
-                    if unsafe { sys::mrb_sys_value_is_false(value) } {
-                        return false;
-                    }
-                    if !unsafe { sys::mrb_sys_value_is_true(value) } {
-                        return false;
-                    }
-                    if unsafe { sys::mrb_sys_value_is_nil(value) } {
-                        return false;
-                    }
-                }
-                Some(false) => {
-                    if !unsafe { sys::mrb_sys_value_is_false(value) } {
-                        return false;
-                    }
-                    if unsafe { sys::mrb_sys_value_is_true(value) } {
-                        return false;
-                    }
-                    if unsafe { sys::mrb_sys_value_is_nil(value) } {
-                        return false;
-                    }
-                }
-                None => {
-                    if unsafe { sys::mrb_sys_value_is_false(value) } {
-                        return false;
-                    }
-                    if unsafe { sys::mrb_sys_value_is_true(value) } {
-                        return false;
-                    }
-                    if !unsafe { sys::mrb_sys_value_is_nil(value) } {
-                        return false;
-                    }
-                }
-            }
-            true
+            let roundtrip: Option<bool> = value.try_convert_into(&interp).unwrap();
+            assert_eq!(roundtrip, b);
         }
+    }
 
-        fn roundtrip(b: bool) -> bool {
+    #[test]
+    fn prop_roundtrip_err() {
+        run_arbitrary::<i64>(|i_val| {
             let interp = interpreter();
-            let value = interp.convert(b);
-            let value = value.try_convert_into::<bool>(&interp).unwrap();
-            value == b
-        }
-
-        fn nilable_roundtrip(b: Option<bool>) -> bool {
-            let interp = interpreter();
-            let value = interp.convert(b);
-            let value = value.try_convert_into::<Option<bool>>(&interp).unwrap();
-            value == b
-        }
-
-        fn roundtrip_err(i: i64) -> bool {
-            let interp = interpreter();
-            let value = interp.convert(i);
-            let value = value.try_convert_into::<bool>(&interp);
-            value.is_err()
-        }
+            let value = interp.convert(i_val);
+            let result: Result<bool, _> = value.try_convert_into(&interp);
+            assert!(result.is_err());
+        });
     }
 }
