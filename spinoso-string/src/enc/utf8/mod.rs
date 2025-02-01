@@ -54,42 +54,51 @@ mod tests {
     use alloc::vec::Vec;
     use core::str;
 
-    use quickcheck::quickcheck;
-
     use super::{Utf8Str, Utf8String};
+    use crate::test::run_arbitrary;
 
     const REPLACEMENT_CHARACTER_BYTES: [u8; 3] = [239, 191, 189];
 
-    quickcheck! {
-        fn fuzz_char_len_utf8_contents_utf8_string(contents: String) -> bool {
+    #[test]
+    fn prop_fuzz_char_len_utf8_contents_utf8_string() {
+        run_arbitrary::<String>(|contents| {
             let expected = contents.chars().count();
             let s = Utf8String::from(contents);
-            s.char_len() == expected
-        }
+            assert_eq!(s.char_len(), expected);
+        });
+    }
 
-        fn fuzz_len_utf8_contents_utf8_string(contents: String) -> bool {
+    #[test]
+    fn prop_fuzz_len_utf8_contents_utf8_string() {
+        run_arbitrary::<String>(|contents| {
             let expected = contents.len();
             let s = Utf8String::from(contents);
-            s.len() == expected
-        }
+            assert_eq!(s.len(), expected);
+        });
+    }
 
-        fn fuzz_char_len_binary_contents_utf8_string(contents: Vec<u8>) -> bool {
+    #[test]
+    fn prop_fuzz_char_len_binary_contents_utf8_string() {
+        run_arbitrary::<Vec<u8>>(|contents| {
             if let Ok(utf8_contents) = str::from_utf8(&contents) {
                 let expected = utf8_contents.chars().count();
                 let s = Utf8String::from(contents);
-                s.char_len() == expected
+                assert_eq!(s.char_len(), expected);
             } else {
                 let expected_at_most = contents.len();
                 let s = Utf8String::from(contents);
-                s.char_len() <= expected_at_most
+                assert!(s.char_len() <= expected_at_most);
             }
-        }
+        });
+    }
 
-        fn fuzz_len_binary_contents_utf8_string(contents: Vec<u8>) -> bool {
+    #[test]
+    fn prop_fuzz_len_binary_contents_utf8_string() {
+        run_arbitrary::<Vec<u8>>(|contents| {
             let expected = contents.len();
             let s = Utf8String::from(contents);
-            s.len() == expected
-        }
+            assert_eq!(s.len(), expected);
+        });
     }
 
     #[test]

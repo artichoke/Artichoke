@@ -415,8 +415,6 @@ impl TryConvertMut<Value, Vec<i64>> for Artichoke {
 
 #[cfg(test)]
 mod tests {
-    use quickcheck::quickcheck;
-
     use crate::test::prelude::*;
 
     #[test]
@@ -428,138 +426,127 @@ mod tests {
         assert!(result.is_err());
     }
 
-    quickcheck! {
-        fn arr_int_borrowed(arr: Vec<i64>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_arr_int_borrowed() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<i64>>(|arr| {
             // Borrowed converter
-            let value = interp.try_convert_mut(arr.as_slice()).unwrap();
+            let value = interp.try_convert_mut(arr.clone()).unwrap();
             let len = value.funcall(&mut interp, "length", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != arr.len() {
-                return false;
-            }
+            assert_eq!(len, arr.len());
+
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != arr.is_empty() {
-                return false;
-            }
+            assert_eq!(empty, arr.is_empty());
+
             let recovered: Vec<i64> = interp.try_convert_mut(value).unwrap();
-            if recovered != arr {
-                return false;
-            }
-            true
-        }
+            assert_eq!(recovered, arr);
+        });
+    }
 
-        fn arr_int_owned(arr: Vec<i64>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_arr_int_owned() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<i64>>(|arr| {
             // Owned converter
             let value = interp.try_convert_mut(arr.clone()).unwrap();
             let len = value.funcall(&mut interp, "length", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != arr.len() {
-                return false;
-            }
+            assert_eq!(len, arr.len());
+
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != arr.is_empty() {
-                return false;
-            }
+            assert_eq!(empty, arr.is_empty());
+
             let recovered: Vec<i64> = interp.try_convert_mut(value).unwrap();
-            if recovered != arr {
-                return false;
-            }
-            true
-        }
+            assert_eq!(recovered, arr);
+        });
+    }
 
-        fn arr_utf8_borrowed(arr: Vec<String>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_arr_utf8_borrowed() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<String>>(|arr| {
             // Borrowed converter
             let value = interp.try_convert_mut(arr.as_slice()).unwrap();
             let len = value.funcall(&mut interp, "length", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != arr.len() {
-                return false;
-            }
+            assert_eq!(len, arr.len());
+
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != arr.is_empty() {
-                return false;
-            }
-            let recovered: Vec<String> = interp.try_convert_mut(value).unwrap();
-            if recovered != arr {
-                return false;
-            }
-            true
-        }
+            assert_eq!(empty, arr.is_empty());
 
-        fn arr_utf8_owned(arr: Vec<String>) -> bool {
-            let mut interp = interpreter();
+            let recovered: Vec<String> = interp.try_convert_mut(value).unwrap();
+            assert_eq!(recovered, arr);
+        });
+    }
+
+    #[test]
+    fn prop_arr_utf8_owned() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<String>>(|arr| {
             // Owned converter
             let value = interp.try_convert_mut(arr.clone()).unwrap();
             let len = value.funcall(&mut interp, "length", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != arr.len() {
-                return false;
-            }
+            assert_eq!(len, arr.len());
+
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != arr.is_empty() {
-                return false;
-            }
-            let recovered: Vec<String> = interp.try_convert_mut(value).unwrap();
-            if recovered != arr {
-                return false;
-            }
-            true
-        }
+            assert_eq!(empty, arr.is_empty());
 
-        fn arr_nilable_bstr_borrowed(arr: Vec<Option<Vec<u8>>>) -> bool {
-            let mut interp = interpreter();
+            let recovered: Vec<String> = interp.try_convert_mut(value).unwrap();
+            assert_eq!(recovered, arr);
+        });
+    }
+
+    #[test]
+    fn prop_arr_nilable_bstr_borrowed() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<Option<Vec<u8>>>>(|arr| {
             // Borrowed converter
             let value = interp.try_convert_mut(arr.as_slice()).unwrap();
             let len = value.funcall(&mut interp, "length", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != arr.len() {
-                return false;
-            }
+            assert_eq!(len, arr.len());
+
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != arr.is_empty() {
-                return false;
-            }
-            let recovered: Vec<Option<Vec<u8>>> = interp.try_convert_mut(value).unwrap();
-            if recovered != arr {
-                return false;
-            }
-            true
-        }
+            assert_eq!(empty, arr.is_empty());
 
-        fn arr_nilable_bstr_owned(arr: Vec<Option<Vec<u8>>>) -> bool {
-            let mut interp = interpreter();
+            let recovered: Vec<Option<Vec<u8>>> = interp.try_convert_mut(value).unwrap();
+            assert_eq!(recovered, arr);
+        });
+    }
+
+    #[test]
+    fn prop_arr_nilable_bstr_owned() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<Option<Vec<u8>>>>(|arr| {
             // Owned converter
             let value = interp.try_convert_mut(arr.clone()).unwrap();
             let len = value.funcall(&mut interp, "length", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != arr.len() {
-                return false;
-            }
+            assert_eq!(len, arr.len());
+
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != arr.is_empty() {
-                return false;
-            }
-            let recovered: Vec<Option<Vec<u8>>> = interp.try_convert_mut(value).unwrap();
-            if recovered != arr {
-                return false;
-            }
-            true
-        }
+            assert_eq!(empty, arr.is_empty());
 
-        fn roundtrip_err(i: i64) -> bool {
-            let mut interp = interpreter();
+            let recovered: Vec<Option<Vec<u8>>> = interp.try_convert_mut(value).unwrap();
+            assert_eq!(recovered, arr);
+        });
+    }
+
+    #[test]
+    fn prop_roundtrip_err() {
+        let mut interp = interpreter();
+        run_arbitrary::<i64>(|i| {
             let value = interp.convert(i);
             let value = value.try_convert_into_mut::<Vec<Value>>(&mut interp);
-            value.is_err()
-        }
+            assert!(value.is_err());
+        });
     }
 }

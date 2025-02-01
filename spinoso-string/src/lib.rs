@@ -64,6 +64,8 @@ mod impls;
 mod inspect;
 mod iter;
 mod ord;
+#[cfg(test)]
+mod test;
 
 pub use center::{Center, CenterError};
 pub use chars::Chars;

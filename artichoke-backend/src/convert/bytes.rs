@@ -106,7 +106,6 @@ impl<'a> TryConvertMut<Value, &'a [u8]> for Artichoke {
 #[cfg(test)]
 mod tests {
     use bstr::ByteSlice;
-    use quickcheck::quickcheck;
 
     use crate::test::prelude::*;
 
@@ -149,28 +148,28 @@ mod tests {
         assert_eq!(slice, expected);
     }
 
-    quickcheck! {
-        fn convert_to_vec(bytes: Vec<u8>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_convert_to_vec() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let value = interp.try_convert_mut(bytes).unwrap();
-            value.ruby_type() == Ruby::String
-        }
+            assert_eq!(value.ruby_type(), Ruby::String);
+        });
+    }
 
-        fn byte_string_borrowed(bytes: Vec<u8>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_byte_string_borrowed() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<u8>>(|bytes| {
             // Borrowed converter
-            let value = interp.try_convert_mut(bytes.as_slice()).unwrap();
+            let value = interp.try_convert_mut(bytes.clone()).unwrap();
             let len = value.funcall(&mut interp, "bytesize", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != bytes.len() {
-                return false;
-            }
+            assert_eq!(len, bytes.len());
 
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != bytes.is_empty() {
-                return false;
-            }
+            assert_eq!(empty, bytes.is_empty());
 
             let zero = interp.convert(0);
             let one = interp.convert(1);
@@ -178,38 +177,30 @@ mod tests {
             let str_bytes = value.funcall(&mut interp, "bytes", &[], None).unwrap();
             let first = str_bytes.funcall(&mut interp, "[]", &[zero], None).unwrap();
             let first = first.try_convert_into::<Option<i64>>(&interp).unwrap();
-            if first != bytes.first().copied().map(i64::from) {
-                return false;
-            }
+            assert_eq!(first, bytes.first().copied().map(i64::from));
 
             let slice = value.funcall(&mut interp, "byteslice", &[zero, one], None).unwrap();
             let slice = slice.try_convert_into_mut::<Option<&[u8]>>(&mut interp).unwrap();
-            if slice.unwrap_or_default() != bytes.get(0..1).unwrap_or_default() {
-                return false;
-            }
+            assert_eq!(slice.unwrap_or_default(), bytes.get(0..1).unwrap_or_default());
 
             let recovered: Vec<u8> = interp.try_convert_mut(value).unwrap();
-            if recovered != bytes {
-                return false;
-            }
-            true
-        }
+            assert_eq!(recovered, bytes);
+        });
+    }
 
-        fn byte_string_owned(bytes: Vec<u8>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_byte_string_owned() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<u8>>(|bytes| {
             // Owned converter
             let value = interp.try_convert_mut(bytes.clone()).unwrap();
             let len = value.funcall(&mut interp, "bytesize", &[], None).unwrap();
             let len = len.try_convert_into::<usize>(&interp).unwrap();
-            if len != bytes.len() {
-                return false;
-            }
+            assert_eq!(len, bytes.len());
 
             let empty = value.funcall(&mut interp, "empty?", &[], None).unwrap();
             let empty = empty.try_convert_into::<bool>(&interp).unwrap();
-            if empty != bytes.is_empty() {
-                return false;
-            }
+            assert_eq!(empty, bytes.is_empty());
 
             let zero = interp.convert(0);
             let one = interp.convert(1);
@@ -217,35 +208,34 @@ mod tests {
             let str_bytes = value.funcall(&mut interp, "bytes", &[], None).unwrap();
             let first = str_bytes.funcall(&mut interp, "[]", &[zero], None).unwrap();
             let first = first.try_convert_into::<Option<i64>>(&interp).unwrap();
-            if first != bytes.first().copied().map(i64::from) {
-                return false;
-            }
+            assert_eq!(first, bytes.first().copied().map(i64::from));
 
             let slice = value.funcall(&mut interp, "byteslice", &[zero, one], None).unwrap();
             let slice = slice.try_convert_into_mut::<Option<&[u8]>>(&mut interp).unwrap();
-            if slice.unwrap_or_default() != bytes.get(0..1).unwrap_or_default() {
-                return false;
-            }
+            assert_eq!(slice.unwrap_or_default(), bytes.get(0..1).unwrap_or_default());
 
             let recovered: Vec<u8> = interp.try_convert_mut(value).unwrap();
-            if recovered != bytes {
-                return false;
-            }
-            true
-        }
+            assert_eq!(recovered, bytes);
+        });
+    }
 
-        fn roundtrip(bytes: Vec<u8>) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_roundtrip() {
+        let mut interp = interpreter();
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let value = interp.try_convert_mut(bytes.as_slice()).unwrap();
             let value = value.try_convert_into_mut::<Vec<u8>>(&mut interp).unwrap();
-            value == bytes
-        }
+            assert_eq!(value, bytes);
+        });
+    }
 
-        fn roundtrip_err(b: bool) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_roundtrip_err() {
+        let mut interp = interpreter();
+        for b in [true, false] {
             let value = interp.convert(b);
             let value = value.try_convert_into_mut::<Vec<u8>>(&mut interp);
-            value.is_err()
+            assert!(value.is_err());
         }
     }
 }

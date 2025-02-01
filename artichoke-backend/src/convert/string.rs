@@ -65,8 +65,6 @@ impl<'a> TryConvertMut<Value, &'a str> for Artichoke {
 
 #[cfg(test)]
 mod tests {
-    use quickcheck::quickcheck;
-
     use crate::test::prelude::*;
 
     #[test]
@@ -78,96 +76,112 @@ mod tests {
         assert!(result.is_err());
     }
 
-    quickcheck! {
-        fn convert_to_string(s: String) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_convert_to_string() {
+        let mut interp = interpreter();
+        run_arbitrary::<String>(|s| {
             let value = interp.try_convert_mut(s.clone()).unwrap();
             let string: Vec<u8> = interp.try_convert_mut(value).unwrap();
-            s.as_bytes() == string
-        }
+            assert_eq!(string, s.as_bytes());
+        });
+    }
 
-        fn string_with_value(s: String) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_string_with_value() {
+        let mut interp = interpreter();
+        run_arbitrary::<String>(|s| {
             let value = interp.try_convert_mut(s.clone()).unwrap();
-            value.to_s(&mut interp) == s.as_bytes()
-        }
+            assert_eq!(value.to_s(&mut interp), s.as_bytes());
+        });
+    }
 
-        #[cfg(feature = "core-regexp")]
-        fn utf8string_borrowed(string: String) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    #[cfg(feature = "core-regexp")]
+    fn prop_utf8string_borrowed() {
+        let mut interp = interpreter();
+        run_arbitrary::<String>(|s| {
             // Borrowed converter
-            let value = interp.try_convert_mut(string.as_str()).unwrap();
+            let value = interp.try_convert_mut(s.as_str()).unwrap();
             let len = value
                 .funcall(&mut interp, "length", &[], None)
                 .and_then(|value| value.try_convert_into::<usize>(&interp))
                 .unwrap();
-            if len != string.chars().count() {
-                return false;
-            }
+            assert_eq!(len, s.chars().count());
+
             let zero = interp.convert(0);
             let first = value
                 .funcall(&mut interp, "[]", &[zero], None)
                 .and_then(|value| value.try_convert_into_mut::<Option<String>>(&mut interp))
                 .unwrap();
-            let mut iter = string.chars();
+            let mut iter = s.chars();
             if let Some(ch) = iter.next() {
-                if first != Some(ch.to_string()) {
-                    return false;
-                }
-            } else if first.is_some() {
-                return false;
+                assert_eq!(first, Some(ch.to_string()));
+            } else {
+                assert!(first.is_none());
             }
-            let recovered: String = interp.try_convert_mut(value).unwrap();
-            if recovered != string {
-                return false;
-            }
-            true
-        }
 
-        #[cfg(feature = "core-regexp")]
-        fn utf8string_owned(string: String) -> bool {
-            let mut interp = interpreter();
+            let recovered: String = interp.try_convert_mut(value).unwrap();
+            assert_eq!(recovered, s);
+        });
+    }
+
+    #[test]
+    #[cfg(feature = "core-regexp")]
+    fn prop_utf8string_owned() {
+        let mut interp = interpreter();
+        run_arbitrary::<String>(|s| {
             // Owned converter
-            let value = interp.try_convert_mut(string.clone()).unwrap();
+            let value = interp.try_convert_mut(s.clone()).unwrap();
             let len = value
                 .funcall(&mut interp, "length", &[], None)
                 .and_then(|value| value.try_convert_into::<usize>(&interp))
                 .unwrap();
-            if len != string.chars().count() {
-                return false;
-            }
+            assert_eq!(len, s.chars().count());
+
             let zero = interp.convert(0);
             let first = value
                 .funcall(&mut interp, "[]", &[zero], None)
                 .and_then(|value| value.try_convert_into_mut::<Option<String>>(&mut interp))
                 .unwrap();
-            let mut iter = string.chars();
+            let mut iter = s.chars();
             if let Some(ch) = iter.next() {
-                if first != Some(ch.to_string()) {
-                    return false;
-                }
-            } else if first.is_some() {
-                return false;
+                assert_eq!(first, Some(ch.to_string()));
+            } else {
+                assert!(first.is_none());
             }
+
             let recovered: String = interp.try_convert_mut(value).unwrap();
-            if recovered != string {
-                return false;
-            }
-            true
-        }
+            assert_eq!(recovered, s);
+        });
+    }
 
-        fn roundtrip(s: String) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_borrowed_roundtrip() {
+        let mut interp = interpreter();
+        run_arbitrary::<String>(|s| {
+            let value = interp.try_convert_mut(s.as_str()).unwrap();
+            let roundtrip = value.try_convert_into_mut::<String>(&mut interp).unwrap();
+            assert_eq!(roundtrip, s);
+        });
+    }
+
+    #[test]
+    fn prop_owned_roundtrip() {
+        let mut interp = interpreter();
+        run_arbitrary::<String>(|s| {
             let value = interp.try_convert_mut(s.clone()).unwrap();
-            let value = value.try_convert_into_mut::<String>(&mut interp).unwrap();
-            value == s
-        }
+            let roundtrip = value.try_convert_into_mut::<String>(&mut interp).unwrap();
+            assert_eq!(roundtrip, s);
+        });
+    }
 
-        fn roundtrip_err(b: bool) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_roundtrip_err() {
+        let mut interp = interpreter();
+        for b in [true, false] {
             let value = interp.convert(b);
             let result = value.try_convert_into_mut::<String>(&mut interp);
-            result.is_err()
+            assert!(result.is_err());
         }
     }
 }

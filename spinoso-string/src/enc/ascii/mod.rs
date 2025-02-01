@@ -369,34 +369,43 @@ mod tests {
     use alloc::string::String;
     use alloc::vec::Vec;
 
-    use quickcheck::quickcheck;
-
     use super::AsciiString;
+    use crate::test::run_arbitrary;
 
-    quickcheck! {
-        fn fuzz_char_len_utf8_contents_ascii_string(contents: String) -> bool {
+    #[test]
+    fn prop_fuzz_char_len_utf8_contents_ascii_string() {
+        run_arbitrary::<String>(|contents| {
             let expected = contents.len();
             let s = AsciiString::from(contents);
-            s.char_len() == expected
-        }
+            assert_eq!(s.char_len(), expected);
+        });
+    }
 
-        fn fuzz_len_utf8_contents_ascii_string(contents: String) -> bool {
+    #[test]
+    fn prop_fuzz_len_utf8_contents_ascii_string() {
+        run_arbitrary::<String>(|contents| {
             let expected = contents.len();
             let s = AsciiString::from(contents);
-            s.len() == expected
-        }
+            assert_eq!(s.len(), expected);
+        });
+    }
 
-        fn fuzz_char_len_binary_contents_ascii_string(contents: Vec<u8>) -> bool {
+    #[test]
+    fn prop_fuzz_char_len_binary_contents_ascii_string() {
+        run_arbitrary::<Vec<u8>>(|contents| {
             let expected = contents.len();
             let s = AsciiString::from(contents);
-            s.char_len() == expected
-        }
+            assert_eq!(s.char_len(), expected);
+        });
+    }
 
-        fn fuzz_len_binary_contents_ascii_string(contents: Vec<u8>) -> bool {
+    #[test]
+    fn prop_fuzz_len_binary_contents_ascii_string() {
+        run_arbitrary::<Vec<u8>>(|contents| {
             let expected = contents.len();
             let s = AsciiString::from(contents);
-            s.len() == expected
-        }
+            assert_eq!(s.len(), expected);
+        });
     }
 
     #[test]

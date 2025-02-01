@@ -1283,17 +1283,13 @@ impl Write for Buf {
 }
 
 #[cfg(test)]
-#[allow(clippy::undocumented_unsafe_blocks)]
 mod tests {
-    use alloc::string::String;
     use alloc::vec::Vec;
 
-    use quickcheck::quickcheck;
-    use raw_parts::RawParts;
-
-    use super::{ensure_nul_terminated, Buf};
+    use super::Buf;
 
     #[must_use]
+    #[expect(clippy::undocumented_unsafe_blocks, reason = "Testing unsafe functions")]
     fn is_nul_terminated(bytes: &mut Vec<u8>) -> bool {
         let spare_capacity = bytes.spare_capacity_mut();
         if spare_capacity.is_empty() {
@@ -1395,357 +1391,509 @@ mod tests {
             assert!(is_nul_terminated(&mut bytes), "failed for capacity {capa}");
         }
     }
+}
 
-    quickcheck! {
-        fn test_ensure_nul_terminated(bytes: Vec<u8>) -> bool {
-            let mut bytes = bytes;
-            ensure_nul_terminated(&mut bytes).unwrap();
-            is_nul_terminated(&mut bytes)
+#[cfg(test)]
+#[expect(clippy::undocumented_unsafe_blocks, reason = "Testing unsafe functions")]
+mod proptests {
+    use alloc::string::String;
+    use alloc::vec;
+    use alloc::vec::Vec;
+    use core::fmt;
+
+    use arbitrary::{Arbitrary, Unstructured};
+    use raw_parts::RawParts;
+
+    use super::{ensure_nul_terminated, Buf};
+
+    pub fn run_arbitrary<T>(mut f: impl FnMut(T))
+    where
+        T: for<'a> Arbitrary<'a> + fmt::Debug,
+    {
+        fn get_unstructured(buf: &mut [u8]) -> Unstructured<'_> {
+            getrandom::fill(buf).unwrap();
+            Unstructured::new(buf)
         }
 
-        fn test_ensure_nul_terminated_after_shrink(bytes: Vec<u8>) -> bool {
-            let mut bytes = bytes;
+        let mut buf = vec![0; 2048];
+        let mut unstructured = get_unstructured(&mut buf);
+        for _ in 0..1024 {
+            if let Ok(value) = T::arbitrary(&mut unstructured) {
+                f(value);
+                continue;
+            }
+            // try reloading on randomness
+            unstructured = get_unstructured(&mut buf);
+            if let Ok(value) = T::arbitrary(&mut unstructured) {
+                f(value);
+            }
+        }
+    }
+
+    /// Returns whether the given vector’s spare capacity is nonempty and that both its
+    /// first and last bytes (of the spare capacity) are the NUL byte.
+    #[inline]
+    fn is_nul_terminated(vec: &mut Vec<u8>) -> bool {
+        let spare = vec.spare_capacity_mut();
+        if spare.is_empty() {
+            return false;
+        }
+        let first = unsafe { spare.first().unwrap().assume_init() };
+        if first != 0 {
+            return false;
+        }
+        let last = unsafe { spare.last().unwrap().assume_init() };
+        last == 0
+    }
+
+    #[test]
+    fn prop_test_ensure_nul_terminated() {
+        run_arbitrary::<Vec<u8>>(|mut bytes| {
+            ensure_nul_terminated(&mut bytes).unwrap();
+            assert!(is_nul_terminated(&mut bytes));
+        });
+    }
+
+    #[test]
+    fn prop_test_ensure_nul_terminated_after_shrink() {
+        run_arbitrary::<Vec<u8>>(|mut bytes| {
             bytes.shrink_to_fit();
             ensure_nul_terminated(&mut bytes).unwrap();
-            is_nul_terminated(&mut bytes)
-        }
+            assert!(is_nul_terminated(&mut bytes));
+        });
+    }
 
-        fn test_ensure_nul_terminated_from_vec(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_from_vec() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let buf = Buf::from(bytes);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_from_buf(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_from_buf() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let buf = Buf::from(bytes);
-            let mut bytes = Vec::from(buf);
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner: Vec<u8> = buf.into();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_after_clone(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_after_clone() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let buf = Buf::from(bytes);
-            #[allow(clippy::redundant_clone)]
-            let buf = buf.clone();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let buf_clone = buf.clone();
+            let mut inner = buf_clone.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_from_iterator(bytes: Vec<u8>) -> bool {
-            #[allow(clippy::from_iter_instead_of_collect)]
-            let buf = Buf::from_iter(bytes.into_iter());
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+    #[test]
+    fn prop_test_ensure_nul_terminated_from_iterator() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
+            let buf = Buf::from_iter(bytes);
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_collect(bytes: Vec<u8>) -> bool {
-            let buf = bytes.into_iter().collect::<Buf>();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+    #[test]
+    fn prop_test_ensure_nul_terminated_collect() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
+            let buf: Buf = bytes.into_iter().collect();
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_after_extend(bytes: Vec<u8>, extend: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_after_extend() {
+        run_arbitrary::<(Vec<u8>, Vec<u8>)>(|(bytes, extension)| {
             let mut buf = Buf::from(bytes);
-            buf.extend(extend.into_iter());
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            buf.extend(extension);
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_from_raw_parts(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_from_raw_parts() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let raw_parts = RawParts::from_vec(bytes);
             let buf = unsafe { Buf::from_raw_parts(raw_parts) };
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_raw_parts_round_trip(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_raw_parts_round_trip() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let buf = Buf::from(bytes);
             let raw_parts = buf.into_raw_parts();
             let buf = unsafe { Buf::from_raw_parts(raw_parts) };
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_reserve(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_reserve() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let additional = [0_usize, 1, 2, 3, 4, 19, 280, 499, 1024, 4096, 4099];
             for reserve in additional {
                 let mut buf = Buf::from(bytes.clone());
                 buf.reserve(reserve);
-                let mut bytes = buf.into_inner();
-                if !is_nul_terminated(&mut bytes) {
-                    return false;
-                }
+                let mut inner = buf.into_inner();
+                assert!(is_nul_terminated(&mut inner));
             }
-            true
-        }
+        });
+    }
 
-        fn test_ensure_nul_terminated_reserve_exact(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_reserve_exact() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let additional = [0_usize, 1, 2, 3, 4, 19, 280, 499, 1024, 4096, 4099];
             for reserve in additional {
                 let mut buf = Buf::from(bytes.clone());
                 buf.reserve_exact(reserve);
-                let mut bytes = buf.into_inner();
-                if !is_nul_terminated(&mut bytes) {
-                    return false;
-                }
+                let mut inner = buf.into_inner();
+                assert!(is_nul_terminated(&mut inner));
             }
-            true
-        }
+        });
+    }
 
-        fn test_ensure_nul_terminated_try_reserve(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_try_reserve() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let additional = [0_usize, 1, 2, 3, 4, 19, 280, 499, 1024, 4096, 4099];
             for reserve in additional {
                 let mut buf = Buf::from(bytes.clone());
                 buf.try_reserve(reserve).unwrap();
-                let mut bytes = buf.into_inner();
-                if !is_nul_terminated(&mut bytes) {
-                    return false;
-                }
+                let mut inner = buf.into_inner();
+                assert!(is_nul_terminated(&mut inner));
             }
-            true
-        }
+        });
+    }
 
-        fn test_ensure_nul_terminated_try_reserve_exact(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_try_reserve_exact() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let additional = [0_usize, 1, 2, 3, 4, 19, 280, 499, 1024, 4096, 4099];
             for reserve in additional {
                 let mut buf = Buf::from(bytes.clone());
                 buf.try_reserve_exact(reserve).unwrap();
-                let mut bytes = buf.into_inner();
-                if !is_nul_terminated(&mut bytes) {
-                    return false;
-                }
+                let mut inner = buf.into_inner();
+                assert!(is_nul_terminated(&mut inner));
             }
-            true
-        }
+        });
+    }
 
-        fn test_ensure_nul_terminated_shrink_to_fit(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_shrink_to_fit() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let mut buf = Buf::from(bytes);
             buf.shrink_to_fit();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_shrink_to(bytes: Vec<u8>, shrink_to: usize) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_shrink_to() {
+        run_arbitrary::<(Vec<u8>, usize)>(|(bytes, shrink_to)| {
             let mut buf = Buf::from(bytes);
             buf.shrink_to(shrink_to);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_truncate(bytes: Vec<u8>, truncate_to: usize) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_truncate() {
+        run_arbitrary::<(Vec<u8>, usize)>(|(bytes, truncate_to)| {
             let mut buf = Buf::from(bytes);
             buf.truncate(truncate_to);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_set_len(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_set_len() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let mut buf = Buf::from(bytes);
             unsafe {
                 buf.set_len(0);
             }
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_insert_first(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_insert_first() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             if bytes.is_empty() {
-                return true;
+                return;
             }
             let mut buf = Buf::from(bytes);
             buf.insert(0, u8::MAX);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_insert_past_end(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_insert_past_end() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let mut buf = Buf::from(bytes);
             buf.insert(buf.len(), u8::MAX);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_insert_last(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_insert_last() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             if bytes.is_empty() {
-                return true;
+                return;
             }
             let mut buf = Buf::from(bytes);
             buf.insert(buf.len() - 1, u8::MAX);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_insert_interior(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_insert_interior() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             if bytes.len() < 2 {
-                return true;
+                return;
             }
             let mut buf = Buf::from(bytes);
             buf.insert(buf.len() - 2, u8::MAX);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_remove_first(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_remove_first() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             if bytes.is_empty() {
-                return true;
+                return;
             }
             let mut buf = Buf::from(bytes);
             buf.remove(0);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_remove_last(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_remove_last() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             if bytes.is_empty() {
-                return true;
+                return;
             }
             let mut buf = Buf::from(bytes);
             buf.remove(buf.len() - 1);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_remove_interior(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_remove_interior() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             if bytes.len() < 2 {
-                return true;
+                return;
             }
             let mut buf = Buf::from(bytes);
             buf.remove(buf.len() - 2);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_retain_all(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_retain_all() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let mut buf = Buf::from(bytes);
             buf.retain(|_| true);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_retain_none(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_retain_none() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let mut buf = Buf::from(bytes);
             buf.retain(|_| false);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_retain_some(bytes: Vec<u8>) -> bool {
-            let mut idx = 0_usize;
+    #[test]
+    fn prop_test_ensure_nul_terminated_retain_some() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
+            let mut idx = 0;
             let mut buf = Buf::from(bytes);
             buf.retain(|_| {
                 idx += 1;
                 idx % 2 == 0
             });
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_pop(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_pop() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             if bytes.is_empty() {
-                return true;
+                return;
             }
             let mut buf = Buf::from(bytes);
             buf.pop_byte();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_clear(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_clear() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let mut buf = Buf::from(bytes);
             buf.clear();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_resize(bytes: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_resize() {
+        run_arbitrary::<Vec<u8>>(|bytes| {
             let lengths = [0_usize, 1, 2, 3, 4, 19, 280, 499, 1024, 4096, 4099];
             for len in lengths {
                 let mut buf = Buf::from(bytes.clone());
                 buf.resize(len, u8::MAX);
-                let mut bytes = buf.into_inner();
-                if !is_nul_terminated(&mut bytes) {
-                    return false;
-                }
+                let mut inner = buf.into_inner();
+                assert!(is_nul_terminated(&mut inner));
             }
-            true
-        }
+        });
+    }
 
-        fn test_ensure_nul_terminated_extend_from_slice(bytes: Vec<u8>, other: Vec<u8>) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_extend_from_slice() {
+        run_arbitrary::<(Vec<u8>, Vec<u8>)>(|(bytes, other)| {
             let mut buf = Buf::from(bytes);
             buf.extend_from_slice(&other);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_push_byte(bytes: Vec<u8>, pushed: u8) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_push_byte() {
+        run_arbitrary::<(Vec<u8>, u8)>(|(bytes, pushed)| {
             let mut buf = Buf::from(bytes);
             buf.push_byte(pushed);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_push_char(bytes: Vec<u8>, pushed: char) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_push_char() {
+        run_arbitrary::<(Vec<u8>, char)>(|(bytes, pushed)| {
             let mut buf = Buf::from(bytes);
             buf.push_char(pushed);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        fn test_ensure_nul_terminated_push_str(bytes: Vec<u8>, pushed: String) -> bool {
+    #[test]
+    fn prop_test_ensure_nul_terminated_push_str() {
+        run_arbitrary::<(Vec<u8>, String)>(|(bytes, pushed)| {
             let mut buf = Buf::from(bytes);
             buf.push_str(pushed);
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        #[cfg(feature = "std")]
-        fn test_ensure_nul_terminated_write(bytes: Vec<u8>, data: Vec<u8>) -> bool {
+    // std::io-related tests (enabled only with the "std" feature)
+
+    #[test]
+    #[cfg(feature = "std")]
+    fn prop_test_ensure_nul_terminated_write() {
+        run_arbitrary::<(Vec<u8>, Vec<u8>)>(|(bytes, data)| {
             use std::io::Write;
-
             let mut buf = Buf::from(bytes);
             let _written = buf.write(&data).unwrap();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        #[cfg(feature = "std")]
-        fn test_ensure_nul_terminated_flush(bytes: Vec<u8>, data: Vec<u8>) -> bool {
+    #[test]
+    #[cfg(feature = "std")]
+    fn prop_test_ensure_nul_terminated_flush() {
+        run_arbitrary::<(Vec<u8>, Vec<u8>)>(|(bytes, data)| {
             use std::io::Write;
-
             let mut buf = Buf::from(bytes);
             buf.write_all(&data).unwrap();
             buf.flush().unwrap();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        #[cfg(feature = "std")]
-        fn test_ensure_nul_terminated_write_vectored(bytes: Vec<u8>, data1: Vec<u8>, data2: Vec<u8>) -> bool {
+    #[test]
+    #[cfg(feature = "std")]
+    fn prop_test_ensure_nul_terminated_write_vectored() {
+        run_arbitrary::<(Vec<u8>, Vec<u8>, Vec<u8>)>(|(bytes, data1, data2)| {
             use std::io::{IoSlice, Write};
-
             let mut buf = Buf::from(bytes);
-            let _written = buf.write_vectored(&[IoSlice::new(&data1), IoSlice::new(&data2)]).unwrap();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let _written = buf
+                .write_vectored(&[IoSlice::new(&data1), IoSlice::new(&data2)])
+                .unwrap();
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        #[cfg(feature = "std")]
-        fn test_ensure_nul_terminated_write_all(bytes: Vec<u8>, data: Vec<u8>) -> bool {
+    #[test]
+    #[cfg(feature = "std")]
+    fn prop_test_ensure_nul_terminated_write_all() {
+        run_arbitrary::<(Vec<u8>, Vec<u8>)>(|(bytes, data)| {
             use std::io::Write;
-
             let mut buf = Buf::from(bytes);
             buf.write_all(&data).unwrap();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
+    }
 
-        #[cfg(feature = "std")]
-        fn test_ensure_nul_terminated_write_fmt(bytes: Vec<u8>, data: String) -> bool {
+    #[test]
+    #[cfg(feature = "std")]
+    fn prop_test_ensure_nul_terminated_write_fmt() {
+        run_arbitrary::<(Vec<u8>, String)>(|(bytes, data)| {
             use std::io::Write;
-
             let mut buf = Buf::from(bytes);
             buf.write_fmt(format_args!("{data}")).unwrap();
-            let mut bytes = buf.into_inner();
-            is_nul_terminated(&mut bytes)
-        }
+            let mut inner = buf.into_inner();
+            assert!(is_nul_terminated(&mut inner));
+        });
     }
 }

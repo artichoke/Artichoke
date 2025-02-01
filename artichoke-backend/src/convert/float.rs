@@ -29,8 +29,6 @@ impl TryConvert<Value, f64> for Artichoke {
 
 #[cfg(test)]
 mod tests {
-    use quickcheck::quickcheck;
-
     use crate::test::prelude::*;
 
     #[test]
@@ -42,57 +40,67 @@ mod tests {
         assert!(result.is_err());
     }
 
-    quickcheck! {
-        fn convert_to_float(f: f64) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_convert_to_float() {
+        let mut interp = interpreter();
+        run_arbitrary::<f64>(|f| {
             let value = interp.convert_mut(f);
-            value.ruby_type() == Ruby::Float
-        }
+            assert_eq!(value.ruby_type(), Ruby::Float);
+        });
+    }
 
-        fn float_with_value(f: f64) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_float_with_value() {
+        let mut interp = interpreter();
+        run_arbitrary::<f64>(|f| {
             let value = interp.convert_mut(f);
             let inner = value.inner();
             let cdouble = unsafe { sys::mrb_sys_float_to_cdouble(inner) };
             if f.is_nan() {
-                cdouble.is_nan()
+                assert!(cdouble.is_nan());
             } else if f.is_infinite() {
-                f.is_infinite() && cdouble.signum() == f.signum()
+                assert!(f.is_infinite() && cdouble.signum() == f.signum());
             } else if cdouble >= f {
                 let difference = cdouble - f;
-                difference < f64::EPSILON
+                assert!(difference < f64::EPSILON);
             } else if f >= cdouble {
                 let difference = f - cdouble;
-                difference < f64::EPSILON
+                assert!(difference < f64::EPSILON);
             } else {
-                false
+                panic!("Unexpected branch in float_with_value");
             }
-        }
+        });
+    }
 
-        fn roundtrip(f: f64) -> bool {
-            let mut interp = interpreter();
+    #[test]
+    fn prop_roundtrip() {
+        let mut interp = interpreter();
+        run_arbitrary::<f64>(|f| {
             let value = interp.convert_mut(f);
-            let value = value.try_convert_into::<f64>(&interp).unwrap();
+            let roundtrip_value = value.try_convert_into::<f64>(&interp).unwrap();
             if f.is_nan() {
-                value.is_nan()
+                assert!(roundtrip_value.is_nan());
             } else if f.is_infinite() {
-                value.is_infinite() && value.signum() == f.signum()
-            } else if value >= f {
-                let difference = value - f;
-                difference < f64::EPSILON
-            } else if f >= value {
-                let difference = f - value;
-                difference < f64::EPSILON
+                assert!(roundtrip_value.is_infinite() && roundtrip_value.signum() == f.signum());
+            } else if roundtrip_value >= f {
+                let difference = roundtrip_value - f;
+                assert!(difference < f64::EPSILON);
+            } else if f >= roundtrip_value {
+                let difference = f - roundtrip_value;
+                assert!(difference < f64::EPSILON);
             } else {
-                false
+                panic!("Unexpected branch in roundtrip");
             }
-        }
+        });
+    }
 
-        fn roundtrip_err(b: bool) -> bool {
-            let interp = interpreter();
+    #[test]
+    fn prop_roundtrip_err() {
+        let interp = interpreter();
+        run_arbitrary::<bool>(|b| {
             let value = interp.convert(b);
-            let value = value.try_convert_into::<f64>(&interp);
-            value.is_err()
-        }
+            let result = value.try_convert_into::<f64>(&interp);
+            assert!(result.is_err());
+        });
     }
 }

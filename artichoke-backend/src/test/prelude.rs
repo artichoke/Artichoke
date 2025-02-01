@@ -12,6 +12,9 @@
 //!
 //! The prelude may grow over time as additional items see ubiquitous use.
 
+use std::fmt;
+
+use arbitrary::{unstructured, Arbitrary, Unstructured};
 use bstr::ByteSlice;
 
 pub use crate::block::Block;
@@ -99,6 +102,32 @@ pub fn unwrap_or_panic_with_backtrace<T>(interp: &mut Artichoke, subject: &str, 
                 exc.message().as_bstr(),
                 backtrace
             );
+        }
+    }
+}
+
+/// Helper for property tests: repeatedly generate an arbitrary value of type `T`
+/// from random bytes and then run the closure `f` on it.
+pub fn run_arbitrary<T>(mut f: impl FnMut(T))
+where
+    T: for<'a> Arbitrary<'a> + fmt::Debug,
+{
+    fn get_unstructured(buf: &mut [u8]) -> Unstructured<'_> {
+        getrandom::fill(buf).unwrap();
+        Unstructured::new(buf)
+    }
+
+    let mut buf = vec![0; 2048];
+    let mut unstructured = get_unstructured(&mut buf);
+    for _ in 0..1024 {
+        if let Ok(value) = T::arbitrary(&mut unstructured) {
+            f(value);
+            continue;
+        }
+        // try reloading on randomness
+        unstructured = get_unstructured(&mut buf);
+        if let Ok(value) = T::arbitrary(&mut unstructured) {
+            f(value);
         }
     }
 }
