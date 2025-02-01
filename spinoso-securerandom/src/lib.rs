@@ -1,6 +1,5 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
-#![warn(clippy::cargo)]
 #![allow(unknown_lints)]
 #![allow(clippy::manual_let_else)]
 #![warn(missing_docs)]
@@ -57,8 +56,8 @@
 //! maximum:
 //!
 //! ```rust
-//! # use spinoso_securerandom::{DomainError, Max, Rand};
-//! # fn example() -> Result<(), DomainError> {
+//! # use spinoso_securerandom::{Error, Max, Rand};
+//! # fn example() -> Result<(), Error> {
 //! let rand = spinoso_securerandom::random_number(Max::None)?;
 //! assert!(matches!(rand, Rand::Float(_)));
 //!
@@ -96,9 +95,9 @@ use core::fmt;
 use std::collections::TryReserveError;
 use std::error;
 
-use rand::distributions::Alphanumeric;
-use rand::rngs::OsRng;
-use rand::{CryptoRng, Rng, RngCore};
+use rand::distr::Alphanumeric;
+use rand::rngs::StdRng;
+use rand::{CryptoRng, Rng, SeedableRng};
 use scolapasta_hex as hex;
 
 mod uuid;
@@ -118,6 +117,10 @@ pub enum Error {
     ///
     /// See [`ArgumentError`].
     Argument(ArgumentError),
+    /// Error that indicates an invalid range was given.
+    ///
+    /// See [`DomainError`].
+    Domain(DomainError),
     /// Error that indicates the underlying source of randomness failed to
     /// generate the requested random bytes.
     ///
@@ -141,6 +144,13 @@ impl From<ArgumentError> for Error {
     }
 }
 
+impl From<DomainError> for Error {
+    #[inline]
+    fn from(err: DomainError) -> Self {
+        Self::Domain(err)
+    }
+}
+
 impl From<RandomBytesError> for Error {
     #[inline]
     fn from(err: RandomBytesError) -> Self {
@@ -148,16 +158,16 @@ impl From<RandomBytesError> for Error {
     }
 }
 
-impl From<rand::Error> for Error {
-    #[inline]
-    fn from(err: rand::Error) -> Self {
-        Self::from(RandomBytesError::from(err))
-    }
-}
-
 impl From<TryReserveError> for Error {
     fn from(err: TryReserveError) -> Self {
         Self::Memory(err)
+    }
+}
+
+impl From<getrandom::Error> for Error {
+    #[inline]
+    fn from(_: getrandom::Error) -> Self {
+        Self::RandomBytes(RandomBytesError::new())
     }
 }
 
@@ -173,6 +183,7 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::Argument(ref err) => Some(err),
+            Self::Domain(ref err) => Some(err),
             Self::RandomBytes(ref err) => Some(err),
             Self::Memory(ref err) => Some(err),
         }
@@ -290,6 +301,13 @@ impl fmt::Display for RandomBytesError {
     }
 }
 
+impl From<getrandom::Error> for RandomBytesError {
+    #[inline]
+    fn from(_: getrandom::Error) -> Self {
+        Self::new()
+    }
+}
+
 impl error::Error for RandomBytesError {}
 
 impl RandomBytesError {
@@ -321,12 +339,6 @@ impl RandomBytesError {
     #[must_use]
     pub const fn message(self) -> &'static str {
         "OS Error: Failed to generate random bytes"
-    }
-}
-
-impl From<rand::Error> for RandomBytesError {
-    fn from(_: rand::Error) -> Self {
-        Self::new()
     }
 }
 
@@ -439,11 +451,6 @@ impl SecureRandom {
 /// If an allocation error occurs, an error is returned.
 #[inline]
 pub fn random_bytes(len: Option<i64>) -> Result<Vec<u8>, Error> {
-    fn get_random_bytes<T: RngCore + CryptoRng>(mut rng: T, slice: &mut [u8]) -> Result<(), RandomBytesError> {
-        rng.try_fill_bytes(slice)?;
-        Ok(())
-    }
-
     let len = match len.map(usize::try_from) {
         Some(Ok(0)) => return Ok(Vec::new()),
         Some(Ok(len)) => len,
@@ -457,7 +464,7 @@ pub fn random_bytes(len: Option<i64>) -> Result<Vec<u8>, Error> {
     let mut bytes = Vec::new();
     bytes.try_reserve(len)?;
     bytes.resize(len, 0);
-    get_random_bytes(OsRng, &mut bytes)?;
+    getrandom::fill(&mut bytes)?;
     Ok(bytes)
 }
 
@@ -518,7 +525,7 @@ pub enum Rand {
 ///
 /// ```rust
 /// # use spinoso_securerandom::{Max, Rand};
-/// # fn example() -> Result<(), spinoso_securerandom::DomainError> {
+/// # fn example() -> Result<(), spinoso_securerandom::Error> {
 /// let rand = spinoso_securerandom::random_number(Max::None)?;
 /// assert!(matches!(rand, Rand::Float(_)));
 ///
@@ -549,37 +556,39 @@ pub enum Rand {
 /// If the float given in a [`Max::Float`] variant is [`NaN`](f64::NAN) or
 /// infinite, a [`DomainError`] is returned.
 #[inline]
-pub fn random_number(max: Max) -> Result<Rand, DomainError> {
-    fn get_random_number<T: RngCore + CryptoRng>(mut rng: T, max: Max) -> Result<Rand, DomainError> {
+pub fn random_number(max: Max) -> Result<Rand, Error> {
+    fn get_random_number<T: Rng + CryptoRng>(mut rng: T, max: Max) -> Result<Rand, DomainError> {
         match max {
             Max::Float(max) if !max.is_finite() => {
                 // NOTE: MRI returns `Errno::EDOM` exception class.
                 Err(DomainError::new())
             }
             Max::Float(max) if max <= 0.0 => {
-                let number = rng.gen_range(0.0..1.0);
+                let number = rng.random_range(0.0..1.0);
                 Ok(Rand::Float(number))
             }
             Max::Float(max) => {
-                let number = rng.gen_range(0.0..max);
+                let number = rng.random_range(0.0..max);
                 Ok(Rand::Float(number))
             }
             Max::Integer(max) if !max.is_positive() => {
-                let number = rng.gen_range(0.0..1.0);
+                let number = rng.random_range(0.0..1.0);
                 Ok(Rand::Float(number))
             }
             Max::Integer(max) => {
-                let number = rng.gen_range(0..max);
+                let number = rng.random_range(0..max);
                 Ok(Rand::Integer(number))
             }
             Max::None => {
-                let number = rng.gen_range(0.0..1.0);
+                let number = rng.random_range(0.0..1.0);
                 Ok(Rand::Float(number))
             }
         }
     }
 
-    get_random_number(OsRng, max)
+    let rng = StdRng::try_from_os_rng()?;
+    let num = get_random_number(rng, max)?;
+    Ok(num)
 }
 
 /// Generate a hex-encoded [`String`] of random bytes.
@@ -712,7 +721,7 @@ pub fn urlsafe_base64(len: Option<i64>, padding: bool) -> Result<String, Error> 
 /// If an allocation error occurs, an error is returned.
 #[inline]
 pub fn alphanumeric(len: Option<i64>) -> Result<Vec<u8>, Error> {
-    fn get_alphanumeric<T: RngCore + CryptoRng>(rng: T, len: usize) -> Result<Vec<u8>, TryReserveError> {
+    fn get_alphanumeric<T: Rng + CryptoRng>(rng: T, len: usize) -> Result<Vec<u8>, TryReserveError> {
         let mut buf = Vec::new();
         buf.try_reserve(len)?;
         for ch in rng.sample_iter(Alphanumeric).take(len) {
@@ -731,7 +740,8 @@ pub fn alphanumeric(len: Option<i64>) -> Result<Vec<u8>, Error> {
         None => DEFAULT_REQUESTED_BYTES,
     };
 
-    let string = get_alphanumeric(OsRng, len)?;
+    let rng = StdRng::try_from_os_rng()?;
+    let string = get_alphanumeric(rng, len)?;
     Ok(string)
 }
 
@@ -818,9 +828,18 @@ mod tests {
 
     #[test]
     fn random_number_domain_error() {
-        assert_eq!(random_number(Max::Float(f64::NAN)), Err(DomainError::new()));
-        assert_eq!(random_number(Max::Float(f64::INFINITY)), Err(DomainError::new()));
-        assert_eq!(random_number(Max::Float(f64::NEG_INFINITY)), Err(DomainError::new()));
+        assert_eq!(
+            random_number(Max::Float(f64::NAN)),
+            Err(Error::Domain(DomainError::new()))
+        );
+        assert_eq!(
+            random_number(Max::Float(f64::INFINITY)),
+            Err(Error::Domain(DomainError::new()))
+        );
+        assert_eq!(
+            random_number(Max::Float(f64::NEG_INFINITY)),
+            Err(Error::Domain(DomainError::new()))
+        );
     }
 
     #[test]

@@ -32,9 +32,7 @@ use crate::UrandomError;
 ///
 /// [Ruby `RuntimeError`]: https://ruby-doc.org/core-3.1.2/RuntimeError.html
 pub fn urandom(dest: &mut [u8]) -> Result<(), UrandomError> {
-    if getrandom::getrandom(dest).is_err() {
-        return Err(UrandomError::new());
-    }
+    getrandom::fill(dest)?;
     Ok(())
 }
 

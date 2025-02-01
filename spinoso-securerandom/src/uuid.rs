@@ -4,11 +4,9 @@
 //!
 //! [RFC 4122]: https://tools.ietf.org/html/rfc4122#section-4.4
 
-use rand::rngs::OsRng;
-use rand::{CryptoRng, RngCore};
 use scolapasta_hex as hex;
 
-use crate::{Error, RandomBytesError};
+use crate::Error;
 
 /// The number of octets (bytes) in a UUID, as defined in [RFC4122].
 ///
@@ -31,13 +29,8 @@ const ENCODED_LENGTH: usize = 36;
 
 #[inline]
 pub fn v4() -> Result<String, Error> {
-    fn get_random_bytes<T: RngCore + CryptoRng>(mut rng: T, slice: &mut [u8]) -> Result<(), RandomBytesError> {
-        rng.try_fill_bytes(slice)?;
-        Ok(())
-    }
-
     let mut bytes = [0; OCTETS];
-    get_random_bytes(OsRng, &mut bytes)?;
+    getrandom::fill(&mut bytes)?;
 
     // Per RFC 4122, Section 4.4, set bits for version and `clock_seq_hi_and_reserved`.
     bytes[6] = (bytes[6] & 0x0f) | 0x40;

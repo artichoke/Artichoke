@@ -31,7 +31,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-spinoso-random = "0.4.0"
+spinoso-random = "0.5.0"
 ```
 
 Generate integers:
@@ -71,8 +71,6 @@ All features are enabled by default.
   this feature removes the [`rand`] dependency.
 - **rand_core** - Enables implementations of [`RngCore`] on the [`Random`] type.
   Dropping this feature removes the [`rand_core`] dependency.
-- **std** - Enables a dependency on the Rust Standard Library. Activating this
-  feature enables [`std::error::Error`] impls on error types in this crate.
 
 ## License
 

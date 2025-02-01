@@ -142,7 +142,7 @@ pub fn rand(rng: &mut Random, max: Max) -> Result<Rand, ArgumentError> {
             Ok(Rand::Float(number))
         }
         Max::Float(max) => {
-            let number = rng.gen_range(0.0..max);
+            let number = rng.random_range(0.0..max);
             Ok(Rand::Float(number))
         }
         Max::Integer(max) if max < 1 => {
@@ -150,7 +150,7 @@ pub fn rand(rng: &mut Random, max: Max) -> Result<Rand, ArgumentError> {
             Err(err)
         }
         Max::Integer(max) => {
-            let number = rng.gen_range(0..max);
+            let number = rng.random_range(0..max);
             Ok(Rand::Integer(number))
         }
         Max::None => {

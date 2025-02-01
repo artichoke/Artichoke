@@ -27,7 +27,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-spinoso-securerandom = "0.2.0"
+spinoso-securerandom = "0.3.0"
 ```
 
 ## Examples
@@ -56,9 +56,9 @@ fn example() -> Result<(), spinoso_securerandom::Error> {
 Generate random floats and integers in a range bounded from zero to a maximum:
 
 ```rust
-use spinoso_securerandom::{DomainError, Max, Rand};
+use spinoso_securerandom::{Error, Max, Rand};
 
-fn example() -> Result<(), DomainError> {
+fn example() -> Result<(), Error> {
     let rand = spinoso_securerandom::random_number(Max::None)?;
     assert!(matches!(rand, Rand::Float(_)));
 

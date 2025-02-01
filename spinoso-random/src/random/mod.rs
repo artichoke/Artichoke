@@ -383,9 +383,7 @@ pub fn seed_to_key(seed: [u8; DEFAULT_SEED_BYTES]) -> [u32; DEFAULT_SEED_CNT] {
 #[inline]
 pub fn new_seed() -> Result<[u32; DEFAULT_SEED_CNT], NewSeedError> {
     let mut seed = [0; DEFAULT_SEED_BYTES];
-    if getrandom::getrandom(&mut seed).is_err() {
-        return Err(NewSeedError::new());
-    }
+    getrandom::fill(&mut seed)?;
     let seed = seed_to_key(seed);
     Ok(seed)
 }

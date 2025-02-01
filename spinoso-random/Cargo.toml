@@ -1,6 +1,6 @@
 [package]
 name = "spinoso-random"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 description = """
 Implementation of Ruby Random Core class.
@@ -19,33 +19,29 @@ documentation.workspace = true
 libm = "0.2.6"
 
 [dependencies.getrandom]
-version = "0.2.0"
+version = "0.3.1"
 default-features = false
 
 [dependencies.rand]
-version = "0.8.0"
+version = "0.9.0"
 optional = true
 default-features = false
 
-# 0.6.1 is vulnerable to underfilling a buffer.
-#
-# https://rustsec.org/advisories/RUSTSEC-2021-0023
 [dependencies.rand_core]
-version = "0.6.2"
+version = "0.9.0"
 optional = true
 default-features = false
 
 [dependencies.rand_mt]
-version = "4.2.0"
+version = "5.0.0"
 default-features = false
 
 [features]
-default = ["rand-method", "rand_core", "std"]
+default = ["rand-method", "rand_core"]
 # Enables range sampling methods for the `rand()` function.
 rand-method = ["dep:rand", "rand_core"]
 # Enables implementations of `RngCore` on `Random` and `Mt` types.
 rand_core = ["dep:rand_core"]
-std = []
 
 [package.metadata.docs.rs]
 all-features = true
