@@ -29,9 +29,29 @@ impl TryConvert<Value, f64> for Artichoke {
 
 #[cfg(test)]
 mod tests {
-    use quickcheck::quickcheck;
+    use std::fmt::Debug;
+
+    use arbitrary::{Arbitrary, Unstructured};
 
     use crate::test::prelude::*;
+
+    /// Helper for property tests: repeatedly generate an arbitrary value of type `T`
+    /// from random bytes and then run the closure `f` on it.
+    fn run_arbitrary<T>(f: impl Fn(T))
+    where
+        T: for<'a> Arbitrary<'a> + Debug,
+    {
+        for _ in 0..4096 {
+            // Choose a random seed size up to 1024 bytes.
+            let size: usize = usize::try_from(getrandom::u32().unwrap() % 1024).unwrap();
+            let mut seed = vec![0; size];
+            getrandom::fill(&mut seed).unwrap();
+            let mut unstructured = Unstructured::new(&seed);
+            if let Ok(value) = T::arbitrary(&mut unstructured) {
+                f(value);
+            }
+        }
+    }
 
     #[test]
     fn fail_convert() {
@@ -42,57 +62,67 @@ mod tests {
         assert!(result.is_err());
     }
 
-    quickcheck! {
-        fn convert_to_float(f: f64) -> bool {
+    #[test]
+    fn prop_convert_to_float() {
+        run_arbitrary::<f64>(|f| {
             let mut interp = interpreter();
             let value = interp.convert_mut(f);
-            value.ruby_type() == Ruby::Float
-        }
+            assert_eq!(value.ruby_type(), Ruby::Float);
+        });
+    }
 
-        fn float_with_value(f: f64) -> bool {
+    #[test]
+    fn prop_float_with_value() {
+        run_arbitrary::<f64>(|f| {
             let mut interp = interpreter();
             let value = interp.convert_mut(f);
             let inner = value.inner();
             let cdouble = unsafe { sys::mrb_sys_float_to_cdouble(inner) };
             if f.is_nan() {
-                cdouble.is_nan()
+                assert!(cdouble.is_nan());
             } else if f.is_infinite() {
-                f.is_infinite() && cdouble.signum() == f.signum()
+                assert!(f.is_infinite() && cdouble.signum() == f.signum());
             } else if cdouble >= f {
                 let difference = cdouble - f;
-                difference < f64::EPSILON
+                assert!(difference < f64::EPSILON);
             } else if f >= cdouble {
                 let difference = f - cdouble;
-                difference < f64::EPSILON
+                assert!(difference < f64::EPSILON);
             } else {
-                false
+                panic!("Unexpected branch in float_with_value");
             }
-        }
+        });
+    }
 
-        fn roundtrip(f: f64) -> bool {
+    #[test]
+    fn prop_roundtrip() {
+        run_arbitrary::<f64>(|f| {
             let mut interp = interpreter();
             let value = interp.convert_mut(f);
-            let value = value.try_convert_into::<f64>(&interp).unwrap();
+            let roundtrip_value = value.try_convert_into::<f64>(&interp).unwrap();
             if f.is_nan() {
-                value.is_nan()
+                assert!(roundtrip_value.is_nan());
             } else if f.is_infinite() {
-                value.is_infinite() && value.signum() == f.signum()
-            } else if value >= f {
-                let difference = value - f;
-                difference < f64::EPSILON
-            } else if f >= value {
-                let difference = f - value;
-                difference < f64::EPSILON
+                assert!(roundtrip_value.is_infinite() && roundtrip_value.signum() == f.signum());
+            } else if roundtrip_value >= f {
+                let difference = roundtrip_value - f;
+                assert!(difference < f64::EPSILON);
+            } else if f >= roundtrip_value {
+                let difference = f - roundtrip_value;
+                assert!(difference < f64::EPSILON);
             } else {
-                false
+                panic!("Unexpected branch in roundtrip");
             }
-        }
+        });
+    }
 
-        fn roundtrip_err(b: bool) -> bool {
+    #[test]
+    fn prop_roundtrip_err() {
+        run_arbitrary::<bool>(|b| {
             let interp = interpreter();
             let value = interp.convert(b);
-            let value = value.try_convert_into::<f64>(&interp);
-            value.is_err()
-        }
+            let result = value.try_convert_into::<f64>(&interp);
+            assert!(result.is_err());
+        });
     }
 }
