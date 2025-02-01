@@ -18,7 +18,7 @@ documentation.workspace = true
 [dependencies]
 
 [dependencies.artichoke-backend]
-version = "0.24.1"
+version = "0.25.0"
 path = "artichoke-backend"
 default-features = false
 
@@ -91,12 +91,7 @@ path = "src/bin/artichoke.rs"
 required-features = ["cli"]
 
 [workspace]
-members = [
-  "artichoke-*",
-  "mezzaluna-*",
-  "scolapasta-*",
-  "spinoso-*",
-]
+members = ["artichoke-*", "mezzaluna-*", "scolapasta-*", "spinoso-*"]
 
 [workspace.package]
 edition = "2021"
@@ -112,11 +107,7 @@ lto = true
 strip = true
 
 [features]
-default = [
-  "backtrace",
-  "cli",
-  "kitchen-sink",
-]
+default = ["backtrace", "cli", "kitchen-sink"]
 # Enable a CLI frontend for Artichoke, including a `ruby`-equivalent CLI and
 # REPL.
 cli = [
@@ -170,7 +161,10 @@ core-regexp = ["artichoke-backend/core-regexp"]
 # feature, Regexp patterns must be parsable by oniguruma regardless of the
 # backend they execute on. The `regex` crate backend remains the default as long
 # as it can parse the given pattern.
-core-regexp-oniguruma = ["core-regexp", "artichoke-backend/core-regexp-oniguruma"]
+core-regexp-oniguruma = [
+  "core-regexp",
+  "artichoke-backend/core-regexp-oniguruma",
+]
 # Implement the `Time` core class. This feature adds dependencies on `tz-rs` and
 # `tzdb`.
 core-time = ["artichoke-backend/core-time"]
@@ -178,18 +172,26 @@ core-time = ["artichoke-backend/core-time"]
 # Extend the Artichoke virtual file system to have native/host access.
 #
 # This feature enables requiring sources from local disk.
-load-path-native-file-system-loader = ["artichoke-backend/load-path-native-file-system-loader"]
+load-path-native-file-system-loader = [
+  "artichoke-backend/load-path-native-file-system-loader",
+]
 # Extend the Artichoke virtual file system to search a path separator-delimited
 # list of paths for Ruby sources by parsing the `RUBYLIB` environment variable.
 #
 # This feature enables requiring sources from local disk.
-load-path-rubylib-native-file-system-loader = ["load-path-native-file-system-loader", "artichoke-backend/load-path-rubylib-native-file-system-loader"]
+load-path-rubylib-native-file-system-loader = [
+  "load-path-native-file-system-loader",
+  "artichoke-backend/load-path-rubylib-native-file-system-loader",
+]
 
 # Override the `stdout` and `stdin` streams to write to an in-memory buffer.
 output-strategy-capture = ["artichoke-backend/output-strategy-capture"]
 # Override the `stdout` and `stdin` streams to write to be discarded.
 # `output-strategy-null` implies the `output-strategy-capture` feature.
-output-strategy-null = ["output-strategy-capture", "artichoke-backend/output-strategy-null"]
+output-strategy-null = [
+  "output-strategy-capture",
+  "artichoke-backend/output-strategy-null",
+]
 
 # Enable every integrated standard library package.
 stdlib-full = [

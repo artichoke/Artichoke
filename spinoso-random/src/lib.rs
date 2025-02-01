@@ -1,6 +1,5 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
-#![warn(clippy::cargo)]
 #![allow(unknown_lints)]
 #![allow(clippy::manual_let_else)]
 #![warn(missing_docs)]
@@ -80,14 +79,7 @@
 //!   feature. Dropping this feature removes the [`rand`] dependency.
 //! - **rand_core** - Enables implementations of [`RngCore`] on the [`Random`]
 //!   type. Dropping this feature removes the [`rand_core`] dependency.
-//! - **std** - Enables a dependency on the Rust Standard Library. Activating
-//!   this feature enables [`std::error::Error`] impls on error types in this
-//!   crate.
 //!
-#![cfg_attr(
-    not(feature = "std"),
-    doc = "[`std::error::Error`]: https://doc.rust-lang.org/std/error/trait.Error.html"
-)]
 #![cfg_attr(feature = "rand_core", doc = "[`RngCore`]: rand_core::RngCore")]
 #![cfg_attr(
     not(feature = "rand_core"),
@@ -116,12 +108,11 @@ mod readme {}
 
 extern crate alloc;
 
-#[cfg(any(feature = "std", test, doctest))]
+#[cfg(any(test, doctest))]
 extern crate std;
 
+use core::error;
 use core::fmt;
-#[cfg(feature = "std")]
-use std::error;
 
 #[cfg(feature = "rand-method")]
 mod rand;
@@ -202,7 +193,6 @@ impl fmt::Display for Error {
     }
 }
 
-#[cfg(feature = "std")]
 impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
@@ -279,7 +269,6 @@ impl fmt::Display for InitializeError {
     }
 }
 
-#[cfg(feature = "std")]
 impl error::Error for InitializeError {}
 
 /// Error that indicates the system source of cryptographically secure
@@ -348,8 +337,14 @@ impl fmt::Display for UrandomError {
     }
 }
 
-#[cfg(feature = "std")]
 impl error::Error for UrandomError {}
+
+impl From<getrandom::Error> for UrandomError {
+    #[inline]
+    fn from(_err: getrandom::Error) -> Self {
+        Self::new()
+    }
+}
 
 /// Error that indicates the system source of cryptographically secure
 /// randomness failed to read sufficient bytes to create a new seed.
@@ -417,8 +412,14 @@ impl fmt::Display for NewSeedError {
     }
 }
 
-#[cfg(feature = "std")]
 impl error::Error for NewSeedError {}
+
+impl From<getrandom::Error> for NewSeedError {
+    #[inline]
+    fn from(_err: getrandom::Error) -> Self {
+        Self::new()
+    }
+}
 
 /// Error that indicates a random number could not be generated with the given
 /// bounds.
@@ -577,5 +578,4 @@ impl fmt::Display for ArgumentError {
     }
 }
 
-#[cfg(feature = "std")]
 impl error::Error for ArgumentError {}

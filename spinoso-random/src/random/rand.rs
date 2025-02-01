@@ -1,4 +1,4 @@
-use rand_core::{Error, RngCore, SeedableRng};
+use rand_core::{RngCore, SeedableRng};
 
 use super::{seed_to_key, Mt, Random, DEFAULT_SEED_BYTES};
 
@@ -95,46 +95,5 @@ impl RngCore for Random {
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.mt.fill_bytes(dest);
-    }
-
-    /// Fill a buffer with bytes generated from the RNG.
-    ///
-    /// This method generates random `u32`s (the native output unit of the RNG)
-    /// until `dest` is filled.
-    ///
-    /// This method may discard some output bits if `dest.len()` is not a
-    /// multiple of 4.
-    ///
-    /// `try_fill_bytes` is implemented with [`fill_bytes`] and is infallible.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use rand_core::{Error, RngCore};
-    /// use spinoso_random::Random;
-    ///
-    /// # fn example() -> Result<(), Error> {
-    /// let mut random = Random::with_seed(33);
-    /// let mut buf = [0; 32];
-    /// random.try_fill_bytes(&mut buf)?;
-    /// assert_ne!([0; 32], buf);
-    /// let mut buf = [0; 31];
-    /// random.try_fill_bytes(&mut buf)?;
-    /// assert_ne!([0; 31], buf);
-    /// # Ok(())
-    /// # }
-    /// # example().unwrap()
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// This method never returns an error. It is equivalent to calling the
-    /// infallible [`fill_bytes`] method.
-    ///
-    /// [`fill_bytes`]: Random::fill_bytes
-    #[inline]
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Error> {
-        self.mt.fill_bytes(dest);
-        Ok(())
     }
 }
