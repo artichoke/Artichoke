@@ -20,8 +20,8 @@ pub enum TimeError {
     /// Created when one of the parameters of a `DateTime` falls outside the
     /// allowed ranges (e.g. 13th month, 32 day, 24th hour, etc).
     ///
-    /// Note: [`tz::error::DateTimeError`] is only thrown from `tz-rs` when a
-    /// provided component value is out of range.
+    /// Note: [`tz::error::datetime::DateTimeError`] is only thrown from `tz-rs`
+    /// when a provided component value is out of range.
     ///
     /// Note: This is different from how MRI ruby is implemented. e.g. Second
     /// 60 is valid in MRI, and will just add an additional second instead of
