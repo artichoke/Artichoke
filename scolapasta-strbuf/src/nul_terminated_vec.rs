@@ -1283,13 +1283,13 @@ impl Write for Buf {
 }
 
 #[cfg(test)]
-#[allow(clippy::undocumented_unsafe_blocks)]
 mod tests {
     use alloc::vec::Vec;
 
     use super::Buf;
 
     #[must_use]
+    #[expect(clippy::undocumented_unsafe_blocks, reason = "Testing unsafe functions")]
     fn is_nul_terminated(bytes: &mut Vec<u8>) -> bool {
         let spare_capacity = bytes.spare_capacity_mut();
         if spare_capacity.is_empty() {
@@ -1394,6 +1394,7 @@ mod tests {
 }
 
 #[cfg(test)]
+#[expect(clippy::undocumented_unsafe_blocks, reason = "Testing unsafe functions")]
 mod proptests {
     use alloc::string::String;
     use alloc::vec;
