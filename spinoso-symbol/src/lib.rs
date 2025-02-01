@@ -171,8 +171,7 @@ impl fmt::Display for SymbolOverflowError {
     }
 }
 
-#[cfg(feature = "std")]
-impl std::error::Error for SymbolOverflowError {}
+impl core::error::Error for SymbolOverflowError {}
 
 /// Identifier bound to an interned byte string.
 ///

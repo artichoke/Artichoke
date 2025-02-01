@@ -305,9 +305,9 @@ dependencies = [
 
 [[package]]
 name = "focaccia"
-version = "1.6.0"
+version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ec132479cae084348a96f9f4e0d4adcea8ab7ad75773f0546ac4a21bf3535b5"
+checksum = "9ef16690750b6e9a238378f57d3c1325d42e2d82e29b7dfd75f6d387d753b050"
 
 [[package]]
 name = "getrandom"
@@ -854,7 +854,7 @@ dependencies = [
 
 [[package]]
 name = "spinoso-symbol"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "artichoke-core",
  "bstr",
