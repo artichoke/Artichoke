@@ -19,10 +19,8 @@ documentation.workspace = true
 raw-parts = "2.0.0"
 
 [dev-dependencies]
-
-[dev-dependencies.quickcheck]
-version = "1.0.3"
-default-features = false
+arbitrary = "1.4.1"
+getrandom = "0.3.0"
 
 [features]
 default = ["std"]
