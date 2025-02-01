@@ -162,7 +162,7 @@ mod tests {
             let value = interp.try_convert_mut(s.as_str()).unwrap();
             let roundtrip = value.try_convert_into_mut::<String>(&mut interp).unwrap();
             assert_eq!(roundtrip, s);
-        })
+        });
     }
 
     #[test]
@@ -172,7 +172,7 @@ mod tests {
             let value = interp.try_convert_mut(s.clone()).unwrap();
             let roundtrip = value.try_convert_into_mut::<String>(&mut interp).unwrap();
             assert_eq!(roundtrip, s);
-        })
+        });
     }
 
     #[test]

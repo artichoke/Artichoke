@@ -223,9 +223,7 @@ mod tests {
             }
             (x, 0) | (0, x) => {
                 let expr = format!("{x} / 0");
-                if interp.eval(expr.as_bytes()).is_ok() {
-                    panic!("expected error for division by zero: {}", expr);
-                }
+                assert!(!interp.eval(expr.as_bytes()).is_ok(), "expected error for division by zero: {expr}");
                 let expr = format!("0 / {x}");
                 let quotient = interp
                     .eval(expr.as_bytes())
@@ -256,9 +254,7 @@ mod tests {
             }
             (x, 0) | (0, x) => {
                 let expr = format!("{x}.send('/', 0)");
-                if interp.eval(expr.as_bytes()).is_ok() {
-                    panic!("expected error for division by zero: {}", expr);
-                }
+                assert!(!interp.eval(expr.as_bytes()).is_ok(), "expected error for division by zero: {expr}");
                 let expr = format!("0.send('/', {x})");
                 let quotient = interp
                     .eval(expr.as_bytes())
@@ -289,9 +285,7 @@ mod tests {
             }
             (x, 0) | (0, x) => {
                 let expr = format!("-{x} / 0");
-                if interp.eval(expr.as_bytes()).is_ok() {
-                    panic!("expected error for division by zero: {}", expr);
-                }
+                assert!(!interp.eval(expr.as_bytes()).is_ok(), "expected error for division by zero: {expr}");
                 let expr = format!("0 / -{x}");
                 let quotient = interp
                     .eval(expr.as_bytes())
@@ -327,9 +321,7 @@ mod tests {
             }
             (x, 0) | (0, x) => {
                 let expr = format!("-{x}.send('/', 0)");
-                if interp.eval(expr.as_bytes()).is_ok() {
-                    panic!("expected error for division by zero: {}", expr);
-                }
+                assert!(!interp.eval(expr.as_bytes()).is_ok(), "expected error for division by zero: {expr}");
                 let expr = format!("0.send('/', -{x})");
                 let quotient = interp
                     .eval(expr.as_bytes())

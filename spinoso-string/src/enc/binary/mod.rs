@@ -368,7 +368,7 @@ mod tests {
         run_arbitrary::<String>(|contents| {
             let expected = contents.len();
             let s = BinaryString::from(contents);
-            assert_eq!(s.char_len(), expected)
+            assert_eq!(s.char_len(), expected);
         });
     }
 
@@ -377,7 +377,7 @@ mod tests {
         run_arbitrary::<String>(|contents| {
             let expected = contents.len();
             let s = BinaryString::from(contents);
-            assert_eq!(s.len(), expected)
+            assert_eq!(s.len(), expected);
         });
     }
 
@@ -386,7 +386,7 @@ mod tests {
         run_arbitrary::<Vec<u8>>(|contents| {
             let expected = contents.len();
             let s = BinaryString::from(contents);
-            assert_eq!(s.char_len(), expected)
+            assert_eq!(s.char_len(), expected);
         });
     }
 
@@ -395,7 +395,7 @@ mod tests {
         run_arbitrary::<Vec<u8>>(|contents| {
             let expected = contents.len();
             let s = BinaryString::from(contents);
-            assert_eq!(s.len(), expected)
+            assert_eq!(s.len(), expected);
         });
     }
 

@@ -1493,7 +1493,7 @@ mod proptests {
     #[test]
     fn prop_test_ensure_nul_terminated_from_iterator() {
         run_arbitrary::<Vec<u8>>(|bytes| {
-            let buf = Buf::from_iter(bytes.into_iter());
+            let buf = Buf::from_iter(bytes);
             let mut inner = buf.into_inner();
             assert!(is_nul_terminated(&mut inner));
         });
@@ -1512,7 +1512,7 @@ mod proptests {
     fn prop_test_ensure_nul_terminated_after_extend() {
         run_arbitrary::<(Vec<u8>, Vec<u8>)>(|(bytes, extension)| {
             let mut buf = Buf::from(bytes);
-            buf.extend(extension.into_iter());
+            buf.extend(extension);
             let mut inner = buf.into_inner();
             assert!(is_nul_terminated(&mut inner));
         });
@@ -1890,7 +1890,7 @@ mod proptests {
         run_arbitrary::<(Vec<u8>, String)>(|(bytes, data)| {
             use std::io::Write;
             let mut buf = Buf::from(bytes);
-            buf.write_fmt(format_args!("{}", data)).unwrap();
+            buf.write_fmt(format_args!("{data}")).unwrap();
             let mut inner = buf.into_inner();
             assert!(is_nul_terminated(&mut inner));
         });
