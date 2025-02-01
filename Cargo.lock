@@ -66,7 +66,6 @@ dependencies = [
  "onig",
  "posix-space",
  "qed",
- "quickcheck",
  "regex",
  "rustc-hash",
  "scolapasta-aref",
@@ -554,15 +553,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf666b4ca1b0b9d8b24345b8fb64b54e7197b4b665f81bad3cc806935344eb23"
 
 [[package]]
-name = "quickcheck"
-version = "1.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "588f6378e4dd99458b60ec275b4477add41ce4fa9f64dcba6f15adccb19b50d6"
-dependencies = [
- "rand",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -825,10 +815,11 @@ dependencies = [
 name = "spinoso-string"
 version = "0.25.0"
 dependencies = [
+ "arbitrary",
  "bstr",
  "bytecount",
  "focaccia",
- "quickcheck",
+ "getrandom 0.3.1",
  "scolapasta-strbuf",
  "scolapasta-string-escape",
  "simdutf8",

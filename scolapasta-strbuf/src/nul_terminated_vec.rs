@@ -1398,25 +1398,31 @@ mod proptests {
     use alloc::string::String;
     use alloc::vec;
     use alloc::vec::Vec;
-    use core::fmt::Debug;
+    use core::fmt;
 
     use arbitrary::{Arbitrary, Unstructured};
     use raw_parts::RawParts;
 
     use super::{ensure_nul_terminated, Buf};
 
-    /// Helper for property tests: repeatedly generate an arbitrary value of type `T`
-    /// from random bytes and then run the closure `f` on it.
-    fn run_arbitrary<T>(f: impl Fn(T))
+    pub fn run_arbitrary<T>(mut f: impl FnMut(T))
     where
-        T: for<'a> Arbitrary<'a> + Debug,
+        T: for<'a> Arbitrary<'a> + fmt::Debug,
     {
-        for _ in 0..4096 {
-            // Choose a random seed size up to 1024 bytes.
-            let size: usize = usize::try_from(getrandom::u32().unwrap() % 1024).unwrap();
-            let mut seed = vec![0; size];
-            getrandom::fill(&mut seed).unwrap();
-            let mut unstructured = Unstructured::new(&seed);
+        fn get_unstructured(buf: &mut [u8]) -> Unstructured<'_> {
+            getrandom::fill(buf).unwrap();
+            Unstructured::new(buf)
+        }
+
+        let mut buf = vec![0; 2048];
+        let mut unstructured = get_unstructured(&mut buf);
+        for _ in 0..1024 {
+            if let Ok(value) = T::arbitrary(&mut unstructured) {
+                f(value);
+                continue;
+            }
+            // try reloading on randomness
+            unstructured = get_unstructured(&mut buf);
             if let Ok(value) = T::arbitrary(&mut unstructured) {
                 f(value);
             }
