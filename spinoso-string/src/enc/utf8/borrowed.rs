@@ -816,7 +816,7 @@ mod tests {
         let s = Utf8Str::new(b"\xFF\xFE");
         let mut buf = String::new();
         write!(&mut buf, "{s:?}").unwrap();
-        assert!(buf.contains(r#""\xFF\xFE""#));
+        assert!(buf.contains(r#""\xff\xfe""#));
     }
 
     #[test]
