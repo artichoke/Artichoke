@@ -33,7 +33,7 @@ optional = true
 default-features = false
 
 [dependencies.rand_mt]
-version = "4.2.0"
+version = "5.0.0"
 default-features = false
 
 [features]
