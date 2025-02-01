@@ -56,8 +56,8 @@
 //! maximum:
 //!
 //! ```rust
-//! # use spinoso_securerandom::{DomainError, Max, Rand};
-//! # fn example() -> Result<(), DomainError> {
+//! # use spinoso_securerandom::{Error, Max, Rand};
+//! # fn example() -> Result<(), Error> {
 //! let rand = spinoso_securerandom::random_number(Max::None)?;
 //! assert!(matches!(rand, Rand::Float(_)));
 //!
@@ -525,7 +525,7 @@ pub enum Rand {
 ///
 /// ```rust
 /// # use spinoso_securerandom::{Max, Rand};
-/// # fn example() -> Result<(), spinoso_securerandom::DomainError> {
+/// # fn example() -> Result<(), spinoso_securerandom::Error> {
 /// let rand = spinoso_securerandom::random_number(Max::None)?;
 /// assert!(matches!(rand, Rand::Float(_)));
 ///
