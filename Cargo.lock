@@ -52,11 +52,13 @@ dependencies = [
 name = "artichoke-backend"
 version = "0.24.1"
 dependencies = [
+ "arbitrary",
  "artichoke-core",
  "artichoke-load-path",
  "bindgen",
  "bstr",
  "cc",
+ "getrandom 0.3.1",
  "intaglio",
  "libc",
  "mezzaluna-conversion-methods",

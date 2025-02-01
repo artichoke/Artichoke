@@ -135,6 +135,8 @@ default-features = false
 features = ["tzrs"]
 
 [dev-dependencies]
+arbitrary = "1.4.1"
+getrandom = "0.3.0"
 
 [dev-dependencies.quickcheck]
 version = "1.0.3"
