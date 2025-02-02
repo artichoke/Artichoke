@@ -64,7 +64,7 @@ where
 }
 
 macro_rules! __array_T_eq_primitive_array {
-    ($len:expr) => {
+    ($len:literal) => {
         impl<T, U> PartialEq<[U; $len]> for Array<T>
         where
             T: PartialEq<U>,
