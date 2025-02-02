@@ -1,5 +1,3 @@
-#![allow(clippy::cast_possible_wrap)]
-
 use core::char;
 use core::convert::TryFrom;
 use core::hash::{BuildHasher, Hash, Hasher};
@@ -111,6 +109,10 @@ unsafe extern "C" fn mrb_str_new_static(
 // MRB_API mrb_int mrb_str_index(mrb_state *mrb, mrb_value str, const char *sptr, mrb_int slen, mrb_int offset)
 // ```
 #[unsafe(no_mangle)]
+#[expect(
+    clippy::cast_possible_wrap,
+    reason = "mruby stores sizes as int64_t instead of size_t"
+)]
 unsafe extern "C" fn mrb_str_index(
     mrb: *mut sys::mrb_state,
     s: sys::mrb_value,
@@ -237,7 +239,10 @@ unsafe extern "C" fn mrb_str_resize(mrb: *mut sys::mrb_state, s: sys::mrb_value,
     let value = String::box_into_value(inner, value, &mut guard).expect("String reboxing should not fail");
 
     // `allow` for clarity and to potentially handle `TryReserveErrorKind`.
-    #[allow(clippy::single_match_else)]
+    #[expect(
+        clippy::single_match_else,
+        reason = "source compatibility for TryReserveErrorKind stabilization"
+    )]
     match result {
         Ok(()) => value.inner(),
         // NOTE: Ideally this code would distinguish between a capacity overflow
@@ -677,9 +682,10 @@ unsafe extern "C" fn mrb_str_hash(mrb: *mut sys::mrb_state, s: sys::mrb_value) -
         return 0;
     };
     s.as_slice().hash(&mut hasher);
-    #[allow(clippy::cast_possible_truncation)]
-    let hash = hasher.finish() as u32;
-    hash
+    let hash = hasher.finish();
+    // Grab some bytes from the `u64` to construct a `u32` hash.
+    let [one, two, three, four, ..] = hash.to_ne_bytes();
+    u32::from_ne_bytes([one, two, three, four])
 }
 
 // ```c
@@ -699,8 +705,11 @@ unsafe extern "C" fn mrb_byte_hash(s: *const u8, len: sys::mrb_int) -> u32 {
 }
 
 #[unsafe(no_mangle)]
-#[allow(clippy::cast_possible_truncation)]
-#[allow(clippy::cast_sign_loss)]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "mruby stores sizes as int64_t instead of size_t"
+)]
 unsafe extern "C" fn mrb_byte_hash_step(s: *const u8, len: sys::mrb_int, mut hval: Wrapping<u32>) -> u32 {
     let slice = slice::from_raw_parts(s, len as usize);
     // FNV-1 hash each octet in the buffer
@@ -715,8 +724,11 @@ unsafe extern "C" fn mrb_byte_hash_step(s: *const u8, len: sys::mrb_int, mut hva
 }
 
 #[unsafe(no_mangle)]
-#[allow(clippy::cast_possible_truncation)]
-#[allow(clippy::cast_sign_loss)]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "mruby stores sizes as int64_t instead of size_t"
+)]
 unsafe extern "C" fn mrb_gc_free_str(mrb: *mut sys::mrb_state, string: *mut sys::RString) {
     let _ = mrb;
 

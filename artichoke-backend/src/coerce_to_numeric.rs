@@ -16,7 +16,7 @@ impl CoerceToNumeric for Artichoke {
 
     type Error = Error;
 
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss, reason = "MRI coercions are lossy by design")]
     fn coerce_to_float(&mut self, value: Self::Value) -> Result<Self::Float, Self::Error> {
         match value.ruby_type() {
             Ruby::Float => return value.try_convert_into(self),

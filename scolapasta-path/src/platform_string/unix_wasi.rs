@@ -1,4 +1,7 @@
-#![allow(clippy::unnecessary_wraps)]
+#![expect(
+    clippy::unnecessary_wraps,
+    reason = "source compatibility with other platforms which may be fallible"
+)]
 
 use std::ffi::{OsStr, OsString};
 #[cfg(unix)]

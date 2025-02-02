@@ -10,6 +10,10 @@
 #![allow(clippy::manual_let_else, reason = "manual_let_else was very buggy on release")]
 #![allow(clippy::missing_errors_doc, reason = "A lot of existing code fails this lint")]
 #![allow(
+    clippy::module_name_repetitions,
+    reason = "incompatible with how code is organized in private modules"
+)]
+#![allow(
     clippy::unnecessary_lazy_evaluations,
     reason = "https://github.com/rust-lang/rust-clippy/issues/8109"
 )]

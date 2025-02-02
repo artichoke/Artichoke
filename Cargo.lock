@@ -69,6 +69,7 @@ dependencies = [
  "regex",
  "rustc-hash",
  "scolapasta-aref",
+ "scolapasta-fixable",
  "scolapasta-int-parse",
  "scolapasta-path",
  "scolapasta-string-escape",

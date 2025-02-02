@@ -577,7 +577,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::reversed_empty_ranges)]
+    #[expect(clippy::reversed_empty_ranges, reason = "testing behavior of reversed ranges")]
     fn get_char_slice_invalid_range() {
         let s = AsciiString::from("abc");
         assert_eq!(s.get_char_slice(4..5), None);

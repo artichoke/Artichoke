@@ -12,16 +12,19 @@ use std::fmt::{self, Write};
 use crate::types::{self, Ruby};
 
 mod args;
-#[allow(missing_debug_implementations)]
-#[allow(missing_docs)]
-#[allow(non_camel_case_types)]
-#[allow(non_upper_case_globals)]
-#[allow(non_snake_case)]
-#[allow(trivial_casts)]
-#[allow(trivial_numeric_casts)]
-#[allow(clippy::all)]
-#[allow(clippy::pedantic)]
-#[allow(clippy::restriction)]
+#[allow(
+    missing_debug_implementations,
+    missing_docs,
+    non_camel_case_types,
+    non_upper_case_globals,
+    non_snake_case,
+    trivial_casts,
+    trivial_numeric_casts,
+    clippy::all,
+    clippy::pedantic,
+    clippy::restriction,
+    reason = "generated code"
+)]
 mod ffi {
     include!(concat!(env!("OUT_DIR"), "/ffi.rs"));
 }

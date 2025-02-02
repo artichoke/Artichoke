@@ -292,7 +292,7 @@ impl BinaryString {
 
     #[inline]
     #[must_use]
-    #[allow(clippy::unused_self)]
+    #[expect(clippy::unused_self, reason = "API compatibility with other encoded string types")]
     pub fn is_valid_encoding(&self) -> bool {
         true
     }
@@ -561,7 +561,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::reversed_empty_ranges)]
+    #[expect(clippy::reversed_empty_ranges, reason = "testing behavior of reversed ranges")]
     fn get_char_slice_invalid_range() {
         let s = BinaryString::from("abc");
         assert_eq!(s.get_char_slice(4..5), None);

@@ -5,8 +5,6 @@
 // MIT License
 // Copyright (c) 2014 The Rust Project Developers
 
-#![allow(clippy::match_same_arms)]
-
 //! Helpers for parsing Regexp patterns.
 
 /// Escapes all regular expression meta characters in `text`.
@@ -47,7 +45,11 @@ pub fn escape_into(text: &str, buf: &mut String) {
 
 /// Returns true if the given character has significance in a regex.
 #[must_use]
-#[allow(clippy::match_like_matches_macro)]
+#[allow(
+    clippy::match_like_matches_macro,
+    clippy::match_same_arms,
+    reason = "match is more readable"
+)]
 pub fn is_meta_character(c: char) -> bool {
     match c {
         '\\' | '.' | '+' | '*' | '?' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$' | '#' | '-' => true,

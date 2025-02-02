@@ -13,7 +13,10 @@ pub fn is_explicit_relative(path: &OsStr) -> bool {
     is_explicit_relative_bytes(bytes)
 }
 
-#[allow(clippy::unnecessary_wraps)]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "source compatibility with other platforms which may be fallible"
+)]
 pub fn normalize_slashes(path: PathBuf) -> Result<Vec<u8>, PathBuf> {
     Ok(OsString::from(path).into_vec())
 }

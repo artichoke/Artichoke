@@ -171,7 +171,7 @@ impl<'a> Parser<'a> {
                 State::ParseError
             }
         } else {
-            #[allow(clippy::match_same_arms)]
+            #[expect(clippy::match_same_arms, reason = "documentation on each arm")]
             let code_has_unterminated_expression = match parser.lstate {
                 // beginning of a statement, that means previous line ended
                 EXPR_BEG => false,

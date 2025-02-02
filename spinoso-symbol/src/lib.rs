@@ -10,6 +10,10 @@
 #![allow(clippy::manual_let_else, reason = "manual_let_else was very buggy on release")]
 #![allow(clippy::missing_errors_doc, reason = "A lot of existing code fails this lint")]
 #![allow(
+    clippy::module_name_repetitions,
+    reason = "incompatible with how code is organized in private modules"
+)]
+#![allow(
     clippy::unnecessary_lazy_evaluations,
     reason = "https://github.com/rust-lang/rust-clippy/issues/8109"
 )]
@@ -120,6 +124,7 @@ mod ident;
 mod inspect;
 
 #[cfg(test)]
+#[expect(clippy::needless_raw_string_hashes, reason = "generated test data")]
 mod fixtures;
 
 #[cfg(feature = "artichoke")]
@@ -251,7 +256,6 @@ impl Symbol {
     #[must_use]
     #[cfg(feature = "artichoke")]
     #[cfg_attr(docsrs, doc(cfg(feature = "artichoke")))]
-    #[allow(clippy::len_without_is_empty)] // https://github.com/rust-lang/rust-clippy/issues/9520
     pub fn len<T, U>(self, interner: &T) -> usize
     where
         T: Intern<Symbol = U>,

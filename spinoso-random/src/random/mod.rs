@@ -333,9 +333,8 @@ fn int_pair_to_real_exclusive(mut a: u32, mut b: u32) -> f64 {
 
 #[inline]
 #[must_use]
-#[allow(dead_code)]
-#[allow(clippy::cast_precision_loss)]
-#[allow(clippy::cast_possible_truncation)]
+#[expect(dead_code, reason = "implementing a routine from MRI which is currently unused")]
+#[expect(clippy::cast_precision_loss, reason = "MRI routine")]
 fn int_pair_to_real_inclusive(a: u32, b: u32) -> f64 {
     const MANTISSA_DIGITS: i32 = 53;
     const M: u128 = 1 << MANTISSA_DIGITS | 1;

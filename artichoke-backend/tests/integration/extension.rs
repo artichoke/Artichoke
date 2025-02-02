@@ -21,7 +21,7 @@ unsafe extern "C" fn container_initialize(mrb: *mut sys::mrb_state, slf: sys::mr
 unsafe extern "C" fn container_value(mrb: *mut sys::mrb_state, slf: sys::mrb_value) -> sys::mrb_value {
     unwrap_interpreter!(mrb, to => guard);
     let mut value = Value::from(slf);
-    let result = if let Ok(data) = Box::<Container>::unbox_from_value(&mut value, &mut guard) {
+    let result = if let Ok(data) = unsafe { Box::<Container>::unbox_from_value(&mut value, &mut guard) } {
         guard.interp().convert(data.0)
     } else {
         Value::nil()

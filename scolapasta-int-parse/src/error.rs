@@ -1,5 +1,3 @@
-#![allow(clippy::module_name_repetitions)]
-
 use core::fmt::{self, Write as _};
 
 use scolapasta_string_escape::format_debug_escape_into;

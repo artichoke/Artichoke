@@ -75,7 +75,7 @@ use crate::Symbol;
 /// [interner]: Intern
 /// [arithmetic progression]: https://en.wikipedia.org/wiki/Arithmetic_progression
 /// [`Range<u32>`]: core::ops::Range
-#[allow(clippy::module_name_repetitions)]
+#[expect(clippy::module_name_repetitions, reason = "readability")]
 #[cfg_attr(docsrs, doc(cfg(feature = "artichoke")))]
 pub trait InternerAllSymbols: Intern {
     /// Returns an iterator that returns all symbol identifiers stored in an

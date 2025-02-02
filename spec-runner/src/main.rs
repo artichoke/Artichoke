@@ -9,6 +9,7 @@
 )]
 #![allow(clippy::manual_let_else, reason = "manual_let_else was very buggy on release")]
 #![allow(clippy::missing_errors_doc, reason = "A lot of existing code fails this lint")]
+#![allow(clippy::missing_panics_doc, reason = "this crate is a developer tool")]
 #![allow(
     clippy::unnecessary_lazy_evaluations,
     reason = "https://github.com/rust-lang/rust-clippy/issues/8109"
@@ -100,8 +101,7 @@ fn cli() -> Command {
 }
 
 /// Main entry point.
-#[allow(clippy::bool_to_int_with_if)]
-#[allow(clippy::missing_panics_doc)]
+#[expect(clippy::bool_to_int_with_if, reason = "using !i32::from(...) is less clear")]
 pub fn main() {
     #[cfg(feature = "dhat-heap")]
     let profiler = dhat::Profiler::new_heap();

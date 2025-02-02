@@ -14,8 +14,11 @@ use crate::error::Error;
 /// `i64::MIN..=i64::MAX`.
 ///
 /// [`NaN`]: f64::NAN
-#[allow(clippy::cast_possible_truncation)]
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    reason = "XXX: explain reason - https://github.com/artichoke/artichoke/pull/2813"
+)]
 pub fn float_to_int(float: f64) -> Result<i64, Error> {
     if float.is_nan() {
         return Err(FloatDomainError::with_message("NaN").into());

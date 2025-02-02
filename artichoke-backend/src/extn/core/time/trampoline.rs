@@ -507,7 +507,6 @@ fn strftime_with_encoding(
         // Note: The errors which are re-thrown as RuntimeError include (but is
         // not limited to: `InvalidTime`, `FmtError(Error)`,
         // `OutOfMemory(TryReserveError)`
-        #[allow(clippy::match_same_arms)]
         match e {
             InvalidFormatString => {
                 let mut message = b"invalid format: ".to_vec();

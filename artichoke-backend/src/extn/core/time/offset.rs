@@ -74,7 +74,10 @@ impl TryConvertMut<Value, Option<Offset>> for Artichoke {
                 let offset_seconds: f64 = self.try_convert(in_value)?;
 
                 if (MIN_FLOAT_OFFSET..=MAX_FLOAT_OFFSET).contains(&offset_seconds) {
-                    #[allow(clippy::cast_possible_truncation)]
+                    #[expect(
+                        clippy::cast_possible_truncation,
+                        reason = "bounds check ensures float is within i32 range"
+                    )]
                     Ok(Some(Offset::try_from(offset_seconds as i32)?))
                 } else {
                     Err(ArgumentError::with_message("utc_offset out of range").into())

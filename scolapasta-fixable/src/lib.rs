@@ -714,8 +714,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::approx_constant)]
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::approx_constant, clippy::cast_precision_loss, reason = "test values")]
     fn test_f32_are_fixable() {
         let test_cases = [
             // Value within fixable range
@@ -753,8 +752,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::approx_constant)]
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::approx_constant, clippy::cast_precision_loss, reason = "test values")]
     fn test_f64_are_fixable() {
         let test_cases = [
             // Value within fixable range

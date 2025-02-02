@@ -531,7 +531,10 @@ pub fn gamma(value: f64) -> Result<f64, DomainError> {
             DomainError::with_message(r#"Numerical argument is out of domain - "gamma""#),
         ),
         value if (value - value.floor()).abs() < f64::EPSILON => {
-            #[allow(clippy::cast_possible_truncation)]
+            #[expect(
+                clippy::cast_possible_truncation,
+                reason = "saturating to i64::MAX is ok since we're attempting to index into a [f64; 23]"
+            )]
             let idx = (value as i64).checked_sub(1).map(usize::try_from);
             if let Some(Ok(idx)) = idx {
                 if let Some(&result) = FACTORIAL_TABLE.get(idx) {

@@ -517,8 +517,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
-    #[allow(clippy::should_panic_without_expect)]
+    #[should_panic(expected = "not yet implemented")]
     fn fractional_seconds_return_nanos() {
         // ```irb
         // 3.1.2 > Time.utc(*[2022, 1, 1, 0, 0, 1.5])
@@ -530,7 +529,7 @@ mod tests {
         // 3.1.2 > Time.utc(*[2022, 1, 1, 0, 0, 1.5, 0]).tv_nsec
         // => 0
         // ```
-        todo!()
+        todo!("fractional seconds is not implemented")
     }
 
     #[test]
