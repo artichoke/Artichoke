@@ -205,13 +205,19 @@ impl System {
             }
             let name = bytes_to_os_str(name)?;
             let value = bytes_to_os_str(value)?;
-            env::set_var(name, value);
+            // SAFETY: MRI Ruby permits this unsafety.
+            unsafe {
+                env::set_var(name, value);
+            }
             Ok(())
         } else if name.is_empty() || name.find_byte(b'=').is_some() {
             Ok(())
         } else {
             let name = bytes_to_os_str(name)?;
-            env::remove_var(name);
+            // SAFETY: MRI Ruby permits this unsafety.
+            unsafe {
+                env::remove_var(name);
+            }
             Ok(())
         }
     }

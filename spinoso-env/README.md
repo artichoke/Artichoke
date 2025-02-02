@@ -43,7 +43,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-spinoso-env = "0.2.0"
+spinoso-env = "0.3.0"
 ```
 
 Using the in-memory backend allows safely manipulating an emulated environment:

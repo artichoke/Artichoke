@@ -87,7 +87,7 @@ path = "../spinoso-array"
 default-features = false
 
 [dependencies.spinoso-env]
-version = "0.2.0"
+version = "0.3.0"
 path = "../spinoso-env"
 optional = true
 default-features = false
