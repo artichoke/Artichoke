@@ -70,6 +70,61 @@ impl From<Radix> for u32 {
     }
 }
 
+impl TryFrom<u32> for Radix {
+    type Error = InvalidRadixError;
+
+    /// Construct a new `Radix`.
+    ///
+    /// `radix` must be between 2 and 36 inclusive; otherwise [`None`] is
+    /// returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use scolapasta_int_parse::Radix;
+    /// let zero_radix = Radix::try_from(0);
+    /// assert!(matches!(zero_radix, Err(_)));
+    ///
+    /// let radix = Radix::try_from(16);
+    /// assert!(matches!(radix, Ok(radix) if radix.as_u32() == 16));
+    ///
+    /// let invalid_radix = Radix::try_from(512);
+    /// assert!(matches!(invalid_radix, Err(_)));
+    /// ```
+    fn try_from(radix: u32) -> Result<Self, Self::Error> {
+        let radix = NonZeroU32::new(radix).ok_or_else(|| InvalidRadixErrorKind::Invalid(radix.into()))?;
+        radix.try_into()
+    }
+}
+
+impl TryFrom<NonZeroU32> for Radix {
+    type Error = InvalidRadixError;
+
+    /// Construct a new `Radix`.
+    ///
+    /// `radix` must be between 2 and 36 inclusive; otherwise [`None`] is
+    /// returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::num::NonZeroU32;
+    /// # use scolapasta_int_parse::Radix;
+    /// let radix = Radix::try_from(NonZeroU32::new(16).unwrap());
+    /// assert!(matches!(radix, Ok(radix) if radix.as_u32() == 16));
+    ///
+    /// let invalid_radix = Radix::try_from(NonZeroU32::new(512).unwrap());
+    /// assert!(matches!(invalid_radix, Err(_)));
+    /// ```
+    fn try_from(radix: NonZeroU32) -> Result<Self, Self::Error> {
+        if (2..=36).contains(&radix.get()) {
+            Ok(Self(radix))
+        } else {
+            Err(InvalidRadixErrorKind::Invalid(radix.get().into()).into())
+        }
+    }
+}
+
 impl Radix {
     /// Construct a new `Radix`.
     ///
@@ -88,12 +143,7 @@ impl Radix {
     /// ```
     #[must_use]
     pub fn new(radix: u32) -> Option<Self> {
-        let radix = NonZeroU32::new(radix)?;
-        if (2..=36).contains(&radix.get()) {
-            Some(Self(radix))
-        } else {
-            None
-        }
+        radix.try_into().ok()
     }
 
     /// Construct a new `Radix` without checking the value.
@@ -112,7 +162,11 @@ impl Radix {
     /// ```
     #[must_use]
     pub const unsafe fn new_unchecked(radix: u32) -> Self {
-        Self(NonZeroU32::new_unchecked(radix))
+        // SAFETY: The safety contract the caller must uphold guarantees `radix`
+        // is non-zero and between 2 and 36, which satisfies the safety contract
+        // of `NonZeroU32::new_unchecked`.
+        let radix = unsafe { NonZeroU32::new_unchecked(radix) };
+        Self(radix)
     }
 
     pub(crate) fn try_base_from_str_and_i64(
@@ -273,6 +327,7 @@ impl Radix {
 }
 
 #[cfg(test)]
+#[expect(clippy::undocumented_unsafe_blocks, reason = "Testing unsafe functions")]
 mod tests {
     use alloc::string::String;
     use core::fmt::Write as _;
