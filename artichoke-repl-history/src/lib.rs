@@ -1,17 +1,33 @@
-#![warn(clippy::all)]
-#![warn(clippy::pedantic)]
-#![warn(clippy::cargo)]
-#![allow(clippy::manual_let_else)]
-#![allow(clippy::question_mark)] // https://github.com/rust-lang/rust-clippy/issues/8281
+#![warn(clippy::all, clippy::pedantic, clippy::undocumented_unsafe_blocks)]
+#![allow(
+    clippy::let_underscore_untyped,
+    reason = "https://github.com/rust-lang/rust-clippy/pull/10442#issuecomment-1516570154"
+)]
+#![allow(
+    clippy::question_mark,
+    reason = "https://github.com/rust-lang/rust-clippy/issues/8281"
+)]
+#![allow(clippy::manual_let_else, reason = "manual_let_else was very buggy on release")]
+#![allow(clippy::missing_errors_doc, reason = "A lot of existing code fails this lint")]
+#![allow(
+    clippy::unnecessary_lazy_evaluations,
+    reason = "https://github.com/rust-lang/rust-clippy/issues/8109"
+)]
+#![cfg_attr(
+    test,
+    allow(clippy::non_ascii_literal, reason = "tests sometimes require UTF-8 string content")
+)]
 #![allow(unknown_lints)]
-#![warn(missing_docs)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_copy_implementations)]
-#![warn(rust_2018_idioms)]
-#![warn(rust_2021_compatibility)]
-#![warn(trivial_casts, trivial_numeric_casts)]
-#![warn(unused_qualifications)]
-#![warn(variant_size_differences)]
+#![warn(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    rust_2024_compatibility,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_qualifications,
+    variant_size_differences
+)]
 // Enable feature callouts in generated documentation:
 // https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html
 //
@@ -152,6 +168,12 @@ fn repl_history_dir() -> Option<PathBuf> {
 
     let dir = sysdir_search_path_directory_t::SYSDIR_DIRECTORY_APPLICATION_SUPPORT;
     let domain_mask = SYSDIR_DOMAIN_MASK_USER;
+
+    // SAFETY: this block uses the `sysdir` C API as documented in the man page.
+    // These extern "C" functions are safe to call as long as the caller ensures
+    // that the `path` buffer is large enough to hold the result. They will
+    // always be available on apple targets which have libSystem, which is true
+    // for all apple targets Rust supports.
     let application_support_bytes = unsafe {
         // We don't need to loop here, just take the first result.
         let mut state = sysdir_start_search_path_enumeration(dir, domain_mask);
@@ -205,7 +227,7 @@ fn repl_history_dir() -> Option<PathBuf> {
         }
     };
     // Per Apple docs: All content in this directory should be placed in a
-    // custom subdirectory whose name is that of your app’s bundle identifier
+    // custom subdirectory whose name is that of your app's bundle identifier
     // or your company.
     Some(application_support.join("org.artichokeruby.airb"))
 }
@@ -313,6 +335,18 @@ mod tests {
     }
 
     #[test]
+    fn history_file_basename_is_all_ascii() {
+        let filename = history_file_basename();
+        assert!(filename.is_ascii());
+    }
+
+    #[test]
+    fn history_file_basename_contains_the_word_history() {
+        let filename = history_file_basename();
+        assert!(filename.contains("history"));
+    }
+
+    #[test]
     #[cfg(target_os = "macos")]
     fn history_dir_on_macos() {
         let dir = repl_history_dir().unwrap();
@@ -362,7 +396,10 @@ mod tests {
 
         let _guard = ENV_LOCK.lock();
 
-        env::remove_var("XDG_STATE_HOME");
+        // SAFETY: env access is guarded with a lock and no foreign code is run.
+        unsafe {
+            env::remove_var("XDG_STATE_HOME");
+        }
 
         let dir = repl_history_dir().unwrap();
         let mut components = dir.components();
@@ -383,7 +420,10 @@ mod tests {
 
         let _guard = ENV_LOCK.lock();
 
-        env::remove_var("XDG_STATE_HOME");
+        // SAFETY: env access is guarded with a lock and no foreign code is run.
+        unsafe {
+            env::remove_var("XDG_STATE_HOME");
+        }
 
         let file = repl_history_file().unwrap();
         let mut components = file.components();
@@ -405,8 +445,11 @@ mod tests {
 
         let _guard = ENV_LOCK.lock();
 
-        env::remove_var("XDG_STATE_HOME");
-        env::set_var("XDG_STATE_HOME", "");
+        // SAFETY: env access is guarded with a lock and no foreign code is run.
+        unsafe {
+            env::remove_var("XDG_STATE_HOME");
+            env::set_var("XDG_STATE_HOME", "");
+        }
 
         let dir = repl_history_dir().unwrap();
         let mut components = dir.components();
@@ -427,8 +470,11 @@ mod tests {
 
         let _guard = ENV_LOCK.lock();
 
-        env::remove_var("XDG_STATE_HOME");
-        env::set_var("XDG_STATE_HOME", "");
+        // SAFETY: env access is guarded with a lock and no foreign code is run.
+        unsafe {
+            env::remove_var("XDG_STATE_HOME");
+            env::set_var("XDG_STATE_HOME", "");
+        }
 
         let file = repl_history_file().unwrap();
         let mut components = file.components();
@@ -450,8 +496,11 @@ mod tests {
 
         let _guard = ENV_LOCK.lock();
 
-        env::remove_var("XDG_STATE_HOME");
-        env::set_var("XDG_STATE_HOME", "/opt/artichoke/state");
+        // SAFETY: env access is guarded with a lock and no foreign code is run.
+        unsafe {
+            env::remove_var("XDG_STATE_HOME");
+            env::set_var("XDG_STATE_HOME", "/opt/artichoke/state");
+        }
 
         let dir = repl_history_dir().unwrap();
         let mut components = dir.components();
@@ -471,8 +520,11 @@ mod tests {
 
         let _guard = ENV_LOCK.lock();
 
-        env::remove_var("XDG_STATE_HOME");
-        env::set_var("XDG_STATE_HOME", "/opt/artichoke/state");
+        // SAFETY: env access is guarded with a lock and no foreign code is run.
+        unsafe {
+            env::remove_var("XDG_STATE_HOME");
+            env::set_var("XDG_STATE_HOME", "/opt/artichoke/state");
+        }
 
         let file = repl_history_file().unwrap();
         let mut components = file.components();
