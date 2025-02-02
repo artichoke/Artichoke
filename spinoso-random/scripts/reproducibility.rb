@@ -42,14 +42,9 @@ def write_vectors(bytes, floats, int32s)
     format('%3d', n)
   })
 
-  # Format floats losslessly:
-  # 1. First, convert each float to a string with full precision.
-  lossless_floats = floats.map { |n| format('%.17g', n) }
-  # 2. Determine the maximum width among these strings.
-  max_width = lossless_floats.map(&:length).max
-  # 3. Reformat each float string so that it occupies exactly max_width characters.
-  formatted_floats = format_rust_array(lossless_floats, elements_per_line: FLOATS_PER_LINE, formatter: lambda { |s|
-    format("%#{max_width}s", s)
+  # Format floats: each number is printed in a 20-character field.
+  formatted_floats = format_rust_array(floats, elements_per_line: FLOATS_PER_LINE, formatter: lambda { |s|
+    format('%20s', s)
   })
 
   # Format int32s: each number is printed in a 10-character field.
