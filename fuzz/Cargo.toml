@@ -20,7 +20,7 @@ default-features = false
 features = ["kitchen-sink"]
 
 [dependencies.scolapasta-int-parse]
-version = "0.2.0"
+version = "0.3.0"
 path = "../scolapasta-int-parse"
 default-features = false
 

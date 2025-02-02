@@ -541,7 +541,7 @@ version = "0.3.0"
 
 [[package]]
 name = "scolapasta-int-parse"
-version = "0.2.2"
+version = "0.3.0"
 dependencies = [
  "posix-space",
  "scolapasta-string-escape",

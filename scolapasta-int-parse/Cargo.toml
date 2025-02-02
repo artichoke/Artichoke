@@ -1,6 +1,6 @@
 [package]
 name = "scolapasta-int-parse"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 description = """
 no_std integer parser for Ruby-formatted numeric byte strings.
