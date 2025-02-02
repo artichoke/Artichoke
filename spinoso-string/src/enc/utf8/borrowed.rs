@@ -628,7 +628,9 @@ impl Utf8Str {
     where
         I: SliceIndex<[u8]>,
     {
-        self.as_bytes().get_unchecked(index)
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as the borrowed UTF-8 str's inner slice.
+        unsafe { self.as_bytes().get_unchecked(index) }
     }
 
     #[inline]
@@ -637,7 +639,9 @@ impl Utf8Str {
     where
         I: SliceIndex<[u8]>,
     {
-        self.as_bytes_mut().get_unchecked_mut(index)
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as the borrowed UTF-8 str's inner slice.
+        unsafe { self.as_bytes_mut().get_unchecked_mut(index) }
     }
 }
 

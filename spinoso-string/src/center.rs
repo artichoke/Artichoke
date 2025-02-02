@@ -117,10 +117,10 @@ impl std::error::Error for CenterError {}
 /// [Conventionally UTF-8]: crate::Encoding::Utf8
 #[derive(Debug, Clone)]
 pub struct Center<'a, 'b> {
-    pub left: Take<Cycle<slice::Iter<'b, u8>>>,
-    pub next: Option<&'a [u8]>,
-    pub s: Chars<'a>,
-    pub right: Take<Cycle<slice::Iter<'b, u8>>>,
+    left: Take<Cycle<slice::Iter<'b, u8>>>,
+    next: Option<&'a [u8]>,
+    s: Chars<'a>,
+    right: Take<Cycle<slice::Iter<'b, u8>>>,
 }
 
 impl Default for Center<'_, '_> {
