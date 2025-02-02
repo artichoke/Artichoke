@@ -305,7 +305,11 @@ impl<T> SmallArray<T> {
     /// [`ARY_PTR`]: https://github.com/artichoke/mruby/blob/d66440864d08f1c3ac5820d45f11df031b7d43c6/include/mruby/array.h#L52
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
-        self.0.set_len(new_len);
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each array's inner buffer.
+        unsafe {
+            self.0.set_len(new_len);
+        }
     }
 
     /// Consume the array and return the inner

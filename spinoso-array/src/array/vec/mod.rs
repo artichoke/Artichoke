@@ -285,7 +285,11 @@ impl<T> Array<T> {
     /// [`ARY_PTR`]: https://github.com/artichoke/mruby/blob/d66440864d08f1c3ac5820d45f11df031b7d43c6/include/mruby/array.h#L52
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
-        self.0.set_len(new_len);
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each array's inner buffer.
+        unsafe {
+            self.0.set_len(new_len);
+        }
     }
 
     /// Creates an `Array<T>` directly from the raw components of another array.
@@ -315,7 +319,9 @@ impl<T> Array<T> {
     /// pointer after calling this function.
     #[must_use]
     pub unsafe fn from_raw_parts(raw_parts: RawParts<T>) -> Self {
-        let vec = raw_parts.into_vec();
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each array's inner buffer.
+        let vec = unsafe { raw_parts.into_vec() };
         Self(vec)
     }
 
@@ -1191,6 +1197,10 @@ where
 }
 
 #[cfg(test)]
+#[expect(
+    clippy::undocumented_unsafe_blocks,
+    reason = "avoid linenoise when testing unsafe fn"
+)]
 mod test {
     use crate::array::vec::{Array, RawParts};
 

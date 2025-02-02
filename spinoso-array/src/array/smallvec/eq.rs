@@ -108,7 +108,7 @@ where
 }
 
 macro_rules! __smallarray_T_eq_primitive_array {
-    ($len:expr) => {
+    ($len:literal) => {
         impl<T, U> PartialEq<[U; $len]> for SmallArray<T>
         where
             T: PartialEq<U>,
