@@ -15,13 +15,21 @@ const MILLIS_IN_NANO: i64 = 1_000_000;
 const MICROS_IN_NANO: i64 = 1_000;
 const NANOS_IN_NANO: i64 = 1;
 
-#[allow(clippy::cast_precision_loss)]
+#[expect(clippy::cast_precision_loss, reason = "this cast is intentionally lossy")]
 const MIN_FLOAT_SECONDS: f64 = i64::MIN as f64;
-#[allow(clippy::cast_precision_loss)]
+#[expect(clippy::cast_precision_loss, reason = "this cast is intentionally lossy")]
 const MAX_FLOAT_SECONDS: f64 = i64::MAX as f64;
 const MIN_FLOAT_NANOS: f64 = 0.0;
-#[allow(clippy::cast_precision_loss)]
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "NANOS_IN_SECOND is always in range of f64 without loss"
+)]
 const MAX_FLOAT_NANOS: f64 = NANOS_IN_SECOND as f64;
+#[expect(
+    clippy::cast_precision_loss,
+    reason = "NANOS_IN_SECOND is always in range of f64 without loss"
+)]
+const NANOS_IN_SECOND_F64: f64 = NANOS_IN_SECOND as f64;
 
 enum SubsecMultiplier {
     Millis,
@@ -109,15 +117,15 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
         let multiplier: SubsecMultiplier = self.try_convert_mut(subsec_unit)?;
         let multiplier_nanos = multiplier.as_nanos();
         // `subsec` represents the user provided value in `subsec_unit`
-        // resolution. The base used to derive the number of seconds is based
-        // on the `subsec_unit`. e.g. `1_001` milliseconds is 1 second, and
+        // resolution. The base used to derive the number of seconds is based on
+        // the `subsec_unit`. e.g. `1_001` milliseconds is 1 second, and
         // `1_000_000` nanoseconds.
         let seconds_base = NANOS_IN_SECOND / multiplier_nanos;
 
         if subsec.ruby_type() == Ruby::Float {
-            // FIXME: The below deviates from the MRI implementation of Time
-            // MRI uses `to_r` for subsec calculation on floats subsec nanos,
-            // and this could result in different values.
+            // FIXME: The below deviates from the MRI implementation of Time MRI
+            // uses `to_r` for subsec calculation on floats subsec nanos, and
+            // this could result in different values.
 
             let subsec: f64 = self.try_convert(subsec)?;
 
@@ -134,9 +142,15 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
             // These conversions are luckily not lossy. `seconds_base` and
             // `multiplier_nanos` are guaranteed to be represented without loss
             // in a f64.
-            #[allow(clippy::cast_precision_loss)]
+            #[expect(
+                clippy::cast_precision_loss,
+                reason = "guaranteed to be represented without loss in a f64"
+            )]
             let seconds_base = seconds_base as f64;
-            #[allow(clippy::cast_precision_loss)]
+            #[expect(
+                clippy::cast_precision_loss,
+                reason = "guaranteed to be represented without loss in a f64"
+            )]
             let multiplier_nanos = multiplier_nanos as f64;
 
             let mut secs = subsec / seconds_base;
@@ -150,10 +164,8 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
                 // then be adjusted since it will always be the inverse of the
                 // total nanos in a second.
                 secs -= 1.0;
-
-                #[allow(clippy::cast_precision_loss)]
                 if nanos != 0.0 && nanos != -0.0 {
-                    nanos += NANOS_IN_SECOND as f64;
+                    nanos += NANOS_IN_SECOND_F64;
                 }
             }
 
@@ -163,7 +175,11 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
                 return Err(ArgumentError::with_message("subsec outside of bounds").into());
             }
 
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            #[expect(
+                clippy::cast_possible_truncation,
+                clippy::cast_sign_loss,
+                reason = "nanos and secs will always be in range due to bounds check."
+            )]
             Ok(Subsec {
                 secs: secs as i64,
                 nanos: nanos as u32,
@@ -191,9 +207,11 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
                 }
             }
 
-            // Cast to u32 is safe since it will always be less than
-            // `NANOS_IN_SECOND` due to modulo and negative adjustments.
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+            #[expect(
+                clippy::cast_possible_truncation,
+                clippy::cast_sign_loss,
+                reason = "nanos will always be less than `NANOS_IN_SECOND` which is in u32 range due to modulo and negative adjustments."
+            )]
             Ok(Subsec {
                 secs,
                 nanos: nanos as u32,
@@ -203,7 +221,6 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
 }
 
 #[cfg(test)]
-#[allow(clippy::unnecessary_literal_unwrap)]
 mod tests {
     use bstr::ByteSlice;
 
@@ -286,16 +303,16 @@ mod tests {
             (b"1001".as_slice(), (1, 1_000_000)),
         ];
 
-        let subsec_unit: Option<&[u8]> = Some(b":milliseconds");
+        let subsec_unit: &[u8] = b":milliseconds";
 
         for (input, expectation) in &expectations {
-            let result = subsec(&mut interp, (Some(input), subsec_unit)).unwrap();
+            let result = subsec(&mut interp, (Some(input), Some(subsec_unit))).unwrap();
             assert_eq!(
                 result.to_tuple(),
                 *expectation,
                 "Expected TryConvertMut<(Some({}), Some({})), Result<Subsec>>, to return {} secs, {} nanos",
                 input.as_bstr(),
-                subsec_unit.unwrap().as_bstr(),
+                subsec_unit.as_bstr(),
                 expectation.0,
                 expectation.1
             );
@@ -319,16 +336,16 @@ mod tests {
             (b"1000001".as_slice(), (1, 1_000)),
         ];
 
-        let subsec_unit: Option<&[u8]> = Some(b":usec");
+        let subsec_unit: &[u8] = b":usec";
 
         for (input, expectation) in &expectations {
-            let result = subsec(&mut interp, (Some(input), subsec_unit)).unwrap();
+            let result = subsec(&mut interp, (Some(input), Some(subsec_unit))).unwrap();
             assert_eq!(
                 result.to_tuple(),
                 *expectation,
                 "Expected TryConvertMut<(Some({}), Some({})), Result<Subsec>>, to return {} secs, {} nanos",
                 input.as_bstr(),
-                subsec_unit.unwrap().as_bstr(),
+                subsec_unit.as_bstr(),
                 expectation.0,
                 expectation.1
             );
@@ -351,16 +368,16 @@ mod tests {
             (b"1000000001".as_slice(), (1, 1)),
         ];
 
-        let subsec_unit: Option<&[u8]> = Some(b":nsec");
+        let subsec_unit: &[u8] = b":nsec";
 
         for (input, expectation) in &expectations {
-            let result = subsec(&mut interp, (Some(input), subsec_unit)).unwrap();
+            let result = subsec(&mut interp, (Some(input), Some(subsec_unit))).unwrap();
             assert_eq!(
                 result.to_tuple(),
                 *expectation,
                 "Expected TryConvertMut<(Some({}), Some({})), Result<Subsec>>, to return {} secs, {} nanos",
                 input.as_bstr(),
-                subsec_unit.unwrap().as_bstr(),
+                subsec_unit.as_bstr(),
                 expectation.0,
                 expectation.1
             );

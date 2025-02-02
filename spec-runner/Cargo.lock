@@ -69,6 +69,7 @@ dependencies = [
  "regex",
  "rustc-hash",
  "scolapasta-aref",
+ "scolapasta-fixable",
  "scolapasta-int-parse",
  "scolapasta-path",
  "scolapasta-string-escape",
@@ -774,6 +775,10 @@ dependencies = [
 
 [[package]]
 name = "scolapasta-aref"
+version = "0.1.0"
+
+[[package]]
+name = "scolapasta-fixable"
 version = "0.1.0"
 
 [[package]]

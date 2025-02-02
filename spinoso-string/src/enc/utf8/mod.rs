@@ -48,7 +48,7 @@ pub use inspect::Inspect;
 pub use owned::Utf8String;
 
 #[cfg(test)]
-#[allow(clippy::invisible_characters)]
+#[expect(clippy::invisible_characters, reason = "testing naughty UTF-8 strings")]
 mod tests {
     use alloc::string::String;
     use alloc::vec::Vec;
@@ -456,7 +456,7 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::reversed_empty_ranges)]
+    #[expect(clippy::reversed_empty_ranges, reason = "testing behavior of reversed ranges")]
     fn get_char_slice_invalid_range() {
         let s = Utf8String::from(b"a\xF0\x9F\x92\x8E\xFF".to_vec()); // "a💎\xFF"
         assert_eq!(s.get_char_slice(4..5), None);

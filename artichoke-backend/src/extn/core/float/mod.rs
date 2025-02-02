@@ -186,7 +186,7 @@ impl Float {
     /// Convert self to an `i64` with a saturating cast.
     #[inline]
     #[must_use]
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(clippy::cast_possible_truncation, reason = "Ruby Float#to_i intentionally truncates")]
     pub const fn as_i64(self) -> i64 {
         self.0 as i64
     }
@@ -200,8 +200,11 @@ impl Float {
 
     #[inline]
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
-    #[allow(clippy::cast_possible_truncation)]
+    #[expect(
+        clippy::cast_precision_loss,
+        clippy::cast_possible_truncation,
+        reason = "consts are in f64 lossless range"
+    )]
     pub fn try_into_fixnum(self) -> Option<i64> {
         const FIXABLE_MAX: f64 = 2_i64.pow(f64::MANTISSA_DIGITS) as f64;
         const FIXABLE_MIN: f64 = -(2_i64.pow(f64::MANTISSA_DIGITS)) as f64;

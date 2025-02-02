@@ -42,9 +42,11 @@ pub fn is_nobits(interp: &mut Artichoke, value: Value, mask: Value) -> Result<Va
     Ok(interp.convert(result))
 }
 
-// XXX: This method will become fallible once `Bignum` is implemented.
-#[allow(clippy::cast_possible_wrap)]
-#[allow(clippy::unnecessary_wraps)]
+#[expect(clippy::cast_possible_wrap, reason = "const assert ensures wrapping is impossible")]
+#[expect(
+    clippy::unnecessary_wraps,
+    reason = "all trampoline functions should be fallible for consistency. This method will become fallible once `Bignum` is implemented."
+)]
 pub fn size(interp: &Artichoke) -> Result<Value, Error> {
     qed::const_assert!(Integer::size() < i8::MAX as usize);
     Ok(interp.convert(const { Integer::size() as i64 }))

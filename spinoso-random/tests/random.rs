@@ -1,5 +1,6 @@
 use spinoso_random::Random;
 
+#[expect(clippy::unreadable_literal, reason = "generated test vectors")]
 mod vectors;
 
 #[test]

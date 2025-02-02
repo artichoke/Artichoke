@@ -146,7 +146,7 @@ impl Time {
     /// [`Time#new`]: https://ruby-doc.org/core-3.1.2/Time.html#method-c-new
     /// [`Timezone`]: https://ruby-doc.org/core-3.1.2/Time.html#class-Time-label-Timezone+argument
     #[inline]
-    #[allow(clippy::too_many_arguments)]
+    #[expect(clippy::too_many_arguments, reason = "Implementing a Ruby constructor")]
     pub fn new(
         year: i32,
         month: u8,
@@ -326,7 +326,10 @@ impl Time {
         // A `f64` mantissa is only 52 bits wide, so putting 64 bits in there
         // will result in a rounding issues, however this is expected in the
         // Ruby spec.
-        #[allow(clippy::cast_precision_loss)]
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "rounding issues are expected in the Ruby spec"
+        )]
         let sec = self.to_int() as f64;
         let nanos_fractional = f64::from(self.inner.nanoseconds()) / f64::from(NANOS_IN_SECOND);
         sec + nanos_fractional

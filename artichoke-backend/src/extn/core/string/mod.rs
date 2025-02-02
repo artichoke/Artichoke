@@ -1,5 +1,3 @@
-#![allow(clippy::cast_possible_wrap)]
-
 use core::ops::Deref;
 use std::ffi::{c_char, c_void};
 use std::ptr::NonNull;
@@ -28,8 +26,11 @@ impl BoxUnboxVmValue for String {
 
     const RUBY_TYPE: &'static str = "String";
 
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
+    #[expect(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "mruby stores sizes as int64_t instead of size_t"
+    )]
     unsafe fn unbox_from_value<'a>(
         value: &'a mut Value,
         interp: &mut Artichoke,
@@ -73,6 +74,10 @@ impl BoxUnboxVmValue for String {
         Ok(UnboxedValueGuard::new(s))
     }
 
+    #[expect(
+        clippy::cast_possible_wrap,
+        reason = "mruby stores sizes as int64_t instead of size_t"
+    )]
     fn alloc_value(value: Self::Unboxed, interp: &mut Artichoke) -> Result<Value, Error> {
         let encoding = value.encoding();
         let RawParts { ptr, length, capacity } = String::into_raw_parts(value);
@@ -97,6 +102,10 @@ impl BoxUnboxVmValue for String {
         Ok(interp.protect(value.into()))
     }
 
+    #[expect(
+        clippy::cast_possible_wrap,
+        reason = "mruby stores sizes as int64_t instead of size_t"
+    )]
     fn box_into_value(value: Self::Unboxed, into: Value, interp: &mut Artichoke) -> Result<Value, Error> {
         // Make sure we have an String otherwise boxing will produce undefined
         // behavior.

@@ -1,4 +1,4 @@
-#![allow(clippy::too_many_lines)]
+#![expect(clippy::too_many_lines, reason = "lots of big init functions in this module")]
 
 use crate::extn::prelude::*;
 

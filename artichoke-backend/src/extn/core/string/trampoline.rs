@@ -1,5 +1,3 @@
-#![allow(clippy::cast_possible_wrap)]
-
 use core::convert::TryFrom;
 use core::fmt::Write as _;
 use core::hash::BuildHasher;
@@ -335,6 +333,10 @@ pub fn equals_equals(interp: &mut Artichoke, mut value: Value, mut other: Value)
 }
 
 #[allow(unused_mut)]
+#[expect(
+    clippy::cast_possible_wrap,
+    reason = "mruby stores sizes as int64_t instead of size_t"
+)]
 pub fn aref(
     interp: &mut Artichoke,
     mut value: Value,
@@ -664,6 +666,10 @@ pub fn bytesize(interp: &mut Artichoke, mut value: Value) -> Result<Value, Error
     interp.try_convert(bytesize)
 }
 
+#[expect(
+    clippy::cast_possible_wrap,
+    reason = "mruby stores sizes as int64_t instead of size_t"
+)]
 pub fn byteslice(
     interp: &mut Artichoke,
     mut value: Value,
@@ -1169,8 +1175,10 @@ pub fn getbyte(interp: &mut Artichoke, mut value: Value, index: Value) -> Result
 
 pub fn hash(interp: &mut Artichoke, mut value: Value) -> Result<Value, Error> {
     let s = unsafe { super::String::unbox_from_value(&mut value, interp)? };
-    #[allow(clippy::cast_possible_wrap)]
-    let hash = interp.global_build_hasher()?.hash_one(s.as_slice()) as i64;
+    let hash = interp.global_build_hasher()?.hash_one(s.as_slice());
+    // bit cast to an `i64` to ensure the value is signed. We're computing a
+    // hash so the sign of the value is not important.
+    let hash = i64::from_ne_bytes(hash.to_ne_bytes());
     Ok(interp.convert(hash))
 }
 

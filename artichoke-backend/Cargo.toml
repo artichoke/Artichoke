@@ -67,6 +67,10 @@ default-features = false
 version = "0.1.0"
 path = "../scolapasta-aref"
 
+[dependencies.scolapasta-fixable]
+version = "0.1.0"
+path = "../scolapasta-fixable"
+
 [dependencies.scolapasta-int-parse]
 version = "0.3.0"
 path = "../scolapasta-int-parse"

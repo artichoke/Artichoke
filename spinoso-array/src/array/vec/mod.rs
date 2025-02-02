@@ -1,5 +1,3 @@
-#![allow(clippy::missing_panics_doc)]
-
 //! Ruby `Array` based on [`Vec`].
 
 use alloc::boxed::Box;
@@ -1032,6 +1030,11 @@ where
     /// Set element at position `index` within the vector, extending the vector
     /// with `T::default()` if `index` is out of bounds.
     ///
+    /// # Panics
+    ///
+    /// If inserting the element would overflow the capacity of the vector, this
+    /// method will panic.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1072,6 +1075,11 @@ where
     /// `set_with_drain` will only drain up to the end of the vector.
     ///
     /// To set a single element without draining, use [`set`](Self::set).
+    ///
+    /// # Panics
+    ///
+    /// If inserting the element would overflow the capacity of the vector, this
+    /// method will panic.
     ///
     /// # Examples
     ///
@@ -1123,6 +1131,11 @@ where
     /// This method is similar to [`Vec::splice`] when called with a zero-length
     /// range.
     ///
+    /// # Panics
+    ///
+    /// If inserting the slice would overflow the capacity of the vector, this
+    /// method will panic.
+    ///
     /// # Examples
     ///
     /// ```
@@ -1164,6 +1177,11 @@ where
     /// If `drain >= src.len()` or the tail of the vector is replaced, this
     /// method is efficient. Otherwise, a temporary buffer is used to move the
     /// elements.
+    ///
+    /// # Panics
+    ///
+    /// If inserting the slice would overflow the capacity of the vector, this
+    /// method will panic.
     ///
     /// # Examples
     ///

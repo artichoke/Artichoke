@@ -1,3 +1,5 @@
+use scolapasta_fixable::Fixable as _;
+
 use crate::convert::{check_string_type, check_to_int, to_i};
 use crate::extn::core::kernel;
 use crate::extn::core::kernel::require::RelativePath;
@@ -69,11 +71,10 @@ pub fn integer(interp: &mut Artichoke, mut val: Value, base: Option<Value>) -> R
             return Err(FloatDomainError::with_message("NaN").into());
         }
 
-        // TODO: this should check to see if `f` is in range for `i64`. MRI calls
-        // this check "is fixable" / `FIXABLE`. If `f` is not fixable, it should
-        // be converted to a bignum.
-        #[allow(clippy::cast_possible_truncation)]
-        return Ok(interp.convert(f as i64));
+        if let Some(f) = f.to_fix() {
+            return Ok(interp.convert(f));
+        }
+        return Err(NotImplementedError::from("Float::to_fix does not support BigNum").into());
     }
 
     // https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3133-L3135

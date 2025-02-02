@@ -1,4 +1,7 @@
-#![allow(clippy::missing_panics_doc)]
+#![expect(
+    clippy::missing_panics_doc,
+    reason = "enforcing nul termination will not panic in practice"
+)]
 
 use alloc::borrow::Cow;
 use alloc::boxed::Box;

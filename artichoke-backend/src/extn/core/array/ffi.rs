@@ -297,8 +297,11 @@ unsafe extern "C" fn mrb_ary_unshift(
 }
 
 #[unsafe(no_mangle)]
-#[allow(clippy::cast_possible_truncation)]
-#[allow(clippy::cast_sign_loss)]
+#[expect(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    reason = "mruby stores sizes as int64_t instead of size_t"
+)]
 unsafe extern "C" fn mrb_ary_artichoke_free(mrb: *mut sys::mrb_state, ary: *mut sys::RArray) {
     let _ = mrb;
 

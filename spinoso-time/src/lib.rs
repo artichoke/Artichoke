@@ -95,9 +95,9 @@ mod time;
 pub use time::tzrs;
 
 /// Number of nanoseconds in one second.
-#[allow(clippy::cast_possible_truncation)] // 1e9 < u32::MAX
+#[expect(clippy::cast_possible_truncation, reason = "1e9 < u32::MAX")]
 pub const NANOS_IN_SECOND: u32 = Duration::from_secs(1).as_nanos() as u32;
 
 /// Number of microseconds in one nanosecond.
-#[allow(clippy::cast_possible_truncation)] // 1000 < u32::MAX
+#[expect(clippy::cast_possible_truncation, reason = "1000 < u32::MAX")]
 pub const MICROS_IN_NANO: u32 = Duration::from_micros(1).as_nanos() as u32;

@@ -1,6 +1,7 @@
-// This pragma is needed to allow passing `Value` by value in all the mruby
-// and Rust trampolines.
-#![allow(clippy::needless_pass_by_value)]
+#![expect(
+    clippy::needless_pass_by_value,
+    reason = "permit passing `Value` by value in all mruby and Rust trampolines"
+)]
 
 use crate::release_metadata::ReleaseMetadata;
 

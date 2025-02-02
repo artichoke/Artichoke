@@ -146,8 +146,7 @@ mod tests {
 
         #[test]
         #[should_panic]
-        #[allow(clippy::should_panic_without_expect)]
-        // this test is known broken
+        #[expect(clippy::should_panic_without_expect, reason = "this test is known broken")]
         fn eval_context_is_a_stack() {
             let mut interp = interpreter();
             interp.def_file_for_type::<_, NestedEval>("nested_eval.rb").unwrap();

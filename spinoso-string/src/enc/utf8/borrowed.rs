@@ -820,20 +820,19 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::no_effect_underscore_binding)]
     fn slice_indexing_is_byte_slicing() {
         let s = Utf8Str::new("a🦀b💎c");
         // individual bytes can be copied out of the string ref.
         for idx in 0..s.len() {
-            let _byte: u8 = s[idx];
+            let _: u8 = s[idx];
         }
 
         // slicing in the middle of multi-byte UTF-8 characters is fine.
         for idx in 0..s.len() {
-            let _span: &[u8] = &s[idx..=idx];
+            let _: &[u8] = &s[idx..=idx];
         }
         for idx in 0..s.len() - 1 {
-            let _span: &[u8] = &s[idx..idx + 2];
+            let _: &[u8] = &s[idx..idx + 2];
         }
     }
 

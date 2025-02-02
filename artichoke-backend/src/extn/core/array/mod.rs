@@ -231,8 +231,11 @@ impl BoxUnboxVmValue for Array {
 
     const RUBY_TYPE: &'static str = "Array";
 
-    #[allow(clippy::cast_possible_truncation)]
-    #[allow(clippy::cast_sign_loss)]
+    #[expect(
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss,
+        reason = "mruby stores sizes as int64_t instead of size_t"
+    )]
     unsafe fn unbox_from_value<'a>(
         value: &'a mut Value,
         interp: &mut Artichoke,
@@ -290,7 +293,10 @@ impl BoxUnboxVmValue for Array {
         Ok(interp.protect(value.into()))
     }
 
-    #[allow(clippy::cast_possible_wrap)]
+    #[expect(
+        clippy::cast_possible_wrap,
+        reason = "mruby stores sizes as int64_t instead of size_t"
+    )]
     fn box_into_value(value: Self::Unboxed, into: Value, interp: &mut Artichoke) -> Result<Value, Error> {
         // Make sure we have an Array otherwise boxing will produce undefined
         // behavior. This check is critical to protecting the garbage collector

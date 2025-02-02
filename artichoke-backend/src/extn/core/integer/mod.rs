@@ -91,7 +91,7 @@ impl Integer {
 
     #[inline]
     #[must_use]
-    #[allow(clippy::cast_precision_loss)]
+    #[expect(clippy::cast_precision_loss, reason = "Ruby Integer#to_f is intentionally lossy")]
     pub const fn as_f64(self) -> f64 {
         self.0 as f64
     }

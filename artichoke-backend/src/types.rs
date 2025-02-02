@@ -16,9 +16,7 @@ pub fn ruby_from_mrb_value(value: sys::mrb_value) -> Ruby {
         MRB_TT_UNDEF,
     };
 
-    // Suppress lint to enumerate match arms in the same order they are defined
-    // in the `sys::mrb_vtype` enum C source.
-    #[allow(clippy::match_same_arms)]
+    #[expect(clippy::match_same_arms, reason = "match arms are ordered by `sys::mrb_vtype` enum")]
     match value.tt {
         // `nil` is implemented with the `MRB_TT_FALSE` type tag in mruby
         // (since both values are falsy). The difference is that Booleans are
