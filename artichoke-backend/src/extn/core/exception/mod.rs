@@ -129,7 +129,7 @@ mod tests {
         type Error = Error;
 
         fn require(interp: &mut Artichoke) -> Result<(), Self::Error> {
-            let spec = class::Spec::new("Run", qed::const_cstr_from_str!("Run\0"), None, None).unwrap();
+            let spec = class::Spec::new("Run", c"Run", None, None).unwrap();
             class::Builder::for_spec(interp, &spec)
                 .add_self_method("run", run_run, sys::mrb_args_none())?
                 .define()?;

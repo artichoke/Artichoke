@@ -6,8 +6,8 @@ use crate::extn::core::math::trampoline;
 use crate::extn::core::math::{self, DomainError, Math};
 use crate::extn::prelude::*;
 
-const MATH_CSTR: &CStr = qed::const_cstr_from_str!("Math\0");
-const DOMAIN_ERROR_CSTR: &CStr = qed::const_cstr_from_str!("DomainError\0");
+const MATH_CSTR: &CStr = c"Math";
+const DOMAIN_ERROR_CSTR: &CStr = c"DomainError";
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {
     if interp.is_module_defined::<Math>() {

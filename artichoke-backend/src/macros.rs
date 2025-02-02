@@ -80,20 +80,20 @@ macro_rules! unwrap_interpreter {
 pub mod argspec {
     use std::ffi::CStr;
 
-    pub const NONE: &CStr = qed::const_cstr_from_str!("\0");
-    pub const REQ1: &CStr = qed::const_cstr_from_str!("o\0");
-    pub const OPT1: &CStr = qed::const_cstr_from_str!("|o\0");
-    pub const REQ1_OPT1: &CStr = qed::const_cstr_from_str!("o|o\0");
-    pub const REQ1_OPT2: &CStr = qed::const_cstr_from_str!("o|oo\0");
-    pub const REQ1_OPT3: &CStr = qed::const_cstr_from_str!("o|ooo\0");
-    pub const REQ1_REQBLOCK: &CStr = qed::const_cstr_from_str!("o&\0");
-    pub const REQ1_REQBLOCK_OPT1: &CStr = qed::const_cstr_from_str!("o&|o?\0");
-    pub const REQ1_REQBLOCK_OPT2: &CStr = qed::const_cstr_from_str!("o&|o?o?\0");
-    pub const REQ2: &CStr = qed::const_cstr_from_str!("oo\0");
-    pub const OPT2: &CStr = qed::const_cstr_from_str!("|oo\0");
-    pub const OPT2_OPTBLOCK: &CStr = qed::const_cstr_from_str!("&|o?o?\0");
-    pub const REQ2_OPT1: &CStr = qed::const_cstr_from_str!("oo|o\0");
-    pub const REST: &CStr = qed::const_cstr_from_str!("*\0");
+    pub const NONE: &CStr = c"";
+    pub const REQ1: &CStr = c"o";
+    pub const OPT1: &CStr = c"|o";
+    pub const REQ1_OPT1: &CStr = c"o|o";
+    pub const REQ1_OPT2: &CStr = c"o|oo";
+    pub const REQ1_OPT3: &CStr = c"o|ooo";
+    pub const REQ1_REQBLOCK: &CStr = c"o&";
+    pub const REQ1_REQBLOCK_OPT1: &CStr = c"o&|o?";
+    pub const REQ1_REQBLOCK_OPT2: &CStr = c"o&|o?o?";
+    pub const REQ2: &CStr = c"oo";
+    pub const OPT2: &CStr = c"|oo";
+    pub const OPT2_OPTBLOCK: &CStr = c"&|o?o?";
+    pub const REQ2_OPT1: &CStr = c"oo|o";
+    pub const REST: &CStr = c"*";
 }
 
 /// Extract [`sys::mrb_value`]s from a [`sys::mrb_state`] to adapt a C

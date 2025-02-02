@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use crate::extn::prelude::*;
 
-const TRUE_CLASS_CSTR: &CStr = qed::const_cstr_from_str!("TrueClass\0");
+const TRUE_CLASS_CSTR: &CStr = c"TrueClass";
 static TRUE_CLASS_RUBY_SOURCE: &[u8] = include_bytes!("trueclass.rb");
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {

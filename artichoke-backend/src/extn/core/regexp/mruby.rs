@@ -3,7 +3,7 @@ use std::ffi::CStr;
 use super::{trampoline, Flags, Regexp};
 use crate::extn::prelude::*;
 
-const REGEXP_CSTR: &CStr = qed::const_cstr_from_str!("Regexp\0");
+const REGEXP_CSTR: &CStr = c"Regexp";
 static REGEXP_RUBY_SOURCE: &[u8] = include_bytes!("regexp.rb");
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {

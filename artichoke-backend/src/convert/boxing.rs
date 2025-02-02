@@ -329,13 +329,7 @@ mod tests {
     #[test]
     fn convert_obj_roundtrip() {
         let mut interp = interpreter();
-        let spec = class::Spec::new(
-            "Container",
-            qed::const_cstr_from_str!("Container\0"),
-            None,
-            Some(def::box_unbox_free::<Container>),
-        )
-        .unwrap();
+        let spec = class::Spec::new("Container", c"Container", None, Some(def::box_unbox_free::<Container>)).unwrap();
         class::Builder::for_spec(&mut interp, &spec)
             .value_is_rust_object()
             .add_method("value", container_value, sys::mrb_args_none())
@@ -364,13 +358,7 @@ mod tests {
     fn convert_obj_not_data() {
         let mut interp = interpreter();
 
-        let spec = class::Spec::new(
-            "Container",
-            qed::const_cstr_from_str!("Container\0"),
-            None,
-            Some(def::box_unbox_free::<Container>),
-        )
-        .unwrap();
+        let spec = class::Spec::new("Container", c"Container", None, Some(def::box_unbox_free::<Container>)).unwrap();
         class::Builder::for_spec(&mut interp, &spec)
             .value_is_rust_object()
             .add_method("value", container_value, sys::mrb_args_none())
@@ -379,13 +367,7 @@ mod tests {
             .unwrap();
         interp.def_class::<Container>(spec).unwrap();
 
-        let spec = class::Spec::new(
-            "Flag",
-            qed::const_cstr_from_str!("Flag\0"),
-            None,
-            Some(def::box_unbox_free::<Box<Flag>>),
-        )
-        .unwrap();
+        let spec = class::Spec::new("Flag", c"Flag", None, Some(def::box_unbox_free::<Box<Flag>>)).unwrap();
         class::Builder::for_spec(&mut interp, &spec)
             .value_is_rust_object()
             .define()

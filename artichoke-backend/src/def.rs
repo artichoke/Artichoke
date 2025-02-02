@@ -470,42 +470,16 @@ mod tests {
         fn integration_test() {
             // Setup: define module and class hierarchy
             let mut interp = interpreter();
-            let root = module::Spec::new(&mut interp, "A", qed::const_cstr_from_str!("A\0"), None).unwrap();
-            let mod_under_root = module::Spec::new(
-                &mut interp,
-                "B",
-                qed::const_cstr_from_str!("B\0"),
-                Some(EnclosingRubyScope::module(&root)),
-            )
-            .unwrap();
-            let cls_under_root = class::Spec::new(
-                "C",
-                qed::const_cstr_from_str!("C\0"),
-                Some(EnclosingRubyScope::module(&root)),
-                None,
-            )
-            .unwrap();
-            let cls_under_mod = class::Spec::new(
-                "D",
-                qed::const_cstr_from_str!("D\0"),
-                Some(EnclosingRubyScope::module(&mod_under_root)),
-                None,
-            )
-            .unwrap();
-            let mod_under_cls = module::Spec::new(
-                &mut interp,
-                "E",
-                qed::const_cstr_from_str!("E\0"),
-                Some(EnclosingRubyScope::class(&cls_under_root)),
-            )
-            .unwrap();
-            let cls_under_cls = class::Spec::new(
-                "F",
-                qed::const_cstr_from_str!("F\0"),
-                Some(EnclosingRubyScope::class(&cls_under_root)),
-                None,
-            )
-            .unwrap();
+            let root = module::Spec::new(&mut interp, "A", c"A", None).unwrap();
+            let mod_under_root =
+                module::Spec::new(&mut interp, "B", c"B", Some(EnclosingRubyScope::module(&root))).unwrap();
+            let cls_under_root = class::Spec::new("C", c"C", Some(EnclosingRubyScope::module(&root)), None).unwrap();
+            let cls_under_mod =
+                class::Spec::new("D", c"D", Some(EnclosingRubyScope::module(&mod_under_root)), None).unwrap();
+            let mod_under_cls =
+                module::Spec::new(&mut interp, "E", c"E", Some(EnclosingRubyScope::class(&cls_under_root))).unwrap();
+            let cls_under_cls =
+                class::Spec::new("F", c"F", Some(EnclosingRubyScope::class(&cls_under_root)), None).unwrap();
             module::Builder::for_spec(&mut interp, &root).define().unwrap();
             module::Builder::for_spec(&mut interp, &mod_under_root)
                 .define()
@@ -559,13 +533,7 @@ mod tests {
         #[test]
         fn define_method() {
             let mut interp = interpreter();
-            let class = class::Spec::new(
-                "DefineMethodTestClass",
-                qed::const_cstr_from_str!("DefineMethodTestClass\0"),
-                None,
-                None,
-            )
-            .unwrap();
+            let class = class::Spec::new("DefineMethodTestClass", c"DefineMethodTestClass", None, None).unwrap();
             class::Builder::for_spec(&mut interp, &class)
                 .add_method("value", value, sys::mrb_args_none())
                 .unwrap()
@@ -574,13 +542,8 @@ mod tests {
                 .define()
                 .unwrap();
             interp.def_class::<Class>(class).unwrap();
-            let module = module::Spec::new(
-                &mut interp,
-                "DefineMethodTestModule",
-                qed::const_cstr_from_str!("DefineMethodTestModule\0"),
-                None,
-            )
-            .unwrap();
+            let module =
+                module::Spec::new(&mut interp, "DefineMethodTestModule", c"DefineMethodTestModule", None).unwrap();
             module::Builder::for_spec(&mut interp, &module)
                 .add_method("value", value, sys::mrb_args_none())
                 .unwrap()

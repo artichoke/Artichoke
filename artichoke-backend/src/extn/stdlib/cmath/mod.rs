@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use crate::extn::prelude::*;
 
-const CMATH_CSTR: &CStr = qed::const_cstr_from_str!("CMath\0");
+const CMATH_CSTR: &CStr = c"CMath";
 static CMATH_RUBY_SOURCE: &[u8] = include_bytes!("vendor/cmath.rb");
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {
