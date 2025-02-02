@@ -21,12 +21,16 @@
 #![warn(
     missing_copy_implementations,
     missing_debug_implementations,
-    // missing_docs,
+    missing_docs,
     rust_2024_compatibility,
     trivial_casts,
     trivial_numeric_casts,
     unused_qualifications,
     variant_size_differences
+)]
+#![allow(
+    missing_docs,
+    reason = "This crate is a development tool and will never be published"
 )]
 
 use std::env;
