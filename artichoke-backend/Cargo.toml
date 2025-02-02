@@ -82,7 +82,7 @@ path = "../scolapasta-string-escape"
 default-features = false
 
 [dependencies.spinoso-array]
-version = "0.10.0"
+version = "0.11.0"
 path = "../spinoso-array"
 default-features = false
 
