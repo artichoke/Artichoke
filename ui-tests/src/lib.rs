@@ -28,7 +28,10 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(missing_docs, reason = "This crate is a development tool and will never be published")]
+#![allow(
+    missing_docs,
+    reason = "This crate is a development tool and will never be published"
+)]
 
 use std::env;
 use std::path::PathBuf;
