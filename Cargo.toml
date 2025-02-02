@@ -28,7 +28,7 @@ path = "artichoke-readline"
 optional = true
 
 [dependencies.artichoke-repl-history]
-version = "1.0.0"
+version = "2.0.0"
 path = "artichoke-repl-history"
 optional = true
 

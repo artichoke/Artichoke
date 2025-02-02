@@ -42,13 +42,13 @@
 //!
 //! # Platform Support
 //!
-//! On macOS, the history file is located in the current user's Application
-//! Support directory.
+//! On Apple targets, the history file is located in the current user's
+//! Application Support directory.
 //!
 //! On Windows, the history file is located in the current user's `LocalAppData`
 //! known folder.
 //!
-//! On Linux and other non-macOS Unix targets, the history file is located in
+//! On Linux and other non-Apple Unix targets, the history file is located in
 //! the `XDG_STATE_HOME` according to the [XDG Base Directory Specification],
 //! with the specified fallback if the environment variable is not set.
 //!
@@ -85,7 +85,7 @@ use std::path::PathBuf;
 /// The file is stored in the application data directory for the host operating
 /// system.
 ///
-/// On macOS, the history file is located at a path like:
+/// On Apple targets, the history file is located at a path like:
 ///
 /// ```text
 /// /Users/username/Library/Application Support/org.artichokeruby.airb/history
@@ -97,8 +97,8 @@ use std::path::PathBuf;
 /// C:\Users\username\AppData\Local\Artichoke Ruby\airb\data\history.txt
 /// ```
 ///
-/// On Linux and other Unix platforms excluding macOS, the history file is
-/// located in the XDG state home following the [XDG Base Directory
+/// On Linux and other Unix platforms excluding Apple targets, the history file
+/// is located in the XDG state home following the [XDG Base Directory
 /// Specification]. By default, the history file is located at:
 ///
 /// ```txt
@@ -139,7 +139,7 @@ pub fn repl_history_file() -> Option<PathBuf> {
 }
 
 #[must_use]
-#[cfg(target_os = "macos")]
+#[cfg(target_vendor = "apple")]
 fn repl_history_dir() -> Option<PathBuf> {
     use std::env;
     use std::ffi::{c_char, CStr, OsString};
@@ -150,7 +150,7 @@ fn repl_history_dir() -> Option<PathBuf> {
         PATH_MAX, SYSDIR_DOMAIN_MASK_USER,
     };
 
-    // Use macOS Standard Directories as retrieved by `sysdir(3)` APIs:
+    // Use the standard system directories as retrieved by `sysdir(3)` APIs:
     //
     // https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html#//apple_ref/doc/uid/TP40010672-CH2-SW6
     //
@@ -233,7 +233,7 @@ fn repl_history_dir() -> Option<PathBuf> {
 }
 
 #[must_use]
-#[cfg(all(unix, not(target_os = "macos")))]
+#[cfg(all(unix, not(target_vendor = "apple")))]
 fn repl_history_dir() -> Option<PathBuf> {
     use std::env;
 
@@ -293,15 +293,15 @@ fn repl_history_dir() -> Option<PathBuf> {
 /// # Platform Notes
 ///
 /// - On Windows, this function returns `history.txt`.
-/// - On macOS, this function returns `history`.
-/// - On non-macOS Unix targets, this function returns `airb_history`.
+/// - On Apple targets, this function returns `history`.
+/// - On non-Apple Unix targets, this function returns `airb_history`.
 /// - On all other platforms, this function returns `history`.
 #[must_use]
 fn history_file_basename() -> &'static str {
     if cfg!(windows) {
         return "history.txt";
     }
-    if cfg!(target_os = "macos") {
+    if cfg!(target_vendor = "apple") {
         return "history";
     }
     if cfg!(unix) {
@@ -318,7 +318,7 @@ mod tests {
     use super::*;
 
     // Lock for coordinating access to system env for Unix target tests.
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_vendor = "apple")))]
     static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
     #[test]
@@ -347,8 +347,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg(target_os = "macos")]
-    fn history_dir_on_macos() {
+    #[cfg(target_vendor = "apple")]
+    fn history_dir_on_apple_targets() {
         let dir = repl_history_dir().unwrap();
         let mut components = dir.components();
 
@@ -368,8 +368,8 @@ mod tests {
     }
 
     #[test]
-    #[cfg(target_os = "macos")]
-    fn history_file_on_macos() {
+    #[cfg(target_vendor = "apple")]
+    fn history_file_on_apple_targets() {
         let file = repl_history_file().unwrap();
         let mut components = file.components();
 
@@ -390,7 +390,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_vendor = "apple")))]
     fn history_dir_on_unix_xdg_unset() {
         use std::env;
 
@@ -414,7 +414,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_vendor = "apple")))]
     fn history_file_on_unix_xdg_unset() {
         use std::env;
 
@@ -439,7 +439,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_vendor = "apple")))]
     fn history_dir_on_unix_empty_xdg_state_dir() {
         use std::env;
 
@@ -464,7 +464,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_vendor = "apple")))]
     fn history_file_on_unix_empty_xdg_state_dir() {
         use std::env;
 
@@ -490,7 +490,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_vendor = "apple")))]
     fn history_dir_on_unix_set_xdg_state_dir() {
         use std::env;
 
@@ -514,7 +514,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(all(unix, not(target_vendor = "apple")))]
     fn history_file_on_unix_set_xdg_state_dir() {
         use std::env;
 

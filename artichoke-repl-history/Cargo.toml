@@ -1,6 +1,6 @@
 [package]
 name = "artichoke-repl-history"
-version = "1.0.0"
+version = "2.0.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 description = "Helpers for working with REPL history files"
 keywords = ["artichoke", "artichoke-ruby", "history", "repl"]
@@ -15,8 +15,8 @@ documentation.workspace = true
 
 [dependencies]
 
-[target.'cfg(target_os = "macos")'.dependencies]
-sysdir = "1.0.0"
+[target.'cfg(target_vendor = "apple")'.dependencies]
+sysdir = "1.2.2"
 
 [target.'cfg(windows)'.dependencies]
 known-folders = "1.0.0"

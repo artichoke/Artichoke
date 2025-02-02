@@ -34,7 +34,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-artichoke-repl-history = "1.0.0"
+artichoke-repl-history = "2.0.0"
 ```
 
 And parse Readline editing mode like this:
