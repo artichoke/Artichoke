@@ -59,7 +59,10 @@ unsafe extern "C" fn ary_cls_constructor(mrb: *mut sys::mrb_state, ary: sys::mrb
 
             value
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -75,7 +78,10 @@ unsafe extern "C" fn ary_plus(mrb: *mut sys::mrb_state, ary: sys::mrb_value) -> 
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -91,7 +97,10 @@ unsafe extern "C" fn ary_mul(mrb: *mut sys::mrb_state, ary: sys::mrb_value) -> s
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -107,7 +116,10 @@ unsafe extern "C" fn ary_push_single(mrb: *mut sys::mrb_state, ary: sys::mrb_val
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -123,7 +135,10 @@ unsafe extern "C" fn ary_push(mrb: *mut sys::mrb_state, ary: sys::mrb_value) -> 
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -136,7 +151,10 @@ unsafe extern "C" fn ary_element_reference(mrb: *mut sys::mrb_state, ary: sys::m
     let result = trampoline::element_reference(&mut guard, array, elem, len);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -154,7 +172,10 @@ unsafe extern "C" fn ary_element_assignment(mrb: *mut sys::mrb_state, ary: sys::
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -169,7 +190,10 @@ unsafe extern "C" fn ary_clear(mrb: *mut sys::mrb_state, ary: sys::mrb_value) ->
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -185,7 +209,10 @@ unsafe extern "C" fn ary_concat(mrb: *mut sys::mrb_state, ary: sys::mrb_value) -
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -201,7 +228,10 @@ unsafe extern "C" fn ary_first(mrb: *mut sys::mrb_state, ary: sys::mrb_value) ->
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -218,7 +248,10 @@ unsafe extern "C" fn ary_initialize(mrb: *mut sys::mrb_state, ary: sys::mrb_valu
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -234,7 +267,10 @@ unsafe extern "C" fn ary_initialize_copy(mrb: *mut sys::mrb_state, ary: sys::mrb
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -250,7 +286,10 @@ unsafe extern "C" fn ary_last(mrb: *mut sys::mrb_state, ary: sys::mrb_value) -> 
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -270,7 +309,10 @@ unsafe extern "C" fn ary_len(mrb: *mut sys::mrb_state, ary: sys::mrb_value) -> s
             let len = guard.convert(len);
             len.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -285,7 +327,10 @@ unsafe extern "C" fn ary_pop(mrb: *mut sys::mrb_state, ary: sys::mrb_value) -> s
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -300,7 +345,10 @@ unsafe extern "C" fn ary_reverse(mrb: *mut sys::mrb_state, ary: sys::mrb_value) 
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -315,7 +363,10 @@ unsafe extern "C" fn ary_reverse_bang(mrb: *mut sys::mrb_state, ary: sys::mrb_va
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -331,6 +382,9 @@ unsafe extern "C" fn ary_shift(mrb: *mut sys::mrb_state, ary: sys::mrb_value) ->
             sys::mrb_write_barrier(mrb, basic);
             value.inner()
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }

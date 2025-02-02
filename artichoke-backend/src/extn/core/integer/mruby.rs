@@ -36,7 +36,10 @@ unsafe extern "C" fn integer_chr(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::chr(&mut guard, value, encoding);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -48,7 +51,10 @@ unsafe extern "C" fn integer_element_reference(mrb: *mut sys::mrb_state, slf: sy
     let result = trampoline::element_reference(&mut guard, value, bit);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -60,7 +66,10 @@ unsafe extern "C" fn integer_div(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::div(&mut guard, value, denominator);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -72,7 +81,10 @@ unsafe extern "C" fn integer_is_allbits(mrb: *mut sys::mrb_state, slf: sys::mrb_
     let result = trampoline::is_allbits(&mut guard, value, mask);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -84,7 +96,10 @@ unsafe extern "C" fn integer_is_anybits(mrb: *mut sys::mrb_state, slf: sys::mrb_
     let result = trampoline::is_anybits(&mut guard, value, mask);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -96,7 +111,10 @@ unsafe extern "C" fn integer_is_nobits(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::is_nobits(&mut guard, value, mask);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -106,6 +124,9 @@ unsafe extern "C" fn integer_size(mrb: *mut sys::mrb_state, _slf: sys::mrb_value
     let result = trampoline::size(&guard);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }

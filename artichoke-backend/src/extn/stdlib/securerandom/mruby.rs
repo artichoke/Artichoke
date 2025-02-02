@@ -50,7 +50,10 @@ unsafe extern "C" fn securerandom_alphanumeric(mrb: *mut sys::mrb_state, _slf: s
     let result = trampoline::alphanumeric(&mut guard, len);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -61,7 +64,10 @@ unsafe extern "C" fn securerandom_base64(mrb: *mut sys::mrb_state, _slf: sys::mr
     let result = trampoline::base64(&mut guard, len);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -73,7 +79,10 @@ unsafe extern "C" fn securerandom_urlsafe_base64(mrb: *mut sys::mrb_state, _slf:
     let result = trampoline::urlsafe_base64(&mut guard, len, padding);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -84,7 +93,10 @@ unsafe extern "C" fn securerandom_hex(mrb: *mut sys::mrb_state, _slf: sys::mrb_v
     let result = trampoline::hex(&mut guard, len);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -95,7 +107,10 @@ unsafe extern "C" fn securerandom_random_bytes(mrb: *mut sys::mrb_state, _slf: s
     let result = trampoline::random_bytes(&mut guard, len);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -106,7 +121,10 @@ unsafe extern "C" fn securerandom_random_number(mrb: *mut sys::mrb_state, _slf: 
     let result = trampoline::random_number(&mut guard, max);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -116,6 +134,9 @@ unsafe extern "C" fn securerandom_uuid(mrb: *mut sys::mrb_state, _slf: sys::mrb_
     let result = trampoline::uuid(&mut guard);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
