@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use crate::extn::prelude::*;
 
-const ABBREV_CSTR: &CStr = qed::const_cstr_from_str!("Abbrev\0");
+const ABBREV_CSTR: &CStr = c"Abbrev";
 static ABBREV_RUBY_SOURCE: &[u8] = include_bytes!("vendor/abbrev.rb");
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {

@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use crate::extn::prelude::*;
 
-const FORWARDABLE_CSTR: &CStr = qed::const_cstr_from_str!("Forwardable\0");
+const FORWARDABLE_CSTR: &CStr = c"Forwardable";
 static FORWARDABLE_RUBY_SOURCE: &[u8] = include_bytes!("vendor/forwardable.rb");
 static FORWARDABLE_IMPL_RUBY_SOURCE: &[u8] = include_bytes!("vendor/forwardable/impl.rb");
 

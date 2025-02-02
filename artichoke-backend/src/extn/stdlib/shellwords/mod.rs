@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use crate::extn::prelude::*;
 
-const SHELLWORDS_CSTR: &CStr = qed::const_cstr_from_str!("Shellwords\0");
+const SHELLWORDS_CSTR: &CStr = c"Shellwords";
 static SHELLWORDS_RUBY_SOURCE: &[u8] = include_bytes!("vendor/shellwords.rb");
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {

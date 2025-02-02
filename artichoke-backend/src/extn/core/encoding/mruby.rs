@@ -3,7 +3,7 @@ use std::ffi::CStr;
 use crate::extn::core::encoding;
 use crate::extn::prelude::*;
 
-const ENCODING_CSTR: &CStr = qed::const_cstr_from_str!("Encoding\0");
+const ENCODING_CSTR: &CStr = c"Encoding";
 static ENCODING_RUBY_SOURCE: &[u8] = include_bytes!("encoding.rb");
 
 pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {
