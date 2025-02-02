@@ -1,3 +1,34 @@
+#![warn(clippy::all, clippy::pedantic, clippy::undocumented_unsafe_blocks)]
+#![allow(
+    clippy::let_underscore_untyped,
+    reason = "https://github.com/rust-lang/rust-clippy/pull/10442#issuecomment-1516570154"
+)]
+#![allow(
+    clippy::question_mark,
+    reason = "https://github.com/rust-lang/rust-clippy/issues/8281"
+)]
+#![allow(clippy::manual_let_else, reason = "manual_let_else was very buggy on release")]
+#![allow(clippy::missing_errors_doc, reason = "A lot of existing code fails this lint")]
+#![allow(
+    clippy::unnecessary_lazy_evaluations,
+    reason = "https://github.com/rust-lang/rust-clippy/issues/8109"
+)]
+#![cfg_attr(
+    test,
+    allow(clippy::non_ascii_literal, reason = "tests sometimes require UTF-8 string content")
+)]
+#![allow(unknown_lints)]
+#![warn(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    // missing_docs,
+    rust_2024_compatibility,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_qualifications,
+    variant_size_differences
+)]
+
 use std::env;
 use std::path::PathBuf;
 use std::process::{Command, Output};
@@ -5,6 +36,7 @@ use std::process::{Command, Output};
 use bstr::{BString, ByteSlice};
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
+#[derive(Debug)]
 pub struct CommandOutput {
     call_args: Vec<String>,
     status: i32,
@@ -88,12 +120,18 @@ fn binary_path(name: &str) -> Result<PathBuf, String> {
         .join("debug")
         .join(&executable);
 
-    match path.exists() {
-        true => Ok(path),
-        false => Err(format!("Can't find binary {executable} in ./target/debug/")),
+    if path.exists() {
+        Ok(path)
+    } else {
+        Err(format!("Can't find binary {executable} in ./target/debug/"))
     }
 }
 
+/// Run the given Artichoke binary with a set of command line arguments
+///
+/// # Panics
+///
+/// If the command fails to run successfully, this function will panic.
 pub fn run(binary_name: &str, call_args: &[&str]) -> Result<CommandOutput, String> {
     let binary = binary_path(binary_name)?;
 

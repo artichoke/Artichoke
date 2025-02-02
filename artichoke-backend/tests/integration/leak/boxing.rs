@@ -31,7 +31,10 @@ unsafe extern "C" fn container_initialize(mrb: *mut sys::mrb_state, slf: sys::mr
     let result = Container::box_into_value(container, slf, &mut guard);
     match result {
         Ok(value) => value.into(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 

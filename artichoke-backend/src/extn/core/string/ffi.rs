@@ -40,7 +40,10 @@ unsafe extern "C" fn mrb_str_new_capa(mrb: *mut sys::mrb_state, capa: sys::mrb_i
     let result = String::alloc_value(result, &mut guard);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -65,7 +68,10 @@ unsafe extern "C" fn mrb_str_new(mrb: *mut sys::mrb_state, p: *const c_char, len
     let result = String::alloc_value(s, &mut guard);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -81,7 +87,10 @@ unsafe extern "C" fn mrb_str_new_cstr(mrb: *mut sys::mrb_state, p: *const c_char
     let result = String::alloc_value(result, &mut guard);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 

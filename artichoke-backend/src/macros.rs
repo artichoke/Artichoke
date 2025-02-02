@@ -40,7 +40,8 @@ macro_rules! emit_fatal_warning {
 #[macro_export]
 macro_rules! unwrap_interpreter {
     ($mrb:expr, to => $to:ident, or_else = ()) => {
-        let mut interp = if let Ok(interp) = $crate::ffi::from_user_data($mrb) {
+        let mrb = $mrb;
+        let mut interp = if let Ok(interp) = unsafe { $crate::ffi::from_user_data(mrb) } {
             interp
         } else {
             return;
@@ -56,7 +57,8 @@ macro_rules! unwrap_interpreter {
         let mut $to = $crate::Guard::new(arena.interp());
     };
     ($mrb:expr, to => $to:ident, or_else = $default:expr) => {
-        let mut interp = if let Ok(interp) = $crate::ffi::from_user_data($mrb) {
+        let mrb = $mrb;
+        let mut interp = if let Ok(interp) = unsafe { $crate::ffi::from_user_data(mrb) } {
             interp
         } else {
             return $default;
@@ -72,7 +74,7 @@ macro_rules! unwrap_interpreter {
         let mut $to = $crate::Guard::new(arena.interp());
     };
     ($mrb:expr, to => $to:ident) => {
-        unwrap_interpreter!($mrb, to => $to, or_else = $crate::sys::mrb_sys_nil_value())
+        unwrap_interpreter!($mrb, to => $to, or_else = unsafe { $crate::sys::mrb_sys_nil_value() })
     };
 }
 
@@ -110,324 +112,366 @@ pub mod argspec {
 #[macro_export]
 macro_rules! mrb_get_args {
     ($mrb:expr, none) => {{
-        $crate::sys::mrb_get_args($mrb, $crate::macros::argspec::NONE.as_ptr());
+        let mrb = $mrb;
+        unsafe {
+            $crate::sys::mrb_get_args(mrb, $crate::macros::argspec::NONE.as_ptr());
+        }
     }};
     ($mrb:expr, required = 1) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args($mrb, $crate::macros::argspec::REQ1.as_ptr(), req1.as_mut_ptr());
-        match argc {
-            1 => req1.assume_init(),
-            _ => unreachable!("mrb_get_args should have raised"),
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(mrb, $crate::macros::argspec::REQ1.as_ptr(), req1.as_mut_ptr());
+            match argc {
+                1 => req1.assume_init(),
+                _ => unreachable!("mrb_get_args should have raised"),
+            }
         }
     }};
     ($mrb:expr, optional = 1) => {{
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args($mrb, $crate::macros::argspec::OPT1.as_ptr(), opt1.as_mut_ptr());
-        match argc {
-            1 => {
-                let opt1 = opt1.assume_init();
-                Some(opt1)
+        let mrb = $mrb;
+        unsafe {
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(mrb, $crate::macros::argspec::OPT1.as_ptr(), opt1.as_mut_ptr());
+            match argc {
+                1 => {
+                    let opt1 = opt1.assume_init();
+                    Some(opt1)
+                }
+                0 => None,
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            0 => None,
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, required = 1, optional = 1) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ1_OPT1.as_ptr(),
-            req1.as_mut_ptr(),
-            opt1.as_mut_ptr(),
-        );
-        match argc {
-            2 => {
-                let req1 = req1.assume_init();
-                let opt1 = opt1.assume_init();
-                (req1, Some(opt1))
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ1_OPT1.as_ptr(),
+                req1.as_mut_ptr(),
+                opt1.as_mut_ptr(),
+            );
+            match argc {
+                2 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = opt1.assume_init();
+                    (req1, Some(opt1))
+                }
+                1 => {
+                    let req1 = req1.assume_init();
+                    (req1, None)
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            1 => {
-                let req1 = req1.assume_init();
-                (req1, None)
-            }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, required = 1, optional = 2) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ1_OPT2.as_ptr(),
-            req1.as_mut_ptr(),
-            opt1.as_mut_ptr(),
-            opt2.as_mut_ptr(),
-        );
-        match argc {
-            3 => {
-                let req1 = req1.assume_init();
-                let opt1 = opt1.assume_init();
-                let opt2 = opt2.assume_init();
-                (req1, Some(opt1), Some(opt2))
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ1_OPT2.as_ptr(),
+                req1.as_mut_ptr(),
+                opt1.as_mut_ptr(),
+                opt2.as_mut_ptr(),
+            );
+            match argc {
+                3 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = opt1.assume_init();
+                    let opt2 = opt2.assume_init();
+                    (req1, Some(opt1), Some(opt2))
+                }
+                2 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = opt1.assume_init();
+                    (req1, Some(opt1), None)
+                }
+                1 => {
+                    let req1 = req1.assume_init();
+                    (req1, None, None)
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            2 => {
-                let req1 = req1.assume_init();
-                let opt1 = opt1.assume_init();
-                (req1, Some(opt1), None)
-            }
-            1 => {
-                let req1 = req1.assume_init();
-                (req1, None, None)
-            }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, required = 1, optional = 3) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt3 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ1_OPT3.as_ptr(),
-            req1.as_mut_ptr(),
-            opt1.as_mut_ptr(),
-            opt2.as_mut_ptr(),
-            opt3.as_mut_ptr(),
-        );
-        match argc {
-            4 => {
-                let req1 = req1.assume_init();
-                let opt1 = opt1.assume_init();
-                let opt2 = opt2.assume_init();
-                let opt3 = opt3.assume_init();
-                (req1, Some(opt1), Some(opt2), Some(opt3))
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt3 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ1_OPT3.as_ptr(),
+                req1.as_mut_ptr(),
+                opt1.as_mut_ptr(),
+                opt2.as_mut_ptr(),
+                opt3.as_mut_ptr(),
+            );
+            match argc {
+                4 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = opt1.assume_init();
+                    let opt2 = opt2.assume_init();
+                    let opt3 = opt3.assume_init();
+                    (req1, Some(opt1), Some(opt2), Some(opt3))
+                }
+                3 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = opt1.assume_init();
+                    let opt2 = opt2.assume_init();
+                    (req1, Some(opt1), Some(opt2), None)
+                }
+                2 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = opt1.assume_init();
+                    (req1, Some(opt1), None, None)
+                }
+                1 => {
+                    let req1 = req1.assume_init();
+                    (req1, None, None, None)
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            3 => {
-                let req1 = req1.assume_init();
-                let opt1 = opt1.assume_init();
-                let opt2 = opt2.assume_init();
-                (req1, Some(opt1), Some(opt2), None)
-            }
-            2 => {
-                let req1 = req1.assume_init();
-                let opt1 = opt1.assume_init();
-                (req1, Some(opt1), None, None)
-            }
-            1 => {
-                let req1 = req1.assume_init();
-                (req1, None, None, None)
-            }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, required = 1, &block) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ1_REQBLOCK.as_ptr(),
-            req1.as_mut_ptr(),
-            block.as_mut_ptr(),
-        );
-        match argc {
-            2 | 1 => {
-                let req1 = req1.assume_init();
-                let block = block.assume_init();
-                (req1, $crate::block::Block::new(block))
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ1_REQBLOCK.as_ptr(),
+                req1.as_mut_ptr(),
+                block.as_mut_ptr(),
+            );
+            match argc {
+                2 | 1 => {
+                    let req1 = req1.assume_init();
+                    let block = block.assume_init();
+                    (req1, $crate::block::Block::new(block))
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, required = 1, optional = 1, &block) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut has_opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
-        let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ1_REQBLOCK_OPT1.as_ptr(),
-            req1.as_mut_ptr(),
-            block.as_mut_ptr(),
-            opt1.as_mut_ptr(),
-            has_opt1.as_mut_ptr(),
-        );
-        let has_opt1 = has_opt1.assume_init();
-        match argc {
-            3 => {
-                let req1 = req1.assume_init();
-                let opt1 = opt1.assume_init();
-                let block = block.assume_init();
-                (req1, Some(opt1), $crate::block::Block::new(block))
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut has_opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
+            let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ1_REQBLOCK_OPT1.as_ptr(),
+                req1.as_mut_ptr(),
+                block.as_mut_ptr(),
+                opt1.as_mut_ptr(),
+                has_opt1.as_mut_ptr(),
+            );
+            let has_opt1 = has_opt1.assume_init();
+            match argc {
+                3 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = opt1.assume_init();
+                    let block = block.assume_init();
+                    (req1, Some(opt1), $crate::block::Block::new(block))
+                }
+                2 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
+                    let block = block.assume_init();
+                    (req1, opt1, $crate::block::Block::new(block))
+                }
+                1 => {
+                    let req1 = req1.assume_init();
+                    let block = block.assume_init();
+                    (req1, None, $crate::block::Block::new(block))
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            2 => {
-                let req1 = req1.assume_init();
-                let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
-                let block = block.assume_init();
-                (req1, opt1, $crate::block::Block::new(block))
-            }
-            1 => {
-                let req1 = req1.assume_init();
-                let block = block.assume_init();
-                (req1, None, $crate::block::Block::new(block))
-            }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, required = 1, optional = 2, &block) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut has_opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
-        let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut has_opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
-        let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ1_REQBLOCK_OPT2.as_ptr(),
-            req1.as_mut_ptr(),
-            block.as_mut_ptr(),
-            opt1.as_mut_ptr(),
-            has_opt1.as_mut_ptr(),
-            opt2.as_mut_ptr(),
-            has_opt2.as_mut_ptr(),
-        );
-        let has_opt1 = has_opt1.assume_init();
-        let has_opt2 = has_opt2.assume_init();
-        match argc {
-            4 => {
-                let req1 = req1.assume_init();
-                let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
-                let opt2 = if has_opt2 { Some(opt2.assume_init()) } else { None };
-                let block = block.assume_init();
-                (req1, opt1, opt2, $crate::block::Block::new(block))
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut has_opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
+            let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut has_opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
+            let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ1_REQBLOCK_OPT2.as_ptr(),
+                req1.as_mut_ptr(),
+                block.as_mut_ptr(),
+                opt1.as_mut_ptr(),
+                has_opt1.as_mut_ptr(),
+                opt2.as_mut_ptr(),
+                has_opt2.as_mut_ptr(),
+            );
+            let has_opt1 = has_opt1.assume_init();
+            let has_opt2 = has_opt2.assume_init();
+            match argc {
+                4 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
+                    let opt2 = if has_opt2 { Some(opt2.assume_init()) } else { None };
+                    let block = block.assume_init();
+                    (req1, opt1, opt2, $crate::block::Block::new(block))
+                }
+                3 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
+                    let opt2 = if has_opt2 { Some(opt2.assume_init()) } else { None };
+                    let block = block.assume_init();
+                    (req1, opt1, opt2, $crate::block::Block::new(block))
+                }
+                2 => {
+                    let req1 = req1.assume_init();
+                    let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
+                    let block = block.assume_init();
+                    (req1, opt1, None, $crate::block::Block::new(block))
+                }
+                1 => {
+                    let req1 = req1.assume_init();
+                    let block = block.assume_init();
+                    (req1, None, None, $crate::block::Block::new(block))
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            3 => {
-                let req1 = req1.assume_init();
-                let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
-                let opt2 = if has_opt2 { Some(opt2.assume_init()) } else { None };
-                let block = block.assume_init();
-                (req1, opt1, opt2, $crate::block::Block::new(block))
-            }
-            2 => {
-                let req1 = req1.assume_init();
-                let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
-                let block = block.assume_init();
-                (req1, opt1, None, $crate::block::Block::new(block))
-            }
-            1 => {
-                let req1 = req1.assume_init();
-                let block = block.assume_init();
-                (req1, None, None, $crate::block::Block::new(block))
-            }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, required = 2) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut req2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ2.as_ptr(),
-            req1.as_mut_ptr(),
-            req2.as_mut_ptr(),
-        );
-        match argc {
-            2 => {
-                let req1 = req1.assume_init();
-                let req2 = req2.assume_init();
-                (req1, req2)
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut req2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ2.as_ptr(),
+                req1.as_mut_ptr(),
+                req2.as_mut_ptr(),
+            );
+            match argc {
+                2 => {
+                    let req1 = req1.assume_init();
+                    let req2 = req2.assume_init();
+                    (req1, req2)
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, optional = 2) => {{
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::OPT2.as_ptr(),
-            opt1.as_mut_ptr(),
-            opt2.as_mut_ptr(),
-        );
-        match argc {
-            2 => {
-                let opt1 = opt1.assume_init();
-                let opt2 = opt2.assume_init();
-                (Some(opt1), Some(opt2))
+        let mrb = $mrb;
+        unsafe {
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::OPT2.as_ptr(),
+                opt1.as_mut_ptr(),
+                opt2.as_mut_ptr(),
+            );
+            match argc {
+                2 => {
+                    let opt1 = opt1.assume_init();
+                    let opt2 = opt2.assume_init();
+                    (Some(opt1), Some(opt2))
+                }
+                1 => {
+                    let opt1 = opt1.assume_init();
+                    (Some(opt1), None)
+                }
+                0 => (None, None),
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            1 => {
-                let opt1 = opt1.assume_init();
-                (Some(opt1), None)
-            }
-            0 => (None, None),
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, optional = 2, &block) => {{
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut has_opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
-        let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut has_opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
-        let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::OPT2_OPTBLOCK.as_ptr(),
-            block.as_mut_ptr(),
-            opt1.as_mut_ptr(),
-            has_opt1.as_mut_ptr(),
-            opt2.as_mut_ptr(),
-            has_opt2.as_mut_ptr(),
-        );
-        let has_opt1 = has_opt1.assume_init();
-        let has_opt2 = has_opt2.assume_init();
-        let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
-        let opt2 = if has_opt2 { Some(opt2.assume_init()) } else { None };
-        let block = block.assume_init();
-        (opt1, opt2, $crate::block::Block::new(block))
+        let mrb = $mrb;
+        unsafe {
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut has_opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
+            let mut opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut has_opt2 = std::mem::MaybeUninit::<$crate::sys::mrb_bool>::uninit();
+            let mut block = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::OPT2_OPTBLOCK.as_ptr(),
+                block.as_mut_ptr(),
+                opt1.as_mut_ptr(),
+                has_opt1.as_mut_ptr(),
+                opt2.as_mut_ptr(),
+                has_opt2.as_mut_ptr(),
+            );
+            let has_opt1 = has_opt1.assume_init();
+            let has_opt2 = has_opt2.assume_init();
+            let opt1 = if has_opt1 { Some(opt1.assume_init()) } else { None };
+            let opt2 = if has_opt2 { Some(opt2.assume_init()) } else { None };
+            let block = block.assume_init();
+            (opt1, opt2, $crate::block::Block::new(block))
+        }
     }};
     ($mrb:expr, required = 2, optional = 1) => {{
-        let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut req2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
-        let argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REQ2_OPT1.as_ptr(),
-            req1.as_mut_ptr(),
-            req2.as_mut_ptr(),
-            opt1.as_mut_ptr(),
-        );
-        match argc {
-            3 => {
-                let req1 = req1.assume_init();
-                let req2 = req2.assume_init();
-                let opt1 = opt1.assume_init();
-                (req1, req2, Some(opt1))
+        let mrb = $mrb;
+        unsafe {
+            let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut req2 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
+            let argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REQ2_OPT1.as_ptr(),
+                req1.as_mut_ptr(),
+                req2.as_mut_ptr(),
+                opt1.as_mut_ptr(),
+            );
+            match argc {
+                3 => {
+                    let req1 = req1.assume_init();
+                    let req2 = req2.assume_init();
+                    let opt1 = opt1.assume_init();
+                    (req1, req2, Some(opt1))
+                }
+                2 => {
+                    let req1 = req1.assume_init();
+                    let req2 = req2.assume_init();
+                    (req1, req2, None)
+                }
+                _ => unreachable!("mrb_get_args should have raised"),
             }
-            2 => {
-                let req1 = req1.assume_init();
-                let req2 = req2.assume_init();
-                (req1, req2, None)
-            }
-            _ => unreachable!("mrb_get_args should have raised"),
         }
     }};
     ($mrb:expr, *args) => {{
-        let mut args = std::mem::MaybeUninit::<*const $crate::sys::mrb_value>::uninit();
-        let mut count = std::mem::MaybeUninit::<usize>::uninit();
-        let _argc = $crate::sys::mrb_get_args(
-            $mrb,
-            $crate::macros::argspec::REST.as_ptr(),
-            args.as_mut_ptr(),
-            count.as_mut_ptr(),
-        );
-        let args = args.assume_init();
-        let count = count.assume_init();
-        if args.is_null() || count == 0 {
-            &[]
-        } else {
-            std::slice::from_raw_parts(args, count)
+        let mrb = $mrb;
+        unsafe {
+            let mut args = std::mem::MaybeUninit::<*const $crate::sys::mrb_value>::uninit();
+            let mut count = std::mem::MaybeUninit::<usize>::uninit();
+            let _argc = $crate::sys::mrb_get_args(
+                mrb,
+                $crate::macros::argspec::REST.as_ptr(),
+                args.as_mut_ptr(),
+                count.as_mut_ptr(),
+            );
+            let args = args.assume_init();
+            let count = count.assume_init();
+            if args.is_null() || count == 0 {
+                &[]
+            } else {
+                std::slice::from_raw_parts(args, count)
+            }
         }
     }};
 }

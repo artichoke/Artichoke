@@ -89,7 +89,10 @@ unsafe extern "C" fn string_mul(mrb: *mut sys::mrb_state, slf: sys::mrb_value) -
     let result = trampoline::mul(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -101,7 +104,10 @@ unsafe extern "C" fn string_add(mrb: *mut sys::mrb_state, slf: sys::mrb_value) -
     let result = trampoline::add(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -113,7 +119,10 @@ unsafe extern "C" fn string_append(mrb: *mut sys::mrb_state, slf: sys::mrb_value
     let result = trampoline::append(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -125,7 +134,10 @@ unsafe extern "C" fn string_cmp_rocket(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::cmp_rocket(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -137,7 +149,10 @@ unsafe extern "C" fn string_equals_equals(mrb: *mut sys::mrb_state, slf: sys::mr
     let result = trampoline::equals_equals(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -150,7 +165,10 @@ unsafe extern "C" fn string_aref(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::aref(&mut guard, value, first, second);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -161,7 +179,10 @@ unsafe extern "C" fn string_aset(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::aset(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -172,7 +193,10 @@ unsafe extern "C" fn string_ascii_only(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::is_ascii_only(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -183,7 +207,10 @@ unsafe extern "C" fn string_b(mrb: *mut sys::mrb_state, slf: sys::mrb_value) -> 
     let result = trampoline::b(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -196,7 +223,10 @@ unsafe extern "C" fn string_byteindex(mrb: *mut sys::mrb_state, slf: sys::mrb_va
     let result = trampoline::byteindex(&mut guard, value, substring, offset);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -209,7 +239,10 @@ unsafe extern "C" fn string_byterindex(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::byterindex(&mut guard, value, substring, offset);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -220,7 +253,10 @@ unsafe extern "C" fn string_bytes(mrb: *mut sys::mrb_state, slf: sys::mrb_value)
     let result = trampoline::bytes(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -231,7 +267,10 @@ unsafe extern "C" fn string_bytesize(mrb: *mut sys::mrb_state, slf: sys::mrb_val
     let result = trampoline::bytesize(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -254,7 +293,10 @@ unsafe extern "C" fn string_byteslice(mrb: *mut sys::mrb_state, slf: sys::mrb_va
 
             value
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -265,7 +307,10 @@ unsafe extern "C" fn string_capitalize(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::capitalize(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -276,7 +321,10 @@ unsafe extern "C" fn string_capitalize_bang(mrb: *mut sys::mrb_state, slf: sys::
     let result = trampoline::capitalize_bang(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -288,7 +336,10 @@ unsafe extern "C" fn string_casecmp_ascii(mrb: *mut sys::mrb_state, slf: sys::mr
     let result = trampoline::casecmp_ascii(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -300,7 +351,10 @@ unsafe extern "C" fn string_casecmp_unicode(mrb: *mut sys::mrb_state, slf: sys::
     let result = trampoline::casecmp_unicode(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -313,7 +367,10 @@ unsafe extern "C" fn string_center(mrb: *mut sys::mrb_state, slf: sys::mrb_value
     let result = trampoline::center(&mut guard, value, width, padstr);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -324,7 +381,10 @@ unsafe extern "C" fn string_chars(mrb: *mut sys::mrb_state, slf: sys::mrb_value)
     let result = trampoline::chars(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -345,7 +405,10 @@ unsafe extern "C" fn string_chomp(mrb: *mut sys::mrb_state, slf: sys::mrb_value)
 
             value
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -357,7 +420,10 @@ unsafe extern "C" fn string_chomp_bang(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::chomp_bang(&mut guard, value, separator);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -377,7 +443,10 @@ unsafe extern "C" fn string_chop(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
 
             value
         }
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -388,7 +457,10 @@ unsafe extern "C" fn string_chop_bang(mrb: *mut sys::mrb_state, slf: sys::mrb_va
     let result = trampoline::chop_bang(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -399,7 +471,10 @@ unsafe extern "C" fn string_chr(mrb: *mut sys::mrb_state, slf: sys::mrb_value) -
     let result = trampoline::chr(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -410,7 +485,10 @@ unsafe extern "C" fn string_clear(mrb: *mut sys::mrb_state, slf: sys::mrb_value)
     let result = trampoline::clear(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -421,7 +499,10 @@ unsafe extern "C" fn string_codepoints(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::codepoints(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -432,7 +513,10 @@ unsafe extern "C" fn string_concat(mrb: *mut sys::mrb_state, slf: sys::mrb_value
     let result = trampoline::concat(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -443,7 +527,10 @@ unsafe extern "C" fn string_downcase(mrb: *mut sys::mrb_state, slf: sys::mrb_val
     let result = trampoline::downcase(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -454,7 +541,10 @@ unsafe extern "C" fn string_downcase_bang(mrb: *mut sys::mrb_state, slf: sys::mr
     let result = trampoline::downcase_bang(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -465,7 +555,10 @@ unsafe extern "C" fn string_empty(mrb: *mut sys::mrb_state, slf: sys::mrb_value)
     let result = trampoline::is_empty(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -477,7 +570,10 @@ unsafe extern "C" fn string_end_with(mrb: *mut sys::mrb_state, slf: sys::mrb_val
     let result = trampoline::end_with(&mut guard, value, suffixes);
     match result {
         Ok(result) => result.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -489,7 +585,10 @@ unsafe extern "C" fn string_eql(mrb: *mut sys::mrb_state, slf: sys::mrb_value) -
     let result = trampoline::eql(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -501,7 +600,10 @@ unsafe extern "C" fn string_getbyte(mrb: *mut sys::mrb_state, slf: sys::mrb_valu
     let result = trampoline::getbyte(&mut guard, value, index);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -512,7 +614,10 @@ unsafe extern "C" fn string_hash(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::hash(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -524,7 +629,10 @@ unsafe extern "C" fn string_include(mrb: *mut sys::mrb_state, slf: sys::mrb_valu
     let result = trampoline::include(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -537,7 +645,10 @@ unsafe extern "C" fn string_index(mrb: *mut sys::mrb_state, slf: sys::mrb_value)
     let result = trampoline::index(&mut guard, value, needle, offset);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -549,7 +660,10 @@ unsafe extern "C" fn string_initialize(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::initialize(&mut guard, value, s);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -561,7 +675,10 @@ unsafe extern "C" fn string_initialize_copy(mrb: *mut sys::mrb_state, slf: sys::
     let result = trampoline::initialize_copy(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -572,7 +689,10 @@ unsafe extern "C" fn string_inspect(mrb: *mut sys::mrb_state, slf: sys::mrb_valu
     let result = trampoline::inspect(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -583,7 +703,10 @@ unsafe extern "C" fn string_intern(mrb: *mut sys::mrb_state, slf: sys::mrb_value
     let result = trampoline::intern(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -594,7 +717,10 @@ unsafe extern "C" fn string_length(mrb: *mut sys::mrb_state, slf: sys::mrb_value
     let result = trampoline::length(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -605,7 +731,10 @@ unsafe extern "C" fn string_ord(mrb: *mut sys::mrb_state, slf: sys::mrb_value) -
     let result = trampoline::ord(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -617,7 +746,10 @@ unsafe extern "C" fn string_replace(mrb: *mut sys::mrb_state, slf: sys::mrb_valu
     let result = trampoline::replace(&mut guard, value, other);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -628,7 +760,10 @@ unsafe extern "C" fn string_reverse(mrb: *mut sys::mrb_state, slf: sys::mrb_valu
     let result = trampoline::reverse(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -639,7 +774,10 @@ unsafe extern "C" fn string_reverse_bang(mrb: *mut sys::mrb_state, slf: sys::mrb
     let result = trampoline::reverse_bang(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -652,7 +790,10 @@ unsafe extern "C" fn string_rindex(mrb: *mut sys::mrb_state, slf: sys::mrb_value
     let result = trampoline::rindex(&mut guard, value, needle, offset);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -664,7 +805,10 @@ unsafe extern "C" fn string_scan(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::scan(&mut guard, value, pattern, block);
     match result {
         Ok(result) => result.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -677,7 +821,10 @@ unsafe extern "C" fn string_setbyte(mrb: *mut sys::mrb_state, slf: sys::mrb_valu
     let result = trampoline::setbyte(&mut guard, value, index, byte);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -688,7 +835,10 @@ unsafe extern "C" fn string_slice_bang(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::slice_bang(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -699,7 +849,10 @@ unsafe extern "C" fn string_split(mrb: *mut sys::mrb_state, slf: sys::mrb_value)
     let result = trampoline::split(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -711,7 +864,10 @@ unsafe extern "C" fn string_start_with(mrb: *mut sys::mrb_state, slf: sys::mrb_v
     let result = trampoline::start_with(&mut guard, value, prefixes);
     match result {
         Ok(result) => result.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -722,7 +878,10 @@ unsafe extern "C" fn string_to_f(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::to_f(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -734,7 +893,10 @@ unsafe extern "C" fn string_to_i(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::to_i(&mut guard, value, base);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -746,7 +908,10 @@ unsafe extern "C" fn string_to_s(mrb: *mut sys::mrb_state, slf: sys::mrb_value) 
     let result = trampoline::to_s(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -757,7 +922,10 @@ unsafe extern "C" fn string_upcase(mrb: *mut sys::mrb_state, slf: sys::mrb_value
     let result = trampoline::upcase(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -768,7 +936,10 @@ unsafe extern "C" fn string_upcase_bang(mrb: *mut sys::mrb_state, slf: sys::mrb_
     let result = trampoline::upcase_bang(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
 
@@ -779,6 +950,9 @@ unsafe extern "C" fn string_valid_encoding(mrb: *mut sys::mrb_state, slf: sys::m
     let result = trampoline::is_valid_encoding(&mut guard, value);
     match result {
         Ok(value) => value.inner(),
-        Err(exception) => error::raise(guard, exception),
+        Err(exception) => {
+            // SAFETY: only Copy objects remain on the stack
+            unsafe { error::raise(guard, exception) }
+        }
     }
 }
