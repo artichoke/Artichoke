@@ -226,15 +226,24 @@ mod tests {
 
     #[test]
     fn with_rubylib_env_var() {
-        env::remove_var("RUBYLIB");
+        // SAFETY: This is the only test that manipulates the environment.
+        unsafe {
+            env::remove_var("RUBYLIB");
+        }
         let loader = Rubylib::new();
         assert!(loader.is_none());
 
-        env::set_var("RUBYLIB", "");
+        // SAFETY: This is the only test that manipulates the environment.
+        unsafe {
+            env::set_var("RUBYLIB", "");
+        }
         let loader = Rubylib::new();
         assert!(loader.is_none());
 
-        env::set_var("RUBYLIB", "/home/artichoke/src:/usr/share/artichoke:_lib");
+        // SAFETY: This is the only test that manipulates the environment.
+        unsafe {
+            env::set_var("RUBYLIB", "/home/artichoke/src:/usr/share/artichoke:_lib");
+        }
         let loader = Rubylib::new().unwrap();
 
         assert_eq!(loader.load_path().len(), 3);
@@ -416,15 +425,24 @@ mod tests {
 
     #[test]
     fn with_rubylib_env_var() {
-        env::remove_var("RUBYLIB");
+        // SAFETY: This is the only test that manipulates the environment.
+        unsafe {
+            env::remove_var("RUBYLIB");
+        }
         let loader = Rubylib::new();
         assert!(loader.is_none());
 
-        env::set_var("RUBYLIB", "");
+        // SAFETY: This is the only test that manipulates the environment.
+        unsafe {
+            env::set_var("RUBYLIB", "");
+        }
         let loader = Rubylib::new();
         assert!(loader.is_none());
 
-        env::set_var("RUBYLIB", "c:/home/artichoke/src;c:/usr/share/artichoke;_lib");
+        // SAFETY: This is the only test that manipulates the environment.
+        unsafe {
+            env::set_var("RUBYLIB", "c:/home/artichoke/src;c:/usr/share/artichoke;_lib");
+        }
         let loader = Rubylib::new().unwrap();
 
         assert_eq!(loader.load_path().len(), 3);

@@ -38,8 +38,12 @@ macro_rules! emit_fatal_warning {
 /// [`Artichoke`]: crate::Artichoke
 /// [`sys::mrb_state`]: crate::sys::mrb_state
 #[macro_export]
+#[expect(
+    edition_2024_expr_fragment_specifier,
+    reason = "want the new 2024 edition behavior once we upgrade"
+)]
 macro_rules! unwrap_interpreter {
-    ($mrb:expr, to => $to:ident, or_else = ()) => {
+    ($mrb:ident, to => $to:ident, or_else = ()) => {
         let mrb = $mrb;
         let mut interp = if let Ok(interp) = unsafe { $crate::ffi::from_user_data(mrb) } {
             interp
@@ -56,7 +60,7 @@ macro_rules! unwrap_interpreter {
         #[allow(unused_mut)]
         let mut $to = $crate::Guard::new(arena.interp());
     };
-    ($mrb:expr, to => $to:ident, or_else = $default:expr) => {
+    ($mrb:ident, to => $to:ident, or_else = $default:expr) => {
         let mrb = $mrb;
         let mut interp = if let Ok(interp) = unsafe { $crate::ffi::from_user_data(mrb) } {
             interp
@@ -73,7 +77,7 @@ macro_rules! unwrap_interpreter {
         #[allow(unused_mut)]
         let mut $to = $crate::Guard::new(arena.interp());
     };
-    ($mrb:expr, to => $to:ident) => {
+    ($mrb:ident, to => $to:ident) => {
         unwrap_interpreter!($mrb, to => $to, or_else = unsafe { $crate::sys::mrb_sys_nil_value() })
     };
 }
@@ -111,13 +115,13 @@ pub mod argspec {
 /// [does not validate argspecs]: https://github.com/mruby/mruby/issues/4688
 #[macro_export]
 macro_rules! mrb_get_args {
-    ($mrb:expr, none) => {{
+    ($mrb:ident, none) => {{
         let mrb = $mrb;
         unsafe {
             $crate::sys::mrb_get_args(mrb, $crate::macros::argspec::NONE.as_ptr());
         }
     }};
-    ($mrb:expr, required = 1) => {{
+    ($mrb:ident, required = 1) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -128,7 +132,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, optional = 1) => {{
+    ($mrb:ident, optional = 1) => {{
         let mrb = $mrb;
         unsafe {
             let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -143,7 +147,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, required = 1, optional = 1) => {{
+    ($mrb:ident, required = 1, optional = 1) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -168,7 +172,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, required = 1, optional = 2) => {{
+    ($mrb:ident, required = 1, optional = 2) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -201,7 +205,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, required = 1, optional = 3) => {{
+    ($mrb:ident, required = 1, optional = 3) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -243,7 +247,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, required = 1, &block) => {{
+    ($mrb:ident, required = 1, &block) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -264,7 +268,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, required = 1, optional = 1, &block) => {{
+    ($mrb:ident, required = 1, optional = 1, &block) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -302,7 +306,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, required = 1, optional = 2, &block) => {{
+    ($mrb:ident, required = 1, optional = 2, &block) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -353,7 +357,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, required = 2) => {{
+    ($mrb:ident, required = 2) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -374,7 +378,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, optional = 2) => {{
+    ($mrb:ident, optional = 2) => {{
         let mrb = $mrb;
         unsafe {
             let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -400,7 +404,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, optional = 2, &block) => {{
+    ($mrb:ident, optional = 2, &block) => {{
         let mrb = $mrb;
         unsafe {
             let mut opt1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -425,7 +429,7 @@ macro_rules! mrb_get_args {
             (opt1, opt2, $crate::block::Block::new(block))
         }
     }};
-    ($mrb:expr, required = 2, optional = 1) => {{
+    ($mrb:ident, required = 2, optional = 1) => {{
         let mrb = $mrb;
         unsafe {
             let mut req1 = std::mem::MaybeUninit::<$crate::sys::mrb_value>::uninit();
@@ -454,7 +458,7 @@ macro_rules! mrb_get_args {
             }
         }
     }};
-    ($mrb:expr, *args) => {{
+    ($mrb:ident, *args) => {{
         let mrb = $mrb;
         unsafe {
             let mut args = std::mem::MaybeUninit::<*const $crate::sys::mrb_value>::uninit();
