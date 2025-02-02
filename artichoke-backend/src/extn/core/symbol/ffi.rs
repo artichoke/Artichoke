@@ -8,7 +8,7 @@ use crate::extn::prelude::*;
 // ```c
 // MRB_API mrb_sym mrb_intern(mrb_state*,const char*,size_t);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_intern(mrb: *mut sys::mrb_state, name: *const c_char, len: usize) -> sys::mrb_sym {
     let bytes = slice::from_raw_parts(name.cast::<u8>(), len);
     let bytes = bytes.to_vec();
@@ -21,7 +21,7 @@ unsafe extern "C" fn mrb_intern(mrb: *mut sys::mrb_state, name: *const c_char, l
 // ```c
 // MRB_API mrb_sym mrb_intern_static(mrb_state*,const char*,size_t);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_intern_static(mrb: *mut sys::mrb_state, name: *const c_char, len: usize) -> sys::mrb_sym {
     let bytes = slice::from_raw_parts::<'static, _>(name.cast::<u8>(), len);
     unwrap_interpreter!(mrb, to => guard, or_else = 0);
@@ -33,7 +33,7 @@ unsafe extern "C" fn mrb_intern_static(mrb: *mut sys::mrb_state, name: *const c_
 // ```c
 // MRB_API mrb_sym mrb_intern_cstr(mrb_state *mrb, const char* str);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_intern_cstr(mrb: *mut sys::mrb_state, name: *const c_char) -> sys::mrb_sym {
     let string = CStr::from_ptr(name);
     let bytes = string.to_bytes_with_nul().to_vec();
@@ -46,7 +46,7 @@ unsafe extern "C" fn mrb_intern_cstr(mrb: *mut sys::mrb_state, name: *const c_ch
 // ```c
 // MRB_API mrb_sym mrb_intern_str(mrb_state*,mrb_value);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_intern_str(mrb: *mut sys::mrb_state, name: sys::mrb_value) -> sys::mrb_sym {
     unwrap_interpreter!(mrb, to => guard, or_else = 0);
     let name = Value::from(name);
@@ -64,7 +64,7 @@ unsafe extern "C" fn mrb_intern_str(mrb: *mut sys::mrb_state, name: sys::mrb_val
 // ```c
 // MRB_API mrb_sym mrb_intern_check(mrb_state*,const char*,size_t);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_intern_check(mrb: *mut sys::mrb_state, name: *const c_char, len: usize) -> sys::mrb_sym {
     let bytes = slice::from_raw_parts(name.cast::<u8>(), len);
     unwrap_interpreter!(mrb, to => guard, or_else = 0);
@@ -78,7 +78,7 @@ unsafe extern "C" fn mrb_intern_check(mrb: *mut sys::mrb_state, name: *const c_c
 // ```c
 // MRB_API mrb_sym mrb_intern_check_cstr(mrb_state*,const char*);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_intern_check_cstr(mrb: *mut sys::mrb_state, name: *const c_char) -> sys::mrb_sym {
     let string = CStr::from_ptr(name);
     let bytes = string.to_bytes_with_nul();
@@ -93,7 +93,7 @@ unsafe extern "C" fn mrb_intern_check_cstr(mrb: *mut sys::mrb_state, name: *cons
 // ```c
 // MRB_API mrb_sym mrb_intern_check_str(mrb_state*,mrb_value);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_intern_check_str(mrb: *mut sys::mrb_state, name: sys::mrb_value) -> sys::mrb_sym {
     unwrap_interpreter!(mrb, to => guard, or_else = 0);
     let name = Value::from(name);
@@ -111,7 +111,7 @@ unsafe extern "C" fn mrb_intern_check_str(mrb: *mut sys::mrb_state, name: sys::m
 // ```c
 // MRB_API mrb_value mrb_check_intern(mrb_state*,const char*,size_t);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_check_intern(mrb: *mut sys::mrb_state, name: *const c_char, len: usize) -> sys::mrb_value {
     let bytes = slice::from_raw_parts(name.cast::<u8>(), len);
     unwrap_interpreter!(mrb, to => guard);
@@ -126,7 +126,7 @@ unsafe extern "C" fn mrb_check_intern(mrb: *mut sys::mrb_state, name: *const c_c
 // ```c
 // MRB_API mrb_value mrb_check_intern_cstr(mrb_state*,const char*);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_check_intern_cstr(mrb: *mut sys::mrb_state, name: *const c_char) -> sys::mrb_value {
     let string = CStr::from_ptr(name);
     let bytes = string.to_bytes_with_nul();
@@ -142,7 +142,7 @@ unsafe extern "C" fn mrb_check_intern_cstr(mrb: *mut sys::mrb_state, name: *cons
 // ```c
 // MRB_API mrb_value mrb_check_intern_str(mrb_state*,mrb_value);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_check_intern_str(mrb: *mut sys::mrb_state, name: sys::mrb_value) -> sys::mrb_value {
     unwrap_interpreter!(mrb, to => guard);
     let name = Value::from(name);
@@ -161,7 +161,7 @@ unsafe extern "C" fn mrb_check_intern_str(mrb: *mut sys::mrb_state, name: sys::m
 // ```c
 // MRB_API const char *mrb_sym_name(mrb_state*,mrb_sym);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_sym_name(mrb: *mut sys::mrb_state, sym: sys::mrb_sym) -> *const c_char {
     unwrap_interpreter!(mrb, to => guard, or_else = ptr::null());
     if let Ok(Some(bytes)) = guard.lookup_symbol_with_trailing_nul(sym) {
@@ -174,7 +174,7 @@ unsafe extern "C" fn mrb_sym_name(mrb: *mut sys::mrb_state, sym: sys::mrb_sym) -
 // ```c
 // MRB_API const char *mrb_sym_name_len(mrb_state*,mrb_sym,mrb_int*);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_sym_name_len(
     mrb: *mut sys::mrb_state,
     sym: sys::mrb_sym,
@@ -201,7 +201,7 @@ unsafe extern "C" fn mrb_sym_name_len(
 // ```c
 // MRB_API const char *mrb_sym_dump(mrb_state*,mrb_sym);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_sym_dump(mrb: *mut sys::mrb_state, sym: sys::mrb_sym) -> *const c_char {
     unwrap_interpreter!(mrb, to => guard, or_else = ptr::null());
     if let Ok(Some(bytes)) = guard.lookup_symbol(sym) {
@@ -220,7 +220,7 @@ unsafe extern "C" fn mrb_sym_dump(mrb: *mut sys::mrb_state, sym: sys::mrb_sym) -
 // ```c
 // MRB_API mrb_value mrb_sym_str(mrb_state*,mrb_sym);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_sym_str(mrb: *mut sys::mrb_state, sym: sys::mrb_sym) -> sys::mrb_value {
     unwrap_interpreter!(mrb, to => guard);
 
@@ -236,7 +236,7 @@ unsafe extern "C" fn mrb_sym_str(mrb: *mut sys::mrb_state, sym: sys::mrb_sym) ->
 // ```c
 // void mrb_init_symtbl(mrb_state*);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_init_symtbl(mrb: *mut sys::mrb_state) {
     // The symbol table is initialized before the call to `mrb_open_allocf` in
     // `crate::interpreter::interpreter`. This function is intended to be called
@@ -247,7 +247,7 @@ unsafe extern "C" fn mrb_init_symtbl(mrb: *mut sys::mrb_state) {
 // ```c
 // void mrb_free_symtbl(mrb_state *mrb);
 // ```
-#[no_mangle]
+#[unsafe(no_mangle)]
 unsafe extern "C" fn mrb_free_symtbl(mrb: *mut sys::mrb_state) {
     // The symbol table is freed when the Rust `State` is freed.
     let _ = mrb;
