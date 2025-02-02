@@ -222,10 +222,14 @@ impl EncodedString {
 
     #[inline]
     pub unsafe fn set_len(&mut self, len: usize) {
-        match self {
-            EncodedString::Ascii(inner) => inner.set_len(len),
-            EncodedString::Binary(inner) => inner.set_len(len),
-            EncodedString::Utf8(inner) => inner.set_len(len),
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        unsafe {
+            match self {
+                EncodedString::Ascii(inner) => inner.set_len(len),
+                EncodedString::Binary(inner) => inner.set_len(len),
+                EncodedString::Utf8(inner) => inner.set_len(len),
+            }
         }
     }
 
@@ -430,10 +434,14 @@ impl EncodedString {
     where
         I: SliceIndex<[u8]>,
     {
-        match self {
-            EncodedString::Ascii(inner) => inner.get_unchecked(index),
-            EncodedString::Binary(inner) => inner.get_unchecked(index),
-            EncodedString::Utf8(inner) => inner.get_unchecked(index),
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        unsafe {
+            match self {
+                EncodedString::Ascii(inner) => inner.get_unchecked(index),
+                EncodedString::Binary(inner) => inner.get_unchecked(index),
+                EncodedString::Utf8(inner) => inner.get_unchecked(index),
+            }
         }
     }
 
@@ -443,10 +451,14 @@ impl EncodedString {
     where
         I: SliceIndex<[u8]>,
     {
-        match self {
-            EncodedString::Ascii(inner) => inner.get_unchecked_mut(index),
-            EncodedString::Binary(inner) => inner.get_unchecked_mut(index),
-            EncodedString::Utf8(inner) => inner.get_unchecked_mut(index),
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        unsafe {
+            match self {
+                EncodedString::Ascii(inner) => inner.get_unchecked_mut(index),
+                EncodedString::Binary(inner) => inner.get_unchecked_mut(index),
+                EncodedString::Utf8(inner) => inner.get_unchecked_mut(index),
+            }
         }
     }
 

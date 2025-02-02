@@ -66,7 +66,11 @@ impl Utf8String {
 impl Utf8String {
     #[inline]
     pub unsafe fn set_len(&mut self, len: usize) {
-        self.inner.set_len(len);
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as the owned UTF-8 str's inner buffer.
+        unsafe {
+            self.inner.set_len(len);
+        }
     }
 
     #[inline]

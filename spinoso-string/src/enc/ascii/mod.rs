@@ -112,7 +112,11 @@ impl AsciiString {
 
     #[inline]
     pub unsafe fn set_len(&mut self, len: usize) {
-        self.inner.set_len(len);
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as the ASCII string's inner buffer.
+        unsafe {
+            self.inner.set_len(len);
+        }
     }
 
     #[inline]
@@ -225,7 +229,9 @@ impl AsciiString {
     where
         I: SliceIndex<[u8]>,
     {
-        self.inner.get_unchecked(index)
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as the ASCII string's inner buffer.
+        unsafe { self.inner.get_unchecked(index) }
     }
 
     #[inline]
@@ -234,7 +240,9 @@ impl AsciiString {
     where
         I: SliceIndex<[u8]>,
     {
-        self.inner.get_unchecked_mut(index)
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as the ASCII string's inner buffer.
+        unsafe { self.inner.get_unchecked_mut(index) }
     }
 }
 

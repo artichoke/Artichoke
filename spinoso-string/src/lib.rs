@@ -1,19 +1,37 @@
-#![warn(clippy::all)]
-#![warn(clippy::pedantic)]
-#![warn(clippy::cargo)]
-#![cfg_attr(test, allow(clippy::non_ascii_literal))]
+#![warn(clippy::all, clippy::pedantic, clippy::undocumented_unsafe_blocks)]
+#![allow(
+    clippy::let_underscore_untyped,
+    reason = "https://github.com/rust-lang/rust-clippy/pull/10442#issuecomment-1516570154"
+)]
+#![allow(
+    clippy::question_mark,
+    reason = "https://github.com/rust-lang/rust-clippy/issues/8281"
+)]
+#![allow(clippy::manual_let_else, reason = "manual_let_else was very buggy on release")]
+#![allow(
+    clippy::module_name_repetitions,
+    reason = "incompatible with how code is organized in private modules"
+)]
+#![allow(
+    clippy::unnecessary_lazy_evaluations,
+    reason = "https://github.com/rust-lang/rust-clippy/issues/8109"
+)]
+#![cfg_attr(
+    test,
+    allow(clippy::non_ascii_literal, reason = "tests sometimes require UTF-8 string content")
+)]
 #![allow(unknown_lints)]
-#![allow(clippy::manual_let_else)]
-#![allow(clippy::module_name_repetitions)]
-// TODO: warn on missing docs once crate is API-complete.
-// #![warn(missing_docs)]
-#![warn(missing_debug_implementations)]
-#![warn(missing_copy_implementations)]
-#![warn(rust_2018_idioms)]
-#![warn(rust_2021_compatibility)]
-#![warn(trivial_casts, trivial_numeric_casts)]
-#![warn(unused_qualifications)]
-#![warn(variant_size_differences)]
+#![warn(
+    missing_copy_implementations,
+    missing_debug_implementations,
+    missing_docs,
+    rust_2024_compatibility,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_qualifications,
+    variant_size_differences
+)]
+#![allow(missing_docs, reason = "TODO: fully document crate")]
 // Enable feature callouts in generated documentation:
 // https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html
 //
@@ -432,7 +450,11 @@ impl String {
     /// [`capacity()`]: Self::capacity
     #[inline]
     pub unsafe fn set_len(&mut self, new_len: usize) {
-        self.inner.set_len(new_len);
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        unsafe {
+            self.inner.set_len(new_len);
+        }
     }
 
     /// Creates a `String` directly from the raw components of another string.
@@ -457,7 +479,10 @@ impl String {
     /// after calling this function.
     #[must_use]
     pub unsafe fn from_raw_parts(raw_parts: RawParts<u8>) -> Self {
-        Self::utf8(raw_parts.into_vec())
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        let buf = unsafe { raw_parts.into_vec() };
+        Self::utf8(buf)
     }
 
     /// Creates a `String` directly from the raw components of another string
@@ -483,7 +508,10 @@ impl String {
     /// after calling this function.
     #[must_use]
     pub unsafe fn from_raw_parts_with_encoding(raw_parts: RawParts<u8>, encoding: Encoding) -> Self {
-        Self::with_bytes_and_encoding(raw_parts.into_vec(), encoding)
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        let buf = unsafe { raw_parts.into_vec() };
+        Self::with_bytes_and_encoding(buf, encoding)
     }
 
     /// Decomposes a `String` into its raw components.
@@ -1021,7 +1049,9 @@ impl String {
     where
         I: SliceIndex<[u8]>,
     {
-        self.inner.get_unchecked(index)
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        unsafe { self.inner.get_unchecked(index) }
     }
 
     /// Returns a mutable reference to a byte or sub-byteslice, without doing
@@ -1056,7 +1086,9 @@ impl String {
     where
         I: SliceIndex<[u8]>,
     {
-        self.inner.get_unchecked_mut(index)
+        // SAFETY: The caller must uphold the documented safety contract, which
+        // is the same as each encoded string's inner buffer.
+        unsafe { self.inner.get_unchecked_mut(index) }
     }
 }
 
