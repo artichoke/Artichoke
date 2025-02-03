@@ -65,6 +65,7 @@ dependencies = [
  "mezzaluna-type-registry",
  "onig",
  "posix-space",
+ "proc-macro2",
  "qed",
  "regex",
  "rustc-hash 2.1.0",
@@ -390,9 +391,9 @@ checksum = "7785e397d45f5a00bd35df6c293518c240c321b734b15a02718aa21103de1ce9"
 
 [[package]]
 name = "itertools"
-version = "0.13.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
 dependencies = [
  "either",
 ]
