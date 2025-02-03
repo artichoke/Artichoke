@@ -36,7 +36,7 @@ dependencies = [
 
 [[package]]
 name = "artichoke-backend"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "artichoke-core",
  "artichoke-load-path",
@@ -680,10 +680,9 @@ dependencies = [
 
 [[package]]
 name = "spinoso-time"
-version = "0.9.0"
+version = "0.10.0"
 dependencies = [
  "iana-time-zone",
- "regex",
  "strftime-ruby",
  "tz-rs",
  "tzdb",

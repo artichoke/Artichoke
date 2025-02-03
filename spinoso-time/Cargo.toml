@@ -1,6 +1,6 @@
 [package]
 name = "spinoso-time"
-version = "0.9.0"
+version = "0.10.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 description = """
 Datetime handling for Artichoke Ruby
@@ -17,12 +17,6 @@ documentation.workspace = true
 
 [dependencies]
 iana-time-zone = "0.1.58"
-
-[dependencies.regex]
-version = "1.7.0"
-default-features = false
-features = ["std"]
-optional = true
 
 [dependencies.strftime-ruby]
 version = "1.0.0"
@@ -43,7 +37,7 @@ default-features = false
 
 [features]
 default = ["tzrs", "tzrs-local"]
-tzrs = ["dep:regex", "dep:strftime-ruby", "dep:tz-rs", "dep:tzdb"]
+tzrs = ["dep:strftime-ruby", "dep:tz-rs", "dep:tzdb"]
 tzrs-local = ["tzrs"]
 
 [package.metadata.docs.rs]

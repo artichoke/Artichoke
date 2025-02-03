@@ -1,9 +1,7 @@
 use std::io::{self, Write as _};
 use std::slice;
 use std::str;
-use std::sync::LazyLock;
 
-use regex::Regex;
 use tz::timezone::{LocalTimeType, TimeZoneRef};
 use tzdb::time_zone::etc::GMT;
 
@@ -47,6 +45,8 @@ pub const MIN_OFFSET_SECONDS: i32 = -MAX_OFFSET_SECONDS;
 #[must_use]
 #[cfg(feature = "tzrs-local")]
 fn local_time_zone() -> TimeZoneRef<'static> {
+    use std::sync::LazyLock;
+
     // Per the docs, it is suggested to cache the result of fetching the
     // local timezone: <https://docs.rs/tzdb/latest/tzdb/fn.local_tz.html>.
     static LOCAL_TZ: LazyLock<TimeZoneRef<'static>> = LazyLock::new(|| {
@@ -310,37 +310,7 @@ impl TryFrom<&str> for Offset {
             // ```
             "Z" | "UTC" => Ok(Self::utc()),
             _ => {
-                static HH_MM_MATCHER: LazyLock<Regex> = LazyLock::new(|| {
-                    // With `Regex`, `\d` is a "Unicode friendly" Perl character
-                    // class which matches Unicode property `Nd`. The `Nd` property
-                    // includes all sorts of numerals, including Devanagari and
-                    // Kannada, which don't parse into an `i32` using `FromStr`.
-                    //
-                    // `[[:digit:]]` is documented to be an ASCII character class
-                    // for only digits 0-9.
-                    //
-                    // See:
-                    // - https://docs.rs/regex/latest/regex/#perl-character-classes-unicode-friendly
-                    // - https://docs.rs/regex/latest/regex/#ascii-character-classes
-                    //
-                    // Use `unwrap()` here because the regex must compile.
-                    Regex::new(r"^([\-\+]{1})([[:digit:]]{2}):?([[:digit:]]{2})$").unwrap()
-                });
-
-                let caps = HH_MM_MATCHER.captures(input).ok_or_else(TzStringError::new)?;
-
-                // Special handling of the +/- sign is required because `-00:30`
-                // must parse to a negative offset and `i32::from_str_radix`
-                // cannot preserve the `-` sign when parsing zero.
-                let sign = if &caps[1] == "+" { 1 } else { -1 };
-
-                // Both of these calls to `parse::<i32>()` ultimately boil down
-                // to `i32::from_str_radix(s, 10)`. This function strips leading
-                // zero padding as is present when parsing offsets like `+00:30`
-                // or `-08:00`.
-                let hours = caps[2].parse::<i32>().expect("Two ASCII digits fit in i32");
-                let minutes = caps[3].parse::<i32>().expect("Two ASCII digits fit in i32");
-
+                let FixedTimeZoneOffset { sign, hours, minutes } = parse_fixed_timezone_offset(input)?;
                 // Check that the parsed offset is in range, which goes from:
                 // - `00:00` to `00:59`
                 // - `00:00` to `23:59`
@@ -390,6 +360,47 @@ impl TryFrom<i32> for Offset {
     fn try_from(seconds: i32) -> Result<Self, Self::Error> {
         Self::fixed(seconds)
     }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct FixedTimeZoneOffset {
+    pub sign: i32,
+    pub hours: i32,
+    pub minutes: i32,
+}
+
+/// Parses a timezone offset from a string with either the format `+hhmm` /
+/// `-hhmm` or `+hh:mm` / `-hh:mm`. Returns a fixed timezone on success.
+fn parse_fixed_timezone_offset(input: &str) -> Result<FixedTimeZoneOffset, TzStringError> {
+    if !input.is_ascii() {
+        return Err(TzStringError::new());
+    }
+
+    // Special handling of the +/- sign is required because `-00:30` must parse
+    // to a negative offset and `i32::from_str_radix` cannot preserve the `-`
+    // sign when parsing zero.
+    let (sign, hour_str, minute_str) = match input.as_bytes() {
+        // Matches `+hhmm`
+        [b'+', _, _, _, _] => (1, &input[1..3], &input[3..5]),
+        // Matches `-hhmm`
+        [b'-', _, _, _, _] => (-1, &input[1..3], &input[3..5]),
+        // Matches `+hh:mm`
+        [b'+', _, _, b':', _, _] => (1, &input[1..3], &input[4..6]),
+        // Matches `-hh:mm`
+        [b'-', _, _, b':', _, _] => (-1, &input[1..3], &input[4..6]),
+        // Anything else is an error.
+        _ => return Err(TzStringError::new()),
+    };
+
+    // Parse hours and minutes (the slices contain only ASCII digits).
+    //
+    // Both of these calls to `parse::<i32>()` ultimately boil down to
+    // `i32::from_str_radix(s, 10)`. This function strips leading zero padding
+    // as is present when parsing offsets like `+00:30` or `-08:00`.
+    let hours: i32 = hour_str.parse().map_err(|_| TzStringError::new())?;
+    let minutes: i32 = minute_str.parse().map_err(|_| TzStringError::new())?;
+
+    Ok(FixedTimeZoneOffset { sign, hours, minutes })
 }
 
 #[cfg(test)]
@@ -629,5 +640,138 @@ mod tests {
             Time::new(1970, 1, 2, 12, 0, 0, 0, offset).unwrap_err(),
             TimeError::Unknown,
         ));
+    }
+
+    #[test]
+    fn test_valid_offsets_without_colon() {
+        // Test positive offsets without colon.
+        let tz = parse_fixed_timezone_offset("+0000").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: 1,
+                hours: 0,
+                minutes: 0
+            }
+        );
+
+        let tz = parse_fixed_timezone_offset("+1234").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: 1,
+                hours: 12,
+                minutes: 34
+            }
+        );
+
+        // Test negative offsets without colon.
+        let tz = parse_fixed_timezone_offset("-0000").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: -1,
+                hours: 0,
+                minutes: 0
+            }
+        );
+
+        let tz = parse_fixed_timezone_offset("-0830").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: -1,
+                hours: 8,
+                minutes: 30
+            }
+        );
+    }
+
+    #[test]
+    fn test_valid_offsets_with_colon() {
+        // Test positive offsets with colon.
+        let tz = parse_fixed_timezone_offset("+00:00").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: 1,
+                hours: 0,
+                minutes: 0
+            }
+        );
+
+        let tz = parse_fixed_timezone_offset("+12:34").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: 1,
+                hours: 12,
+                minutes: 34
+            }
+        );
+
+        // Test negative offsets with colon.
+        let tz = parse_fixed_timezone_offset("-00:00").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: -1,
+                hours: 0,
+                minutes: 0
+            }
+        );
+
+        let tz = parse_fixed_timezone_offset("-08:30").unwrap();
+        assert_eq!(
+            tz,
+            FixedTimeZoneOffset {
+                sign: -1,
+                hours: 8,
+                minutes: 30
+            }
+        );
+    }
+
+    #[test]
+    fn test_invalid_length() {
+        // Too short.
+        assert!(parse_fixed_timezone_offset("").is_err());
+        assert!(parse_fixed_timezone_offset("+00").is_err());
+
+        // Too long.
+        assert!(parse_fixed_timezone_offset("+00000").is_err());
+        assert!(parse_fixed_timezone_offset("+12:345").is_err());
+    }
+
+    #[test]
+    fn test_invalid_non_ascii() {
+        // Use a full-width plus sign (`U+FF0B`) instead of ASCII `+`.
+        let non_ascii = "＋1234"; // Note: The first character is not ASCII.
+        assert!(parse_fixed_timezone_offset(non_ascii).is_err());
+    }
+
+    #[test]
+    fn test_invalid_format() {
+        // Missing sign.
+        assert!(parse_fixed_timezone_offset("12345").is_err());
+
+        // Invalid sign character.
+        assert!(parse_fixed_timezone_offset("*1234").is_err());
+
+        // Wrong placement of colon.
+        assert!(parse_fixed_timezone_offset("+1:234").is_err());
+        // For a 6-character string the colon must be at index 3.
+        assert!(parse_fixed_timezone_offset("+12345").is_err());
+
+        // Non-digit characters in the hour or minute fields.
+        assert!(parse_fixed_timezone_offset("+1a:34").is_err());
+        assert!(parse_fixed_timezone_offset("+12:3b").is_err());
+    }
+
+    #[test]
+    fn test_invalid_digit_parsing() {
+        // Non-digit characters in place of expected digits.
+        assert!(parse_fixed_timezone_offset("+ab:cd").is_err());
+        assert!(parse_fixed_timezone_offset("+ab12").is_err());
     }
 }
