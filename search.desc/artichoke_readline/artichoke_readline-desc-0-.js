@@ -1,0 +1,1 @@
+searchState.loadedDescShard("artichoke_readline", 0, "Helpers for integrating REPLs with GNU Readline.\nReadline editing mode.\nEmacs keymap.\nVi keymap.\nReturns the argument unchanged.\nParse readline editing mode from the given byte content, …\nCalls <code>U::from(self)</code>.\nRead inputrc contents according to the GNU Readline …")
