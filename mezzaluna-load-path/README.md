@@ -28,19 +28,18 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-mezzaluna-load-path = "0.1.0"
+mezzaluna-load-path = "0.2.0"
 ```
 
 And construct the Ruby load path like this:
 
 ```rust
-use std::ffi::OsStr;
 use std::path::PathBuf;
 use mezzaluna_load_path::{RubyCore, Rubylib};
 
 fn build_load_path() -> Option<Box<[PathBuf]>> {
     let core_loader = RubyCore::new();
-    let rubylib_loader = Rubylib::with_rubylib(OsStr::new("lib"))?;
+    let rubylib_loader = Rubylib::with_rubylib("lib")?;
 
     // Assemble the load path in priority order.
     let load_path = rubylib_loader
