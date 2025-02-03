@@ -120,7 +120,8 @@ mod tests {
     unsafe extern "C" fn run_run(mrb: *mut sys::mrb_state, _slf: sys::mrb_value) -> sys::mrb_value {
         unwrap_interpreter!(mrb, to => guard);
         let exc = RuntimeError::with_message("something went wrong");
-        error::raise(guard, exc)
+        // SAFETY: only Copy objects remain on the stack
+        unsafe { error::raise(guard, exc) }
     }
 
     impl File for Run {

@@ -163,17 +163,24 @@ impl Rclass {
     ///
     /// This function must be called within an [`Artichoke::with_ffi_boundary`]
     /// closure because the FFI APIs called in this function may require access
-    /// to the Artichoke [`State`](crate::state::State).
+    /// to the Artichoke [`State`].
+    ///
+    /// [`State`]: crate::state::State
     pub unsafe fn resolve(&self, mrb: *mut sys::mrb_state) -> Option<NonNull<sys::RClass>> {
         let class_name = self.name.as_ptr();
         if let Some(ref scope) = self.enclosing_scope {
             // short circuit if enclosing scope does not exist.
-            let mut scope = scope.rclass(mrb)?;
-            let is_defined_under = sys::mrb_class_defined_under(mrb, scope.as_mut(), class_name);
+            //
+            // SAFETY: callers must uphold that `mrb` is initialized.
+            let mut scope = unsafe { scope.rclass(mrb)? };
+            // SAFETY: the enclosing scope exists, callers must uphold that
+            // `mrb` is initialized.
+            let is_defined_under = unsafe { sys::mrb_class_defined_under(mrb, scope.as_mut(), class_name) };
             if is_defined_under {
-                // Enclosing scope exists.
-                // Class is defined under the enclosing scope.
-                let class = sys::mrb_class_get_under(mrb, scope.as_mut(), class_name);
+                // SAFETY: the enclosing scope exists and the class is defined
+                // under the enclosing scope. Callers must uphold that `mrb` is
+                // initialized.
+                let class = unsafe { sys::mrb_class_get_under(mrb, scope.as_mut(), class_name) };
                 NonNull::new(class)
             } else {
                 // Enclosing scope exists.
@@ -181,10 +188,12 @@ impl Rclass {
                 None
             }
         } else {
-            let is_defined = sys::mrb_class_defined(mrb, class_name);
+            // SAFETY: callers must uphold that `mrb` is initialized.
+            let is_defined = unsafe { sys::mrb_class_defined(mrb, class_name) };
             if is_defined {
-                // Class exists in root scope.
-                let class = sys::mrb_class_get(mrb, class_name);
+                // SAFETY: Class exists in root scope. Callers must uphold that
+                // `mrb` is initialized.
+                let class = unsafe { sys::mrb_class_get(mrb, class_name) };
                 NonNull::new(class)
             } else {
                 // Class does not exist in root scope.

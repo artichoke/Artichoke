@@ -80,34 +80,64 @@ impl Spec {
     /// This method requires that the [`sys::mrb_state`] has a valid `top_self`
     /// object.
     pub unsafe fn define(&self, interp: &mut Artichoke, into: &mut sys::RClass) -> Result<(), NotDefinedError> {
-        interp
-            .with_ffi_boundary(|mrb| match self.method_type {
-                Type::Class => {
-                    sys::mrb_define_class_method(mrb, into, self.name_c_str().as_ptr(), Some(self.method), self.args);
+        match self.method_type {
+            Type::Class => {
+                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // non-NULL and initialized.
+                unsafe {
+                    interp.with_ffi_boundary(|mrb| {
+                        sys::mrb_define_class_method(
+                            mrb,
+                            into,
+                            self.name_c_str().as_ptr(),
+                            Some(self.method),
+                            self.args,
+                        );
+                    })
                 }
-                Type::Global => {
-                    sys::mrb_define_singleton_method(
-                        mrb,
-                        (*mrb).top_self,
-                        self.name_c_str().as_ptr(),
-                        Some(self.method),
-                        self.args,
-                    );
+            }
+            Type::Global => {
+                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // non-NULL and initialized. Initialized interpreters can safely
+                // be dereferenced to get the top-level object.
+                unsafe {
+                    interp.with_ffi_boundary(|mrb| {
+                        sys::mrb_define_singleton_method(
+                            mrb,
+                            (*mrb).top_self,
+                            self.name_c_str().as_ptr(),
+                            Some(self.method),
+                            self.args,
+                        );
+                    })
                 }
-                Type::Instance => {
-                    sys::mrb_define_method(mrb, into, self.name_c_str().as_ptr(), Some(self.method), self.args);
+            }
+            Type::Instance => {
+                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // non-NULL and initialized.
+                unsafe {
+                    interp.with_ffi_boundary(|mrb| {
+                        sys::mrb_define_method(mrb, into, self.name_c_str().as_ptr(), Some(self.method), self.args);
+                    })
                 }
-                Type::Module => {
-                    sys::mrb_define_module_function(
-                        mrb,
-                        into,
-                        self.name_c_str().as_ptr(),
-                        Some(self.method),
-                        self.args,
-                    );
+            }
+            Type::Module => {
+                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // non-NULL and initialized.
+                unsafe {
+                    interp.with_ffi_boundary(|mrb| {
+                        sys::mrb_define_module_function(
+                            mrb,
+                            into,
+                            self.name_c_str().as_ptr(),
+                            Some(self.method),
+                            self.args,
+                        );
+                    })
                 }
-            })
-            .map_err(|_| NotDefinedError::method(self.name()))
+            }
+        }
+        .map_err(|_| NotDefinedError::method(self.name()))
     }
 }
 

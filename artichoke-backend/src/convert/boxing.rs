@@ -81,7 +81,9 @@ impl<T> UnboxedValueGuard<'_, T> {
     #[inline]
     #[must_use]
     pub unsafe fn take(mut self) -> T {
-        ManuallyDrop::take(&mut self.guarded)
+        // SAFETY: Callers must uphold `Self::take`'s safety contract which is
+        // the same as `ManuallyDrop::take`.
+        unsafe { ManuallyDrop::take(&mut self.guarded) }
     }
 }
 
@@ -192,14 +194,22 @@ where
                 .get::<Self>()
                 .ok_or_else(|| NotDefinedError::class(Self::RUBY_TYPE))?;
             let rclass = spec.rclass();
-            interp
-                .with_ffi_boundary(|mrb| rclass.resolve(mrb))?
-                .ok_or_else(|| NotDefinedError::class(Self::RUBY_TYPE))?
+            // `rclass.resolve` takes an initialized `mrb_state` which is guaranteed
+            // by the `Artichoke` type.
+            unsafe {
+                interp
+                    .with_ffi_boundary(|mrb| rclass.resolve(mrb))?
+                    .ok_or_else(|| NotDefinedError::class(Self::RUBY_TYPE))?
+            }
         };
 
         // Sanity check that the RClass matches.
-        let value_rclass = interp.with_ffi_boundary(|mrb| sys::mrb_sys_class_of_value(mrb, value.inner()))?;
-        if !ptr::eq(value_rclass, rclass.as_mut()) {
+        //
+        // SAFETY: `mrb_sys_class_of_value` takes an initialized `mrb_state`
+        // which is guaranteed by the `Artichoke` type.
+        let value_rclass = unsafe { interp.with_ffi_boundary(|mrb| sys::mrb_sys_class_of_value(mrb, value.inner()))? };
+        // SAFETY: `rclass.resolve` returns a valid `RClass` pointer.
+        if !ptr::eq(value_rclass, unsafe { rclass.as_mut() }) {
             let mut message = String::from("Could not extract ");
             message.push_str(Self::RUBY_TYPE);
             message.push_str(" from receiver");
@@ -213,8 +223,10 @@ where
             .get::<Self>()
             .ok_or_else(|| NotDefinedError::class(Self::RUBY_TYPE))?;
         let data_type = spec.data_type();
+        // SAFETY: `mrb_data_check_get_ptr` takes an initialized `mrb_state`
+        // which is guaranteed by the `Artichoke` type.
         let embedded_data_ptr =
-            interp.with_ffi_boundary(|mrb| sys::mrb_data_check_get_ptr(mrb, value.inner(), data_type))?;
+            unsafe { interp.with_ffi_boundary(|mrb| sys::mrb_data_check_get_ptr(mrb, value.inner(), data_type))? };
         if embedded_data_ptr.is_null() {
             // `Object#allocate` can be used to create `MRB_TT_CDATA` without
             // calling `#initialize`. These objects will return a NULL pointer.
@@ -224,7 +236,11 @@ where
         }
 
         // Move the data pointer into a `Box`.
-        let value = Box::from_raw(embedded_data_ptr.cast::<Self>());
+
+        // SAFETY: `embedded_data_ptr` yielded by `mrb_data_check_get_ptr` is
+        // guaranteed to be valid given the previous validation in this
+        // function.
+        let value = unsafe { Box::from_raw(embedded_data_ptr.cast::<Self>()) };
         // `UnboxedValueGuard` ensures the `Box` wrapper will be forgotten. The
         // mruby GC is responsible for freeing the value.
         Ok(UnboxedValueGuard::new(HeapAllocated::new(value)))
@@ -306,7 +322,7 @@ mod tests {
         unwrap_interpreter!(mrb, to => guard);
 
         let mut value = Value::from(slf);
-        let result = if let Ok(container) = Container::unbox_from_value(&mut value, &mut guard) {
+        let result = if let Ok(container) = unsafe { Container::unbox_from_value(&mut value, &mut guard) } {
             guard.try_convert_mut(container.0.as_bytes()).unwrap_or_default()
         } else {
             Value::nil()

@@ -188,11 +188,15 @@ impl EnclosingRubyScope {
         match self {
             Self::Class(scope) => {
                 let enclosing_scope = scope.enclosing_scope.clone().map(|scope| *scope);
-                class::Rclass::new(scope.name_cstr, enclosing_scope).resolve(mrb)
+                let rclass = class::Rclass::new(scope.name_cstr, enclosing_scope);
+                // SAFETY: callers must uphold that `mrb` is a valid interpreter.
+                unsafe { rclass.resolve(mrb) }
             }
             Self::Module(scope) => {
                 let enclosing_scope = scope.enclosing_scope.clone().map(|scope| *scope);
-                module::Rclass::new(scope.name_symbol, scope.name_cstr, enclosing_scope).resolve(mrb)
+                let rclass = module::Rclass::new(scope.name_symbol, scope.name_cstr, enclosing_scope);
+                // SAFETY: callers must uphold that `mrb` is a valid interpreter.
+                unsafe { rclass.resolve(mrb) }
             }
         }
     }

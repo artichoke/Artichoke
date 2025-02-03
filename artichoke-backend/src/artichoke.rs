@@ -43,6 +43,7 @@ impl Artichoke {
     ///
     /// [`ArenaIndex::restore`]: crate::gc::arena::ArenaIndex::restore
     pub fn protect(&mut self, value: Value) -> Value {
+        // SAFETY: `mrb_gc_protect` is called with a valid `mrb_state` and `mrb_value`.
         unsafe {
             let value = value.inner();
             let _ = self.with_ffi_boundary(|mrb| sys::mrb_gc_protect(mrb, value));
@@ -92,13 +93,20 @@ impl Artichoke {
             let mrb = self.mrb.as_ptr();
 
             // Step 4
-            (*mrb).ud = Box::into_raw(state).cast::<c_void>();
+            //
+            // SAFETY: The `State` is moved into the `mrb` userdata pointer.
+            unsafe {
+                (*mrb).ud = Box::into_raw(state).cast::<c_void>();
+            }
 
             // Steps 5-7
             let result = func(mrb);
 
             // Step 8
-            let extracted = ffi::from_user_data(mrb)?;
+            //
+            // SAFETY: The `State` was previously moved into of the `mrb`
+            // userdata pointer.
+            let extracted = unsafe { ffi::from_user_data(mrb)? };
 
             // Step 9
             self.state = extracted.state;
@@ -230,8 +238,14 @@ impl DerefMut for Guard<'_> {
 impl Drop for Guard<'_> {
     fn drop(&mut self) {
         let state = self.0.state.take();
-        let state = state.unwrap_or_else(|| panic!("Dropping Guard with no State"));
+        let state = state.unwrap_or_else(|| {
+            emit_fatal_warning!("Dropping Guard with no State");
+            panic!("Dropping Guard with no State")
+        });
 
+        // SAFETY: The `Guard` ensures that the `mrb_state` is valid and
+        // initialized. When `state` is `Some`, the `State` is moved out of the
+        // userdata pointer, so we can now move it back in.
         unsafe {
             let mrb = self.0.mrb.as_ptr();
             (*mrb).ud = Box::into_raw(state).cast::<c_void>();

@@ -32,7 +32,7 @@
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(missing_docs, reason = "TODO: fully document crate")]
+#![expect(missing_docs, reason = "TODO: fully document crate")]
 // Enable feature callouts in generated documentation:
 // https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html
 //
