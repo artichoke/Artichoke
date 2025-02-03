@@ -18,7 +18,7 @@ documentation.workspace = true
 [dependencies]
 
 [dependencies.artichoke-backend]
-version = "0.25.0"
+version = "0.26.0"
 path = "artichoke-backend"
 default-features = false
 
@@ -140,6 +140,7 @@ core-full = [
   "core-regexp",
   "core-regexp-oniguruma",
   "core-time",
+  "core-time-local",
 ]
 # Enable resolving environment variables with the `ENV` core object.
 core-env = ["artichoke-backend/core-env"]
@@ -168,6 +169,7 @@ core-regexp-oniguruma = [
 # Implement the `Time` core class. This feature adds dependencies on `tz-rs` and
 # `tzdb`.
 core-time = ["artichoke-backend/core-time"]
+core-time-local = ["artichoke-backend/core-time-local"]
 
 # Extend the Artichoke virtual file system to have native/host access.
 #

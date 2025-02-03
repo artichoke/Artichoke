@@ -1,6 +1,6 @@
 [package]
 name = "artichoke-backend"
-version = "0.25.0"
+version = "0.26.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 description = "Embeddable VM implementation for Artichoke Ruby"
 keywords = ["artichoke", "artichoke-ruby", "mruby", "ruby"]
@@ -142,7 +142,7 @@ version = "0.5.0"
 path = "../spinoso-symbol"
 
 [dependencies.spinoso-time]
-version = "0.9.0"
+version = "0.10.0"
 path = "../spinoso-time"
 optional = true
 default-features = false
@@ -175,6 +175,7 @@ core-full = [
   "core-regexp",
   "core-regexp-oniguruma",
   "core-time",
+  "core-time-local",
 ]
 core-env = ["dep:spinoso-env"]
 core-env-system = ["core-env", "spinoso-env?/system-env"]
@@ -184,6 +185,7 @@ core-random = ["dep:spinoso-random"]
 core-regexp = ["dep:spinoso-regexp"]
 core-regexp-oniguruma = ["core-regexp", "spinoso-regexp?/oniguruma", "dep:onig"]
 core-time = ["dep:spinoso-time"]
+core-time-local = ["core-time", "spinoso-time?/tzrs-local"]
 
 load-path-native-file-system-loader = [
   "artichoke-load-path/native-file-system-loader",
