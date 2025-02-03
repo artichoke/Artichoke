@@ -53,8 +53,8 @@ pub fn escape_into(text: &str, buf: &mut String) {
 pub fn is_meta_character(c: char) -> bool {
     match c {
         '\\' | '.' | '+' | '*' | '?' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$' | '#' | '-' => true,
-        // This match arm differs from `regex-syntax` by including '/'.
-        // Ruby uses '/' to mark `Regexp` literals in source code.
+        // This match arm differs from `regex-syntax` by including `'/'`.
+        // Ruby uses `/` to mark `Regexp` literals in source code.
         '/' => true,
         // This match arm differs from `regex-syntax` by including ' ' (an ASCII
         // space character). Ruby always escapes ' ' in calls to `Regexp::escape`.
@@ -69,7 +69,7 @@ pub const fn is_non_printable_character(c: char) -> bool {
     matches!(
         c,
         '\n' | '\r' | '\t' |
-        // form feed aka "\f"
+        // form feed aka `"\f"`
         '\u{C}'
     )
 }
@@ -79,7 +79,7 @@ pub const fn is_non_printable_character(c: char) -> bool {
 #[must_use]
 pub const fn is_non_supported_non_printable_character(c: char) -> Option<&'static str> {
     match c {
-        // form feed aka "\f"
+        // form feed aka `"\f"`
         '\u{C}' => Some(r"\f"),
         _ => None,
     }

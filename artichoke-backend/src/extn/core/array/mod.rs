@@ -367,7 +367,7 @@ mod tests {
     fn allocated_but_uninitialized_array_can_be_read() {
         let mut interp = interpreter();
         // See the ruby specs for `Array.allocate` for more details:
-        // spec-runner/vendor/spec/core/array/allocate_spec.rb
+        // `spec-runner/vendor/spec/core/array/allocate_spec.rb`
         //
         // ```console
         // [3.3.6] > a = Array.allocate

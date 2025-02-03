@@ -141,7 +141,7 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
 
             // These conversions are luckily not lossy. `seconds_base` and
             // `multiplier_nanos` are guaranteed to be represented without loss
-            // in a f64.
+            // in a `f64`.
             #[expect(
                 clippy::cast_precision_loss,
                 reason = "guaranteed to be represented without loss in a f64"
@@ -159,7 +159,7 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
             // `is_sign_negative()` is not enough here, since this logic should
             // also be skilled for negative zero.
             if subsec < -0.0 {
-                // Nanos always needs to be a positive u32. If subsec is
+                // Nanos always needs to be a positive `u32`. If subsec is
                 // negative, we will always need remove one second.  Nanos can
                 // then be adjusted since it will always be the inverse of the
                 // total nanos in a second.
@@ -189,12 +189,12 @@ impl TryConvertMut<(Option<Value>, Option<Value>), Subsec> for Artichoke {
 
             // The below calculations should always be safe. The multiplier is
             // guaranteed to not be 0, the remainder should never overflow, and
-            // is guaranteed to be less than u32::MAX.
+            // is guaranteed to be less than `u32::MAX`.
             let mut secs = subsec / seconds_base;
             let mut nanos = (subsec % seconds_base) * multiplier_nanos;
 
             if subsec.is_negative() {
-                // Nanos always needs to be a positive u32. If subsec is
+                // Nanos always needs to be a positive `u32`. If subsec is
                 // negative, we will always need remove one second.  Nanos can
                 // then be adjusted since it will always be the inverse of the
                 // total nanos in a second.
@@ -323,7 +323,6 @@ mod tests {
     fn int_subsec_micros() {
         let mut interp = interpreter();
 
-        //let expectations: [(&[u8], (i64, u32))] = [
         let expectations = [
             (b"-1000001".as_slice(), (-2, 999_999_000)),
             (b"-1000000".as_slice(), (-2, 0)),

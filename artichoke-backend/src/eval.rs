@@ -38,7 +38,7 @@ impl Eval for Artichoke {
                 // interacting with them via the C API is unspecified and may
                 // result in a segfault.
                 //
-                // See: https://github.com/mruby/mruby/issues/4460
+                // See: <https://github.com/mruby/mruby/issues/4460>
                 emit_fatal_warning!("eval returned an unreachable Ruby value");
                 Err(Fatal::from("eval returned an unreachable Ruby value").into())
             }

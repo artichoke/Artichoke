@@ -176,7 +176,7 @@ mod private {
 /// See [`RUBY_FIXNUM_MIN`] and [`RUBY_FIXNUM_MAX`] for more details on the range
 /// of values yielded by implementers of this trait.
 ///
-/// This trait is sealed and cannot be implmented outside of this crate.
+/// This trait is sealed and cannot be implemented outside of this crate.
 pub trait Fixable: private::Sealed + Sized {
     /// Convert a fixable numeric value to its integral part.
     ///
@@ -667,16 +667,16 @@ mod tests {
     #[test]
     fn test_u64_are_fixable() {
         let test_cases = [
-            (0_u64, Some(0_i64)),                                             // Smallest fixable value: 0
-            (1_u64, Some(1)),                                                 // Another fixable value: 1
-            (4_611_686_018_427_387_903_u64, Some(4_611_686_018_427_387_903)), // Largest fixable value: 2^62 - 1
-            (4_611_686_018_427_387_904_u64, None), // Value just above the fixable range: 2^62
-            (4_611_686_018_427_387_905_u64, None), // Value further above the fixable range: 2^62 + 1
-            (9_223_372_036_854_775_806_u64, None), // Value near the maximum u64 value: 2^63 - 2
-            (9_223_372_036_854_775_807_u64, None), // Maximum u64 value: 2^63 - 1
-            (18_446_744_073_709_551_614_u64, None), // Value just above the maximum i64 value: 2^63
-            (18_446_744_073_709_551_615_u64, None), // Value further above the maximum i64 value: 2^63 + 1
-            (9_223_372_036_854_775_809_u64, None), // Value near the maximum u64 value: 2^63 + 3
+            (0_u64, Some(0_i64)),                                             // Smallest fixable value: `0`
+            (1_u64, Some(1)),                                                 // Another fixable value: `1`
+            (4_611_686_018_427_387_903_u64, Some(4_611_686_018_427_387_903)), // Largest fixable value: `2^62 - 1`
+            (4_611_686_018_427_387_904_u64, None), // Value just above the fixable range: `2^62`
+            (4_611_686_018_427_387_905_u64, None), // Value further above the fixable range: `2^62 + 1`
+            (9_223_372_036_854_775_806_u64, None), // Value near the maximum `u64` value: `2^63 - 2`
+            (9_223_372_036_854_775_807_u64, None), // Maximum `u64` value: `2^63 - 1`
+            (18_446_744_073_709_551_614_u64, None), // Value just above the maximum `i64` value: `2^63`
+            (18_446_744_073_709_551_615_u64, None), // Value further above the maximum `i64` value: `2^63 + 1`
+            (9_223_372_036_854_775_809_u64, None), // Value near the maximum `u64`` value: `2^63 + 3`
         ];
         for (x, fixed) in test_cases {
             assert_eq!(x.to_fix(), fixed, "{x} did not fix correctly");
@@ -722,8 +722,8 @@ mod tests {
             (123.45, Some(123)),
             (-987.65, Some(-987)),
             // Value outside fixable range
-            (1e38, None),         // Greater than i64::MAX
-            (-1e38, None),        // Less than i64::MIN
+            (1e38, None),         // Greater than `i64::MAX`
+            (-1e38, None),        // Less than `i64::MIN`
             (1.234e-18, Some(0)), // Very small value
             // Interesting float values
             (-0.0, Some(0)),              // Negative zero
@@ -732,13 +732,13 @@ mod tests {
             (f32::EPSILON, Some(0)),      // Smallest positive value greater than 0
             (f32::NEG_INFINITY, None),    // Negative infinity
             (f32::MIN_POSITIVE, Some(0)), // Smallest positive normalized value
-            (f32::MAX, None),             // Max float value
-            (f32::MIN, None),             // Min float value
+            (f32::MAX, None),             // Maximum float value
+            (f32::MIN, None),             // Minimum float value
             // Boundary conditions
-            (i64::MIN as _, None),                             // i64::MIN as float
-            (-4.611_686e18, Some(-4_611_686_018_427_387_904)), // closest float to i64::MIN / 2
+            (i64::MIN as _, None),                             // `i64::MIN` as float
+            (-4.611_686e18, Some(-4_611_686_018_427_387_904)), // closest float to `i64::MIN / 2`
             (i64::MAX as _, None),                             // Largest finite positive value
-            (4.611_685_5e18, Some(4_611_685_468_671_574_016)), // closest float to i64::MAX / 2
+            (4.611_685_5e18, Some(4_611_685_468_671_574_016)), // closest float to `i64::MAX / 2`
             // Varying fractional parts
             (1.99, Some(1)),      // Truncated decimal part
             (3.14159, Some(3)),   // Truncated decimal part
@@ -760,8 +760,8 @@ mod tests {
             (123.45, Some(123)),
             (-987.65, Some(-987)),
             // Value outside fixable range
-            (1e38, None),         // Greater than i64::MAX
-            (-1e38, None),        // Less than i64::MIN
+            (1e38, None),         // Greater than `i64::MAX`
+            (-1e38, None),        // Less than `i64::MIN`
             (1.234e-18, Some(0)), // Very small value
             // Interesting float values
             (-0.0, Some(0)),              // Negative zero
@@ -770,13 +770,13 @@ mod tests {
             (f64::EPSILON, Some(0)),      // Smallest positive value greater than 0
             (f64::NEG_INFINITY, None),    // Negative infinity
             (f64::MIN_POSITIVE, Some(0)), // Smallest positive normalized value
-            (f64::MAX, None),             // Max float value
-            (f64::MIN, None),             // Min float value
+            (f64::MAX, None),             // Maximum float value
+            (f64::MIN, None),             // Minimum float value
             // Boundary conditions
-            (i64::MIN as _, None),                                         // i64::MIN as float
-            (-4.611_686_018_427_387e18, Some(-4_611_686_018_427_386_880)), // closest float to i64::MIN / 2
+            (i64::MIN as _, None),                                         // `i64::MIN` as float
+            (-4.611_686_018_427_387e18, Some(-4_611_686_018_427_386_880)), // closest float to `i64::MIN / 2`
             (i64::MAX as _, None),                                         // Largest finite positive value
-            (4.611_686_018_427_387e18, Some(4_611_686_018_427_386_880)),   // closest float to i64::MAX / 2
+            (4.611_686_018_427_387e18, Some(4_611_686_018_427_386_880)),   // closest float to `i64::MAX / 2`
             // Varying fractional parts
             (1.99, Some(1)),      // Truncated decimal part
             (3.14159, Some(3)),   // Truncated decimal part

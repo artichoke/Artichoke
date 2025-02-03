@@ -33,7 +33,7 @@ pub use crate::value::Value;
 // This type has a custom `Drop` implementation that automatically closes the
 // `Artichoke` interpreter in tests.
 //
-// See https://github.com/artichoke/artichoke/issues/930 for rationale of this
+// See <https://github.com/artichoke/artichoke/issues/930> for rationale of this
 // type.
 pub struct AutoDropArtichoke(Option<Artichoke>);
 
@@ -63,7 +63,7 @@ impl Drop for AutoDropArtichoke {
 // custom `Drop` implementation that automatically closes the `Artichoke`
 // interpreter in tests.
 //
-// See https://github.com/artichoke/artichoke/issues/930 for rationale of this
+// See <https://github.com/artichoke/artichoke/issues/930> for rationale of this
 // constructor.
 //
 // This function unwraps internally and does not return error since every test

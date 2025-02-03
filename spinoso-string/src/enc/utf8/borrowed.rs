@@ -145,8 +145,8 @@ impl Utf8Str {
             (None, 0) => return Utf8Str::empty(),
             (None, _) => 1,
         };
-        // SAFETY: the UTF-8 decode above guarantees the prefix len is a valid
-        // slice index.
+        // SAFETY: the UTF-8 decode above guarantees the prefix length is a
+        // valid slice index.
         let s = unsafe { self.get_unchecked(..prefix) };
         Utf8Str::from_bytes(s)
     }
@@ -168,7 +168,7 @@ impl Utf8Str {
         let tail = if let Some(idx) = bytes.find_non_ascii_byte() {
             idx
         } else {
-            // The entire string is ASCII bytes, so fastpath return the slice
+            // The entire string is ASCII bytes, so fast-path return the slice
             // length.
             return bytes.len();
         };

@@ -10,7 +10,7 @@ use crate::Symbol;
 ///
 /// The returned iterator yields [`Symbol`] as its item type.
 ///
-/// Implementors of this trait must issue symbol identifiers as an [arithmetic
+/// Implementers of this trait must issue symbol identifiers as an [arithmetic
 /// progression] with a common difference of 1. The sequence of symbol
 /// identifiers must be representable by a [`Range<u32>`].
 ///

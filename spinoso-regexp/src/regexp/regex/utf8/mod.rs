@@ -299,8 +299,8 @@ mod tests {
         //
         // See:
         //
-        // - https://en.wikipedia.org/wiki/Devanagari_numerals#Table
-        // - https://en.wikipedia.org/wiki/Kannada_script#Numerals
+        // - <https://en.wikipedia.org/wiki/Devanagari_numerals#Table>
+        // - <https://en.wikipedia.org/wiki/Kannada_script#Numerals>
         let haystack = "123 १०೩೬";
         assert!(regexp.is_match(haystack.as_bytes(), None).unwrap());
     }
@@ -393,8 +393,10 @@ mod tests {
             (B("🦀"), "🦀"),
             (B("铁锈"), "铁锈"),
             // Invalid UTF-8 patterns are not supported 👇
+            // ```
             // (B(b"\xFF\xFE"), r"\xFF\xFE"),
             // (B(b"abc \xFF\xFE xyz"), r"abc \xFF\xFE xyz"),
+            // ```
         ];
         for (pattern, display) in test_cases {
             let regexp = make(pattern, None, Encoding::None);
@@ -461,8 +463,10 @@ mod tests {
             (B("铁锈"), "/铁锈/m", Options::from(Flags::MULTILINE)),
             (B("铁+锈*"), "/铁+锈*/mix", Options::from(Flags::ALL_REGEXP_OPTS)),
             // Invalid UTF-8 patterns are not supported 👇
+            // ```
             // (B(b"\xFF\xFE"), r"\xFF\xFE", Options::default()),
             // (B(b"abc \xFF\xFE xyz"), r"abc \xFF\xFE xyz", Options::default()),
+            // ```
         ];
         for (pattern, debug, options) in test_cases {
             let regexp = make(pattern, Some(options), Encoding::None);

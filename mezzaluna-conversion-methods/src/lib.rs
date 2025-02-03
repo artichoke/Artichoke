@@ -40,7 +40,7 @@
 //!
 //! This crate provides a lookup table for Ruby object conversion methods and
 //! their metadata. It maps method names to their C string equivalents and
-//! categorizes them as either implicit conversions or coercions. This is used
+//! categorizes them as either an implicit conversion or coercion. This is used
 //! when booting an Artichoke interpreter and for implementing native Ruby
 //! object conversion routines.
 //!
@@ -105,8 +105,8 @@ impl ConversionType {
 ///
 /// This constant provides a lookup table for methods used to convert Ruby
 /// objects to specific types. It maps method names to their C string
-/// equivalents and categorizes them as either implicit conversions or
-/// coercions.  This is used to facilitate handling of type conversions in Ruby,
+/// equivalents and categorizes them as either an implicit conversion or
+/// coercion.  This is used to facilitate handling of type conversions in Ruby,
 /// ensuring consistent behavior for operations like implicit coercion or
 /// explicit type casting.
 ///
@@ -519,7 +519,7 @@ mod tests {
         assert!(conv_methods.get().is_none());
         assert!(conv_methods.table.get().is_none());
 
-        // Call get_or_init to populate the table
+        // Call `get_or_init` to populate the table
         let result = conv_methods.get_or_init(&mut symbols);
         assert!(result.is_ok());
         let table = result.unwrap();

@@ -108,12 +108,13 @@ impl System {
     #[inline]
     pub fn get(self, name: &[u8]) -> Result<Option<Cow<'static, [u8]>>, ArgumentError> {
         // Per Rust docs for `std::env::set_var` and `std::env::remove_var`:
-        // https://doc.rust-lang.org/std/env/fn.set_var.html
-        // https://doc.rust-lang.org/std/env/fn.remove_var.html
+        //
+        // <https://doc.rust-lang.org/std/env/fn.set_var.html>
+        // <https://doc.rust-lang.org/std/env/fn.remove_var.html>
         //
         // This function may panic if key is empty, contains an ASCII equals
-        // sign '=' or the NUL character '\0', or when the value contains the
-        // NUL character.
+        // sign `'='` or the NUL character `'\0'`, or when the value contains
+        // the NUL character.
         if name.is_empty() {
             // MRI accepts empty names on get and should always return `nil`
             // since empty names are invalid at the OS level.
@@ -179,12 +180,13 @@ impl System {
     #[inline]
     pub fn put(self, name: &[u8], value: Option<&[u8]>) -> Result<(), Error> {
         // Per Rust docs for `std::env::set_var` and `std::env::remove_var`:
-        // https://doc.rust-lang.org/std/env/fn.set_var.html
-        // https://doc.rust-lang.org/std/env/fn.remove_var.html
+        //
+        // <https://doc.rust-lang.org/std/env/fn.set_var.html>
+        // <https://doc.rust-lang.org/std/env/fn.remove_var.html>
         //
         // This function may panic if key is empty, contains an ASCII equals
-        // sign '=' or the NUL character '\0', or when the value contains the
-        // NUL character.
+        // sign `'='` or the NUL character `'\0'`, or when the value contains
+        // the NUL character.
         if name.find_byte(b'\0').is_some() {
             let message = "bad environment variable name: contains null byte";
             Err(ArgumentError::with_message(message).into())

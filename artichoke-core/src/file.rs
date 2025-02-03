@@ -19,7 +19,7 @@ pub trait File {
     ///
     /// # Errors
     ///
-    /// If a fallible API on the interpreter returns an error, implementors
+    /// If a fallible API on the interpreter returns an error, implementers
     /// should return an error. Example fallible APIs that might be called on
     /// require include [`Eval::eval`](crate::eval::Eval::eval) and
     /// [`LoadSources::def_rb_source_file`](crate::load::LoadSources::def_rb_source_file).

@@ -211,7 +211,7 @@ mod tests {
     fn test_from_mt_seed_lossy_basic() {
         let input = [0x1234_5678, 0x9ABC_DEF0, 0x0, 0x0];
         let seed = Seed::from_mt_seed_lossy(input);
-        // High 32 bits: 0x1234_5678, Low 32 bits: 0x9ABC_DEF0
+        // High 32 bits: `0x1234_5678`, Low 32 bits: `0x9ABC_DEF0`
         assert_eq!(seed, Seed::New(0x123_45678_i64 << 32 | 0x9ABC_DEF0));
     }
 
@@ -219,7 +219,7 @@ mod tests {
     fn test_from_mt_seed_lossy_max_values() {
         let input = [u32::MAX, u32::MAX, 0x0, 0x0];
         let seed = Seed::from_mt_seed_lossy(input);
-        // High 32 bits: u32::MAX, Low 32 bits: u32::MAX
+        // High 32 bits: `u32::MAX`, Low 32 bits: `u32::MAX`
         assert_eq!(seed, Seed::New(i64::from(u32::MAX) << 32 | i64::from(u32::MAX)));
     }
 
@@ -227,7 +227,7 @@ mod tests {
     fn test_from_mt_seed_lossy_discarded_values() {
         let input = [0x1234_5678, 0x9AB_CDEF0, 0xDEAD_BEEF, 0xFEED_FACE];
         let seed = Seed::from_mt_seed_lossy(input);
-        // High 32 bits: 0x12345678, Low 32 bits: 0x9ABCDEF0
+        // High 32 bits: `0x12345678`, Low 32 bits: `0x9ABCDEF0`
         // The other values are discarded
         assert_eq!(seed, Seed::New(0x1234_5678_i64 << 32 | 0x9ABC_DEF0));
     }
@@ -244,7 +244,7 @@ mod tests {
     fn test_from_mt_seed_lossy_high_only() {
         let input = [0x1234_5678, 0x0, 0x0, 0x0];
         let seed = Seed::from_mt_seed_lossy(input);
-        // High 32 bits: 0x1234_5678, Low 32 bits: 0x0
+        // High 32 bits: `0x1234_5678`, Low 32 bits: `0x0`
         assert_eq!(seed, Seed::New(0x1234_5678 << 32));
     }
 
@@ -252,7 +252,7 @@ mod tests {
     fn test_from_mt_seed_lossy_low_only() {
         let input = [0x0, 0x9ABC_DEF0, 0x0, 0x0];
         let seed = Seed::from_mt_seed_lossy(input);
-        // High 32 bits: 0x0, Low 32 bits: 0x9ABC_DEF0
+        // High 32 bits: `0x0`, Low 32 bits: `0x9ABC_DEF0`
         assert_eq!(seed, Seed::New(0x9ABC_DEF0));
     }
 }

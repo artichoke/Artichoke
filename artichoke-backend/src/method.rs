@@ -82,7 +82,7 @@ impl Spec {
     pub unsafe fn define(&self, interp: &mut Artichoke, into: &mut sys::RClass) -> Result<(), NotDefinedError> {
         match self.method_type {
             Type::Class => {
-                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // SAFETY: `interp.with_ffi_boundary` guarantees that `mrb` is
                 // non-NULL and initialized.
                 unsafe {
                     interp.with_ffi_boundary(|mrb| {
@@ -97,7 +97,7 @@ impl Spec {
                 }
             }
             Type::Global => {
-                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // SAFETY: `interp.with_ffi_boundary` guarantees that `mrb` is
                 // non-NULL and initialized. Initialized interpreters can safely
                 // be dereferenced to get the top-level object.
                 unsafe {
@@ -113,7 +113,7 @@ impl Spec {
                 }
             }
             Type::Instance => {
-                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // SAFETY: `interp.with_ffi_boundary` guarantees that `mrb` is
                 // non-NULL and initialized.
                 unsafe {
                     interp.with_ffi_boundary(|mrb| {
@@ -122,7 +122,7 @@ impl Spec {
                 }
             }
             Type::Module => {
-                // SAFETY: `interp.with_ffi_boundary` guarantees that the mrb is
+                // SAFETY: `interp.with_ffi_boundary` guarantees that `mrb` is
                 // non-NULL and initialized.
                 unsafe {
                     interp.with_ffi_boundary(|mrb| {

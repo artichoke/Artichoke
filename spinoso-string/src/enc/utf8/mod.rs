@@ -333,7 +333,7 @@ mod tests {
 
     #[test]
     fn casing_utf8_string_utf8() {
-        // Capitalization of ß (SS) differs from MRI:
+        // Capitalization of `ß` (SS) differs from MRI:
         //
         // ```console
         // [2.6.3] > "ß".capitalize
@@ -444,7 +444,7 @@ mod tests {
 
     #[test]
     fn get_char_slice_valid_range() {
-        let s = Utf8String::from(b"a\xF0\x9F\x92\x8E\xFF".to_vec()); // "a💎\xFF"
+        let s = Utf8String::from(b"a\xF0\x9F\x92\x8E\xFF".to_vec()); // `"a💎\xFF"`
         assert_eq!(s.get_char_slice(0..0), Some(Utf8Str::empty()));
         assert_eq!(s.get_char_slice(0..1), Some(Utf8Str::new(b"a")));
         assert_eq!(s.get_char_slice(0..2), Some(Utf8Str::new("a💎")));
@@ -458,7 +458,7 @@ mod tests {
     #[test]
     #[expect(clippy::reversed_empty_ranges, reason = "testing behavior of reversed ranges")]
     fn get_char_slice_invalid_range() {
-        let s = Utf8String::from(b"a\xF0\x9F\x92\x8E\xFF".to_vec()); // "a💎\xFF"
+        let s = Utf8String::from(b"a\xF0\x9F\x92\x8E\xFF".to_vec()); // `"a💎\xFF"`
         assert_eq!(s.get_char_slice(4..5), None);
         assert_eq!(s.get_char_slice(4..1), None);
         assert_eq!(s.get_char_slice(3..1), Some(Utf8Str::empty()));

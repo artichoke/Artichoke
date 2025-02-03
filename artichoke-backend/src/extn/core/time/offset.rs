@@ -174,7 +174,7 @@ mod tests {
     fn raises_on_float_out_of_range() {
         let mut interp = interpreter();
 
-        // this value is i32::MIN - 1.
+        // this value is `i32::MIN - 1`.
         let options = interp.eval(b"{ in: -2_147_483_649.00 }").unwrap();
 
         let result: Result<Option<Offset>, Error> = interp.try_convert_mut(options);
@@ -183,7 +183,7 @@ mod tests {
         assert_eq!(error.message(), b"utc_offset out of range".as_slice());
         assert_eq!(error.name(), "ArgumentError");
 
-        // this value is i32::MAX + 1.
+        // this value is `i32::MAX + 1`.
         let options = interp.eval(b"{ in: 2_147_483_648.00 }").unwrap();
 
         let result: Result<Option<Offset>, Error> = interp.try_convert_mut(options);
@@ -197,7 +197,7 @@ mod tests {
     fn raises_on_int_out_of_range() {
         let mut interp = interpreter();
 
-        // this value is i32::MIN - 1.
+        // this value is `i32::MIN - 1`.
         let options = interp.eval(b"{ in: -2_147_483_649 }").unwrap();
 
         let result: Result<Option<Offset>, Error> = interp.try_convert_mut(options);
@@ -206,7 +206,7 @@ mod tests {
         assert_eq!(error.message().as_bstr(), b"utc_offset out of range".as_bstr());
         assert_eq!(error.name(), "ArgumentError");
 
-        // this value is i32::MAX + 1.
+        // this value is `i32::MAX + 1`.
         let options = interp.eval(b"{ in: 2_147_483_648 }").unwrap();
 
         let result: Result<Option<Offset>, Error> = interp.try_convert_mut(options);

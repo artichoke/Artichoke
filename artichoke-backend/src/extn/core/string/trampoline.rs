@@ -598,8 +598,9 @@ pub fn byteindex(
             None
         };
 
-        // offset_number is a byte offset into the search string, not an offset into the capture
-        // group used. This is confirmed by playing around with MRI irb.
+        // `offset_number` is a byte offset into the search string, not an
+        // offset into the capture group used. This is confirmed by playing
+        // around with MRI irb.
         let mut matches = pattern.match_(interp, Some(s.as_slice()), offset_number, None)?;
         if matches.is_nil() {
             return Ok(Value::nil());
@@ -1693,10 +1694,13 @@ pub fn to_i(interp: &mut Artichoke, mut value: Value, base: Option<Value>) -> Re
         }
     };
 
-    // Check string doesn't start with any special characters
-    //  '_' is invalid because they are stripped out elsewhere in the string, but cannot start a number
-    //  '+' and '-' invalid because we already have the sign prior to the prefix, but they are accepted
-    //  at the begining of a string by str_from_radix, and double sign doesn't make sense
+    // Check string doesn't start with any special characters:
+    //
+    // - '_' is invalid because they are stripped out elsewhere in the string,
+    //  but cannot start a number.
+    // - '+' and '-' invalid because we already have the sign prior to the
+    //   prefix, but they are accepted at the beginning of a string by
+    //   `str_from_radix`, and double sign doesn't make sense
     if matches!(slice.first(), Some(&b'_' | &b'+' | &b'-')) {
         return Ok(interp.convert(0));
     }

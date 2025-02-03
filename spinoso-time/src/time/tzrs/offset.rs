@@ -48,7 +48,7 @@ pub const MIN_OFFSET_SECONDS: i32 = -MAX_OFFSET_SECONDS;
 #[cfg(feature = "tzrs-local")]
 fn local_time_zone() -> TimeZoneRef<'static> {
     // Per the docs, it is suggested to cache the result of fetching the
-    // local timezone: https://docs.rs/tzdb/latest/tzdb/fn.local_tz.html.
+    // local timezone: <https://docs.rs/tzdb/latest/tzdb/fn.local_tz.html>.
     static LOCAL_TZ: LazyLock<TimeZoneRef<'static>> = LazyLock::new(|| {
         let tz = iana_time_zone::get_timezone().ok().and_then(tzdb::tz_by_name);
         tz.unwrap_or(GMT)
@@ -532,8 +532,8 @@ mod tests {
         //
         // See:
         //
-        // - https://en.wikipedia.org/wiki/Devanagari_numerals#Table
-        // - https://en.wikipedia.org/wiki/Kannada_script#Numerals
+        // - <https://en.wikipedia.org/wiki/Devanagari_numerals#Table>
+        // - <https://en.wikipedia.org/wiki/Kannada_script#Numerals>
         let offset = "+१०:೩೬";
         assert!(matches!(
             offset_seconds_from_fixed_offset(offset).unwrap_err(),

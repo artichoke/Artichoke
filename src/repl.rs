@@ -163,7 +163,8 @@ impl PromptConfig<'_, '_, '_> {
 // Generate a preamble or welcome message when first booting the REPL.
 //
 // The preamble includes the contents of the `RUBY_DESCRIPTION` and
-// `ARTICHOKE_COMPILER_VERSION` contants embedded in the Artichoke Ruby runtime.
+// `ARTICHOKE_COMPILER_VERSION` constants embedded in the Artichoke Ruby
+// runtime.
 fn preamble(interp: &mut Artichoke) -> Result<String, Error> {
     let description = interp.eval(b"RUBY_DESCRIPTION")?.try_convert_into_mut::<&str>(interp)?;
     let compiler = interp
@@ -310,8 +311,8 @@ where
                 break;
             }
             Ok(input) => {
-                // scope lock and borrows of the rl editor to a function call to
-                // facilitate unlocking and unborrowing.
+                // scope lock and borrows of the readline editor to a function
+                // call to facilitate unlocking and unborrowing.
                 eval_single_input(rl, &mut output, &mut error, config, &input)?;
                 rl.add_history_entry(input)?;
             }

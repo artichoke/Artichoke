@@ -173,7 +173,7 @@ impl ValueCore for Value {
                     // and interacting with them via the C API is unspecified
                     // and may result in a segfault.
                     //
-                    // See: https://github.com/mruby/mruby/issues/4460
+                    // See: <https://github.com/mruby/mruby/issues/4460>
                     Err(Fatal::from("Unreachable Ruby value").into())
                 } else {
                     Ok(interp.protect(value))

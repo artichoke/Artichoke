@@ -2,7 +2,7 @@
 
 /// Infallible conversion between two types.
 ///
-/// Implementors may not allocate on the interpreter heap.
+/// Implementers may not allocate on the interpreter heap.
 ///
 /// See [`core::convert::From`].
 /// See [`ConvertMut`].
@@ -13,7 +13,7 @@ pub trait Convert<T, U> {
 
 /// Fallible conversions between two types.
 ///
-/// Implementors may not allocate on the interpreter heap.
+/// Implementers may not allocate on the interpreter heap.
 ///
 /// See [`core::convert::TryFrom`].
 /// See [`TryConvertMut`].
@@ -32,7 +32,7 @@ pub trait TryConvert<T, U> {
 
 /// Mutable infallible conversion between two types.
 ///
-/// Implementors may allocate on the interpreter heap.
+/// Implementers may allocate on the interpreter heap.
 ///
 /// See [`core::convert::From`].
 /// See [`Convert`].
@@ -43,7 +43,7 @@ pub trait ConvertMut<T, U> {
 
 /// Mutable fallible conversions between two types.
 ///
-/// Implementors may allocate on the interpreter heap.
+/// Implementers may allocate on the interpreter heap.
 ///
 /// See [`core::convert::TryFrom`].
 /// See [`TryConvert`].

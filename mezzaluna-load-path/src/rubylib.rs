@@ -123,10 +123,10 @@ impl Rubylib {
     #[must_use]
     pub fn with_rubylib<T: AsRef<OsStr>>(rubylib: T) -> Option<Self> {
         let rubylib = rubylib.as_ref();
-        // Empty paths are filtered out of RUBYLIB.
+        // Empty paths are filtered out of `RUBYLIB`.
         //
         // `std::env::split_paths` yields empty paths as of Rust 1.69.0.
-        // See: https://github.com/rust-lang/rust/issues/111832
+        // See: <https://github.com/rust-lang/rust/issues/111832>
         let load_path = env::split_paths(rubylib)
             .filter(|p| !p.as_os_str().is_empty())
             .collect::<Box<[_]>>();

@@ -631,56 +631,26 @@ mod tests {
         registry.insert::<f64>(Box::new(Item { name: "Float" }));
 
         let mut iter = registry.type_specs();
-
-        // Check the length of the iterator matches the expected count
         assert_eq!(iter.len(), 3);
 
-        // Test the size_hint() method
         let size_hint = iter.size_hint();
-
-        // The lower bound of the size hint should be 3
         assert_eq!(size_hint.0, 3);
-
-        // The upper bound of the size hint should be Some(3)
         assert_eq!(size_hint.1, Some(3));
-
-        // Call next() to advance the iterator
         assert!(iter.next().is_some());
-
-        // Check the length of the iterator matches the expected count
         assert_eq!(iter.len(), 2);
 
-        // Test the size_hint() method
         let size_hint = iter.size_hint();
-
-        // The lower bound of the size hint should be 2
         assert_eq!(size_hint.0, 2);
-
-        // The upper bound of the size hint should be Some(2)
         assert_eq!(size_hint.1, Some(2));
 
-        // Advance the iterator using count()
         let count = iter.by_ref().count();
-
-        // Ensure the count matches the remaining items
         assert_eq!(count, 2);
-
-        // The length of the iterator should be 0 after exhaustion
         assert_eq!(iter.len(), 0);
-
-        // After exhausting the iterator, it should return None
         assert_eq!(iter.next(), None);
-
-        // The length of the iterator should be 0 after exhaustion
         assert_eq!(iter.len(), 0);
 
-        // Test the size_hint() method
         let size_hint = iter.size_hint();
-
-        // The lower bound of the size hint should be 0
         assert_eq!(size_hint.0, 0);
-
-        // The upper bound of the size hint should be Some(0)
         assert_eq!(size_hint.1, Some(0));
     }
 
@@ -760,22 +730,18 @@ mod tests {
     fn test_registry_api() {
         let mut reg: Registry<&'static str> = Registry::new();
 
-        // Test len
         assert_eq!(reg.len(), 0);
         assert!(reg.is_empty());
 
-        // Test capacity and reserve
         assert_eq!(reg.capacity(), 0);
         reg.reserve(5);
         assert!(reg.capacity() >= 5);
         reg.try_reserve(10).unwrap();
         assert!(reg.capacity() >= 10);
 
-        // Test len
         assert_eq!(reg.len(), 0);
         assert!(reg.is_empty());
 
-        // Test insert and get
         reg.insert::<i32>(Box::new("Numeric"));
         reg.insert::<Vec<u8>>(Box::new("String"));
 
@@ -783,12 +749,10 @@ mod tests {
         assert_eq!(reg.get::<Vec<u8>>(), Some(&"String"));
         assert_eq!(reg.get::<f32>(), None);
 
-        // Test contains
         assert!(reg.contains::<i32>());
         assert!(reg.contains::<Vec<u8>>());
         assert!(!reg.contains::<f32>());
 
-        // Test len
         assert_eq!(reg.len(), 2);
         assert!(!reg.is_empty());
     }

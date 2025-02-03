@@ -22,7 +22,7 @@ pub fn init(interp: &mut Artichoke) -> InitializeResult<()> {
     // Instead, have thread be a default loaded feature in `mezzaluna-feature-loader`.
     interp.def_rb_source_file("thread.rb", THREAD_RUBY_SOURCE)?;
     // Thread is loaded by default, so eval it on interpreter initialization
-    // https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Lint/UnneededRequireStatement
+    // <https://www.rubydoc.info/gems/rubocop/RuboCop/Cop/Lint/UnneededRequireStatement>
     interp.eval(&b"require 'thread'"[..])?;
 
     Ok(())

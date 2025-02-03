@@ -159,8 +159,8 @@ impl TryConvertMut<&mut [Value], Args> for Artichoke {
                     };
                 }
                 5 => {
-                    // TODO: This should support f64 seconds and drop
-                    // the remainder into micros.
+                    // TODO: This should support `f64` seconds and drop the
+                    // remainder into micros.
                     // ```irb
                     // 3.1.2 > Time.utc(1, 2, 3, 4, 5, 6.1)
                     // => 0001-02-03 04:05:06 56294995342131/562949953421312 UTC
@@ -178,8 +178,8 @@ impl TryConvertMut<&mut [Value], Args> for Artichoke {
                     let arg: i64 = arg.try_convert_into(self)?;
 
                     // Args take a micros parameter, not a nanos value, and
-                    // therefore we must multiply the value by 1_000. This is
-                    // gaurnateed to fit in a u32.
+                    // therefore we must multiply the value by 1000. This is
+                    // guaranteed to fit in a `u32`.
                     result.nanoseconds = match u32::try_from(arg) {
                         Ok(micros @ 0..=999_999) => micros * 1000,
                         // ```
@@ -190,8 +190,7 @@ impl TryConvertMut<&mut [Value], Args> for Artichoke {
                     };
                 }
                 7 => {
-                    // NOOP
-                    // The 8th parameter can be anything, even an error
+                    // NOOP: The 8th parameter can be anything, even an error
                     //
                     // ```irb
                     // Time.utc(2022, 1, 1, 0, 0, 0, 0, StandardError)
