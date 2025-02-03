@@ -108,21 +108,21 @@ impl Rubylib {
     /// An empty path string returns [`None`].
     ///
     /// ```
-    /// use std::ffi::OsStr;
     /// use mezzaluna_load_path::Rubylib;
     ///
-    /// let loader = Rubylib::with_rubylib(OsStr::new(""));
+    /// let loader = Rubylib::with_rubylib("");
     /// assert!(loader.is_none());
     ///
     /// # #[cfg(unix)]
-    /// let loader = Rubylib::with_rubylib(OsStr::new("::::"));
+    /// let loader = Rubylib::with_rubylib("::::");
     /// # #[cfg(unix)]
     /// assert!(loader.is_none());
     /// ```
     ///
     /// [path string]: env::split_paths
     #[must_use]
-    pub fn with_rubylib(rubylib: &OsStr) -> Option<Self> {
+    pub fn with_rubylib<T: AsRef<OsStr>>(rubylib: T) -> Option<Self> {
+        let rubylib = rubylib.as_ref();
         // Empty paths are filtered out of RUBYLIB.
         //
         // `std::env::split_paths` yields empty paths as of Rust 1.69.0.
@@ -219,7 +219,6 @@ impl Rubylib {
 #[cfg(all(test, unix))]
 mod tests {
     use std::env;
-    use std::ffi::OsStr;
     use std::path::Path;
 
     use super::*;
@@ -257,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_load_path_is_set_on_construction() {
-        let loader = Rubylib::with_rubylib(OsStr::new("/home/artichoke/src:/usr/share/artichoke:_lib")).unwrap();
+        let loader = Rubylib::with_rubylib("/home/artichoke/src:/usr/share/artichoke:_lib").unwrap();
 
         assert_eq!(loader.load_path().len(), 3);
 
@@ -279,7 +278,7 @@ mod tests {
 
     #[test]
     fn test_empty_rubylib_is_none() {
-        let loader = Rubylib::with_rubylib(OsStr::new(""));
+        let loader = Rubylib::with_rubylib("");
         assert!(loader.is_none());
     }
 
@@ -317,11 +316,10 @@ mod tests {
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0/x86_64-darwin22
         // ```
-        let loader = Rubylib::with_rubylib(OsStr::new(":::::::::::::::::"));
+        let loader = Rubylib::with_rubylib(":::::::::::::::::");
         assert!(loader.is_none());
 
-        let loader =
-            Rubylib::with_rubylib(OsStr::new(":::/home/artichoke/src:::/usr/share/artichoke:::_lib:::")).unwrap();
+        let loader = Rubylib::with_rubylib(":::/home/artichoke/src:::/usr/share/artichoke:::_lib:::").unwrap();
 
         assert_eq!(loader.load_path().len(), 3);
 
@@ -364,9 +362,9 @@ mod tests {
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0/x86_64-darwin22
         // ```
-        let loader = Rubylib::with_rubylib(OsStr::new(
+        let loader = Rubylib::with_rubylib(
             ".:.:/Users/lopopolo/dev/artichoke/artichoke:/Users/lopopolo/dev/artichoke/artichoke:/Users/:/Users",
-        ))
+        )
         .unwrap();
 
         assert_eq!(loader.load_path().len(), 6);
@@ -409,7 +407,6 @@ mod tests {
 #[cfg(all(test, windows))]
 mod tests {
     use std::env;
-    use std::ffi::OsStr;
     use std::path::Path;
 
     use super::*;
@@ -447,7 +444,7 @@ mod tests {
 
     #[test]
     fn test_load_path_is_set_on_construction() {
-        let loader = Rubylib::with_rubylib(OsStr::new("c:/home/artichoke/src;c:/usr/share/artichoke;_lib")).unwrap();
+        let loader = Rubylib::with_rubylib("c:/home/artichoke/src;c:/usr/share/artichoke;_lib").unwrap();
 
         assert_eq!(loader.load_path().len(), 3);
 
@@ -469,7 +466,7 @@ mod tests {
 
     #[test]
     fn test_empty_rubylib_is_none() {
-        let loader = Rubylib::with_rubylib(OsStr::new(""));
+        let loader = Rubylib::with_rubylib("");
         assert!(loader.is_none());
     }
 
@@ -507,13 +504,10 @@ mod tests {
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0/x86_64-darwin22
         // ```
-        let loader = Rubylib::with_rubylib(OsStr::new(";;;;;;;;;;;;;;;;"));
+        let loader = Rubylib::with_rubylib(";;;;;;;;;;;;;;;;");
         assert!(loader.is_none());
 
-        let loader = Rubylib::with_rubylib(OsStr::new(
-            ";;;c:/home/artichoke/src;;;c:/usr/share/artichoke;;;_lib;;;",
-        ))
-        .unwrap();
+        let loader = Rubylib::with_rubylib(";;;c:/home/artichoke/src;;;c:/usr/share/artichoke;;;_lib;;;").unwrap();
 
         assert_eq!(loader.load_path().len(), 3);
 
@@ -556,9 +550,9 @@ mod tests {
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0
         // /usr/local/var/rbenv/versions/3.2.2/lib/ruby/3.2.0/x86_64-darwin22
         // ```
-        let loader = Rubylib::with_rubylib(OsStr::new(
+        let loader = Rubylib::with_rubylib(
             ".;.;c:/lopopolo/dev/artichoke/artichoke;c:/lopopolo/dev/artichoke/artichoke;c:/var/;c:/var",
-        ))
+        )
         .unwrap();
 
         assert_eq!(loader.load_path().len(), 6);
