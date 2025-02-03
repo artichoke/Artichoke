@@ -20,6 +20,8 @@ mod args;
     non_snake_case,
     trivial_casts,
     trivial_numeric_casts,
+    unsafe_op_in_unsafe_fn,
+    unused_qualifications,
     clippy::all,
     clippy::pedantic,
     clippy::restriction,

@@ -76,7 +76,7 @@ optional = true
 [build-dependencies]
 
 [build-dependencies.tz-rs]
-version = "0.6.12"
+version = "0.7.0"
 default-features = false
 features = ["std"]
 

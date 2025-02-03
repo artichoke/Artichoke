@@ -6,23 +6,22 @@ use core::time::TryFromFloatSecsError;
 use std::error;
 use std::str::Utf8Error;
 
-use tz::error::{DateTimeError, ProjectDateTimeError, TzError};
+use tz::error::datetime::DateTimeError;
+use tz::error::timezone::LocalTimeTypeError;
+use tz::error::TzError;
 
 /// A wrapper around some of the errors provided by `tz-rs`.
 #[derive(Debug)]
 pub enum TimeError {
-    /// Created when trying to create a `DateTime`, however the projection to a
-    /// UNIX timestamp wasn't achievable. Generally thrown when exceeding the
-    /// range of integers (e.g. `> i64::Max`).
-    ///
-    /// Note: This is just a wrapper over [`tz::error::ProjectDateTimeError`].
-    ProjectionError(ProjectDateTimeError),
+    /// Created when trying to create a `DateTime`, however the local time zone
+    /// designation is malformed.
+    LocalTimeType(LocalTimeTypeError),
 
     /// Created when one of the parameters of a `DateTime` falls outside the
     /// allowed ranges (e.g. 13th month, 32 day, 24th hour, etc).
     ///
-    /// Note: [`tz::error::DateTimeError`] is only thrown from `tz-rs` when a
-    /// provided component value is out of range.
+    /// Note: [`tz::error::datetime::DateTimeError`] is only thrown from `tz-rs`
+    /// when a provided component value is out of range.
     ///
     /// Note: This is different from how MRI ruby is implemented. e.g. Second
     /// 60 is valid in MRI, and will just add an additional second instead of
@@ -46,24 +45,10 @@ pub enum TimeError {
     Unknown,
 }
 
-impl PartialEq for TimeError {
-    fn eq(&self, other: &Self) -> bool {
-        match self {
-            Self::ProjectionError(_) => matches!(other, TimeError::ProjectionError(_)),
-            Self::ComponentOutOfRangeError(_) => matches!(other, TimeError::ComponentOutOfRangeError(_)),
-            Self::UnknownTzError(_) => matches!(other, TimeError::UnknownTzError(_)),
-            Self::TzStringError(_) => matches!(other, TimeError::TzStringError(_)),
-            Self::TzOutOfRangeError(_) => matches!(other, TimeError::TzOutOfRangeError(_)),
-            Self::IntOverflowError(_) => matches!(other, TimeError::IntOverflowError(_)),
-            Self::Unknown => matches!(other, TimeError::Unknown),
-        }
-    }
-}
-
 impl error::Error for TimeError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
-            Self::ProjectionError(err) => Some(err),
+            Self::LocalTimeType(err) => Some(err),
             Self::ComponentOutOfRangeError(err) => Some(err),
             Self::UnknownTzError(err) => Some(err),
             Self::TzStringError(err) => Some(err),
@@ -77,7 +62,7 @@ impl error::Error for TimeError {
 impl fmt::Display for TimeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ProjectionError(error) => error.fmt(f),
+            Self::LocalTimeType(error) => error.fmt(f),
             Self::ComponentOutOfRangeError(error) => error.fmt(f),
             Self::UnknownTzError(error) => error.fmt(f),
             Self::TzStringError(error) => error.fmt(f),
@@ -88,9 +73,9 @@ impl fmt::Display for TimeError {
     }
 }
 
-impl From<ProjectDateTimeError> for TimeError {
-    fn from(err: ProjectDateTimeError) -> Self {
-        Self::ProjectionError(err)
+impl From<LocalTimeTypeError> for TimeError {
+    fn from(err: LocalTimeTypeError) -> Self {
+        Self::LocalTimeType(err)
     }
 }
 
@@ -106,32 +91,23 @@ impl From<TzError> for TimeError {
         match error {
             // These two are generally recoverable within the usable of `spinoso_time`
             // TzError::DateTimeError(error) => Self::from(error),
-            TzError::ProjectDateTimeError(error) => Self::from(error),
+            TzError::DateTime(error) => Self::from(error),
+            TzError::LocalTimeType(error) => Self::from(error),
 
             // The rest will bleed through, but are included here for reference
-            // Occurs when calling system clock
-            TzError::SystemTimeError(_) => Self::UnknownTzError(error),
-            // Occurs during parsing of TZif files
-            TzError::TzFileError(_) => Self::UnknownTzError(error),
-            // Occurs during parsing of TZif files (POSIX string parsing)
-            TzError::TzStringError(_) => Self::UnknownTzError(error),
+            //
+            // Occurs when there is no available local time type for the given timestamp.
+            TzError::NoAvailableLocalTimeType => Self::UnknownTzError(error),
             // Occurs during int conversion (e.g. `i64` => `i32`)
-            TzError::OutOfRangeError(_) => Self::UnknownTzError(error),
+            TzError::OutOfRange => Self::UnknownTzError(error),
             // Occurs during creation of `TimeZoneRef`
-            TzError::LocalTimeTypeError(_) => Self::UnknownTzError(error),
+            TzError::TimeZone(_) => Self::UnknownTzError(error),
             // Occurs during creation of `TimeZoneRef`
-            TzError::TransitionRuleError(_) => Self::UnknownTzError(error),
-            // Occurs during creation of `TimeZoneRef`
-            TzError::TimeZoneError(_) => Self::UnknownTzError(error),
-            // Wrapped by `ProjectDateTimeError`
-            TzError::FindLocalTimeTypeError(_) => Self::UnknownTzError(error),
-            // Never explicitly returned
-            TzError::IoError(_) => Self::UnknownTzError(error),
-            // Never explicitly returned
-            TzError::Utf8Error(_) => Self::UnknownTzError(error),
-            // Never explicitly returned
-            TzError::TryFromSliceError(_) => Self::UnknownTzError(error),
-            // `TzError` is non-exhaustive, so the rest are caught as `Unknown`
+            TzError::TransitionRule(_) => Self::UnknownTzError(error),
+            // Occurs during parsing of TZif files
+            TzError::TzFile(_) => Self::UnknownTzError(error),
+            // Occurs during parsing of TZif files (POSIX string parsing)
+            TzError::TzString(_) => Self::UnknownTzError(error),
             _ => Self::Unknown,
         }
     }
