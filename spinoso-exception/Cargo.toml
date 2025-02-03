@@ -1,6 +1,6 @@
 [package]
 name = "spinoso-exception"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 description = """
 Ruby Exception error structs
@@ -23,10 +23,6 @@ path = "../scolapasta-string-escape"
 default-features = false
 
 [features]
-default = ["std"]
-# By default, `spinoso-exception` is `no_std` + `alloc`. This feature enables
-# `std::error::Error` impls.
-std = []
 
 [package.metadata.docs.rs]
 all-features = true

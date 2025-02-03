@@ -89,14 +89,6 @@
 //! This crate is `no_std` compatible when built without the `std` feature. This
 //! crate has a required dependency on [`alloc`].
 //!
-//! # Crate features
-//!
-//! All features are enabled by default.
-//!
-//! - **std** - Enables a dependency on the Rust Standard Library. Activating
-//!   this feature enables [`std::error::Error`] impls on error types in this
-//!   crate.
-//!
 //! [`Exception`]: https://ruby-doc.org/core-3.1.2/Exception.html
 //! [`Kernel#raise`]: https://ruby-doc.org/core-3.1.2/Kernel.html#method-i-raise
 //! [`NameError#name`]: https://ruby-doc.org/core-3.1.2/NameError.html#method-i-name
@@ -141,8 +133,6 @@
 mod readme {}
 
 extern crate alloc;
-#[cfg(feature = "std")]
-extern crate std;
 
 use alloc::borrow::Cow;
 
