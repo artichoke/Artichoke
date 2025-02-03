@@ -98,6 +98,8 @@ impl<'a> Parser<'a> {
         let state = interp.state.as_deref_mut()?;
         let context = state.parser.as_mut()?.context_mut();
         let context = NonNull::new(context)?;
+        // SAFETY: `mrb_parser_new` requires an initialized mruby interpreter,
+        // which is guaranteed by the `Artichoke` type.
         let parser = unsafe { interp.with_ffi_boundary(|mrb| sys::mrb_parser_new(mrb)).ok()? };
         let parser = NonNull::new(parser)?;
         Some(Self {
@@ -130,18 +132,22 @@ impl<'a> Parser<'a> {
             EXPR_MAX_STATE, EXPR_MID, EXPR_VALUE,
         };
 
-        let len = if let Ok(len) = isize::try_from(code.len()) {
-            len
-        } else {
-            return Ok(State::CodeTooLong);
-        };
+        // SAFETY: The parser is already initialized and the context is owned by
+        // the Artichoke state.
         let parser = unsafe { self.parser.as_mut() };
+        // SAFETY: The context is already initialized and the context is owned
+        // by the Artichoke state.
         let context = unsafe { self.context.as_mut() };
 
         let ptr = code.as_ptr().cast::<c_char>();
         parser.s = ptr;
-        parser.send = unsafe { ptr.offset(len) };
+        // SAFETY: the resulting pointer is within the bounds of the given
+        // `code` slice.
+        parser.send = unsafe { ptr.add(code.len()) };
         parser.lineno = context.lineno;
+        // SAFETY: `mrb_parser_parser` requires an initialized mruby
+        // interpreter, and calling `interp.with_ffi_boundary` ensures the
+        // interpreter is initialized and packed for foreign code.
         unsafe {
             self.interp.with_ffi_boundary(|_| {
                 sys::mrb_parser_parse(parser, context);
@@ -159,6 +165,7 @@ impl<'a> Parser<'a> {
             if errmsg.is_null() {
                 return Ok(State::ParseError);
             }
+            // SAFETY: `errmsg` is a pointer to a NUL-terminated C string.
             let cstring = unsafe { CStr::from_ptr(errmsg) };
             if let Ok(message) = cstring.to_str() {
                 match message {
@@ -213,6 +220,9 @@ impl Drop for Parser<'_> {
     fn drop(&mut self) {
         let Self { interp, parser, .. } = self;
 
+        // SAFETY: `mrb_parser_free` requires an initialized mruby interpreter,
+        // and calling `interp.with_ffi_boundary` ensures the interpreter is
+        // initialized and packed for foreign code.
         unsafe {
             let _ignored = interp.with_ffi_boundary(|_| {
                 sys::mrb_parser_free(parser.as_mut());

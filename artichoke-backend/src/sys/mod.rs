@@ -25,6 +25,7 @@ mod args;
     clippy::restriction,
     reason = "generated code"
 )]
+#[allow(missing_unsafe_on_extern, reason = "requires bindgen upgrade for generated code")]
 mod ffi {
     include!(concat!(env!("OUT_DIR"), "/ffi.rs"));
 }
