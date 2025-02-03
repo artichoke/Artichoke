@@ -42,9 +42,9 @@ pub fn integer(interp: &mut Artichoke, mut val: Value, base: Option<Value>) -> R
     };
     // The below routine is a port of `rb_convert_to_integer` from MRI 3.1.2.
     //
-    // https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3109-L3155
+    // <https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3109-L3155>
 
-    // https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3114-L3126
+    // <https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3114-L3126>
     if base.is_some() {
         let tmp = check_string_type(interp, val)?;
         if tmp.is_nil() {
@@ -57,10 +57,10 @@ pub fn integer(interp: &mut Artichoke, mut val: Value, base: Option<Value>) -> R
     // https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3127-L3132
     if let Ok(f) = val.try_convert_into::<f64>(interp) {
         // TODO: handle exception kwarg and return `nil` if it is false and f is not finite.
-        // https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3129
+        // <https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3129>
 
-        // https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3131
-        // https://github.com/ruby/ruby/blob/v3_1_2/bignum.c#L5230-L5235
+        // <https://github.com/ruby/ruby/blob/v3_1_2/object.c#L3131>
+        // <https://github.com/ruby/ruby/blob/v3_1_2/bignum.c#L5230-L5235>
         if f.is_infinite() {
             return Err(
                 FloatDomainError::with_message(if f.is_sign_negative() { "-Infinity" } else { "Infinity" }).into(),

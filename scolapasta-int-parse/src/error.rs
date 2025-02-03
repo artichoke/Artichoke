@@ -348,7 +348,7 @@ mod tests {
         let test_cases: &[(&[u8], &str)] = &[
             (b"\xFF", r#"invalid value for Integer(): "\xFF""#),
             ("🦀".as_bytes(), r#"invalid value for Integer(): "🦀""#),
-            // XXX: for UTF-8 strings, "\x00".inspect is "\u0000".
+            // XXX: for UTF-8 strings, `"\x00".inspect` is `"\u0000"`.
             (b"\x00", r#"invalid value for Integer(): "\x00""#),
         ];
         for (input, message) in test_cases.iter().copied() {

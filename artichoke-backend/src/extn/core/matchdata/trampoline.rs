@@ -265,7 +265,7 @@ pub fn regexp(interp: &mut Artichoke, mut value: Value) -> Result<Value, Error> 
     // The `Regexp::alloc_value` here should be replaced with
     // `Regexp::box_into_value`.
     //
-    // See: https://github.com/ruby/spec/pull/727
+    // See: <https://github.com/ruby/spec/pull/727>
     let regexp = Regexp::alloc_value(regexp.clone(), interp)?;
     Ok(regexp)
 }

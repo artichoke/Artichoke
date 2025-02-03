@@ -195,8 +195,9 @@ mod tests {
     #[cfg(feature = "core-regexp")]
     fn start_with_regex() {
         let mut interp = interpreter();
-        // Test that regexp matching using start_with? clear the relevant regexp globals
-        // This is not tested in the vendored MRI version hence why it is tested here
+        // Test that regexp matching using `start_with?` clear the relevant
+        // regexp globals This is not tested in the vendored MRI version hence
+        // why it is tested here
         let test = r"
             raise 'start_with? gives incorrect result' unless 'abcd test-123'.start_with?(/test-(\d+)/) == false;
             raise 'start_with? should clear Regexp.last_match' unless Regexp.last_match == nil
@@ -223,7 +224,7 @@ mod tests {
     fn allocated_but_uninitialized_string_can_be_read() {
         let mut interp = interpreter();
         // See the ruby specs for `String.allocate` for more details:
-        // spec-runner/vendor/spec/core/string/allocate_spec.rb
+        // `spec-runner/vendor/spec/core/string/allocate_spec.rb`
         //
         // ```console
         // [3.3.6] > s = String.allocate

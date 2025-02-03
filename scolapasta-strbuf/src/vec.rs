@@ -12,7 +12,7 @@ use std::io::{self, IoSlice, Write};
 
 use raw_parts::RawParts;
 
-/// A contiguous growable byte string, written as `Buf`, short for 'buffer'.
+/// A contiguous growable byte string, written as `Buf`, short for "buffer".
 ///
 /// This buffer is a transparent wrapper around [`Vec<u8>`] with a minimized API
 /// sufficient for implementing the Ruby [`String`] type.
@@ -951,7 +951,7 @@ impl Buf {
     }
 
     /// Return the number of bytes in the buffer, also referred to as its
-    /// 'length' or 'bytesize'.
+    /// "length" or "bytesize".
     ///
     /// # Examples
     ///

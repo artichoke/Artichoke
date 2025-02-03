@@ -714,7 +714,7 @@ unsafe extern "C" fn mrb_byte_hash_step(s: *const u8, len: sys::mrb_int, mut hva
     let slice = slice::from_raw_parts(s, len as usize);
     // FNV-1 hash each octet in the buffer
     for &byte in slice {
-        // multiply by the 32 bit FNV magic prime mod 2^32
+        // multiply by the 32 bit FNV magic prime mod `2^32`
         hval *= FNV_32_PRIME;
         // xor the bottom with the current octet
         hval ^= u32::from(byte);

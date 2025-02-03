@@ -35,12 +35,12 @@ pub unsafe fn from_user_data(mrb: *mut sys::mrb_state) -> Result<Artichoke, Inte
         return Err(InterpreterExtractError::new());
     };
 
-    // SAFETY: mrb is valid and non-null by caller contract and non-null check.
+    // SAFETY: `mrb` is valid and non-null by caller contract and non-null check.
     let ud = mem::replace(unsafe { &mut mrb.as_mut().ud }, ptr::null_mut());
     let state = if let Some(state) = NonNull::new(ud) {
         state.cast::<State>()
     } else {
-        // SAFETY: mrb is valid and non-null by caller contract and non-null check.
+        // SAFETY: `mrb` is valid and non-null by caller contract and non-null check.
         let alloc_ud = mem::replace(unsafe { &mut mrb.as_mut().allocf_ud }, ptr::null_mut());
         if let Some(state) = NonNull::new(alloc_ud) {
             state.cast::<State>()

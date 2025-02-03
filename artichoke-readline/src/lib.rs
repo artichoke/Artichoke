@@ -112,8 +112,8 @@ impl From<EditMode> for rustyline::config::EditMode {
 /// >
 /// > 1. the filename used for the previous call
 /// > 2. the value of the shell variable `INPUTRC`
-/// > 3. ~/.inputrc
-/// > 4. /etc/inputrc
+/// > 3. `~/.inputrc`
+/// > 4. `/etc/inputrc`
 /// >
 /// > If the file existed and could be opened and read, 0 is returned, otherwise
 /// > errno is returned.

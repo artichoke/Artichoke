@@ -76,7 +76,7 @@ use std::path::PathBuf;
 /// This function will attempt to create all parent directories of the returned
 /// path. If creating parent directories fails, the error is ignored.
 ///
-/// Callers should call this function once at startup and retain the returned
+/// Callers should call this function once at start-up and retain the returned
 /// value for later use. Some platforms depend on ambient global state in the
 /// environment, so subsequent calls may return different results.
 ///
@@ -170,10 +170,10 @@ fn repl_history_dir() -> Option<PathBuf> {
     let domain_mask = SYSDIR_DOMAIN_MASK_USER;
 
     // SAFETY: this block uses the `sysdir` C API as documented in the man page.
-    // These extern "C" functions are safe to call as long as the caller ensures
-    // that the `path` buffer is large enough to hold the result. They will
-    // always be available on apple targets which have libSystem, which is true
-    // for all apple targets Rust supports.
+    // These `extern "C"`` functions are safe to call as long as the caller
+    // ensures that the `path` buffer is large enough to hold the result. They
+    // will always be available on apple targets which have `libSystem`, which
+    // is true for all apple targets Rust supports.
     let application_support_bytes = unsafe {
         // We don't need to loop here, just take the first result.
         let mut state = sysdir_start_search_path_enumeration(dir, domain_mask);
@@ -205,7 +205,7 @@ fn repl_history_dir() -> Option<PathBuf> {
         [b'~'] => env::home_dir()?,
         // Per the `sysdir` man page:
         //
-        // > Directory paths returned in the user domain will contain "~" to
+        // > Directory paths returned in the user domain will contain `~` to
         // > refer to the user's directory.
         //
         // Below we expand `~/` to `$HOME/` using APIs from `std`.

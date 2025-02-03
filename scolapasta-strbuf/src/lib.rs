@@ -35,7 +35,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, feature(doc_alias))]
 
-//! A contiguous growable byte string, written as `Buf`, short for 'buffer'.
+//! A contiguous growable byte string, written as `Buf`, short for "buffer".
 //!
 //! Buffers have *O*(1) indexing, amortized *O*(1) push (to the end) and *O*(1)
 //! pop (from the end).

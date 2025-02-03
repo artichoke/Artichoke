@@ -170,7 +170,7 @@ impl Time {
         // last version of the Time Zone Database, all TZif v1 files have been
         // replaced by TZif v2 or v3 files, so this error should be uncommon.
         //
-        // As of `tzdb` 0.4.0, the Time Zone Database is version 2022a which has
+        // As of `tzdb` 0.4.0, the Time Zone Database is version `2022a` which has
         // this property, which means an `expect` below can never panic, however
         // upstream has provided a test case which means we have a test that
         // simulates this failure condition and requires us to handle it.

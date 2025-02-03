@@ -90,7 +90,6 @@ impl From<TzError> for TimeError {
         #[expect(clippy::match_same_arms, reason = "for documentation on each arm")]
         match error {
             // These two are generally recoverable within the usable of `spinoso_time`
-            // TzError::DateTimeError(error) => Self::from(error),
             TzError::DateTime(error) => Self::from(error),
             TzError::LocalTimeType(error) => Self::from(error),
 

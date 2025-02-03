@@ -800,7 +800,7 @@ mod tests {
 
     #[test]
     fn random_bytes_default_bytes() {
-        // https://github.com/ruby/ruby/blob/v2_6_3/lib/securerandom.rb#L135
+        // <https://github.com/ruby/ruby/blob/v2_6_3/lib/securerandom.rb#L135>
         assert_eq!(super::DEFAULT_REQUESTED_BYTES, 16);
         let default_requested_bytes = random_bytes(None).unwrap();
         assert_eq!(default_requested_bytes.len(), 16);

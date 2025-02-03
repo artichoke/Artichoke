@@ -194,135 +194,135 @@ mod tests {
 
     #[test]
     fn test_zero_index() {
-        // Test case: index = 0, len = 0
+        // Test case: `index = 0, len = 0`
         assert_eq!(offset_to_index(0_i64, 0_usize), Some(0_usize));
 
-        // Test case: index = 0, len = 1
+        // Test case: `index = 0, len = 1`
         assert_eq!(offset_to_index(0_i64, 1_usize), Some(0_usize));
 
-        // Test case: index = 0, len = 10
+        // Test case: `index = 0, len = 10`
         assert_eq!(offset_to_index(0, 10), Some(0_usize));
 
-        // Test case: index = 0, len = usize::MAX
+        // Test case: `index = 0, len = usize::MAX`
         assert_eq!(offset_to_index(0_i64, usize::MAX), Some(0_usize));
     }
 
     #[test]
     fn test_positive_index() {
-        // Test case: index = 1, len = 0
+        // Test case: `index = 1, len = 0`
         assert_eq!(offset_to_index(1_i64, 0_usize), Some(1_usize));
 
-        // Test case: index = 1, len = 1
+        // Test case: `index = 1, len = 1`
         assert_eq!(offset_to_index(1_i64, 1_usize), Some(1_usize));
 
-        // Test case: index = 1, len = 2
+        // Test case: `index = 1, len = 2`
         assert_eq!(offset_to_index(1_i64, 2_usize), Some(1_usize));
 
-        // Test case: index = 1, len = usize::MAX
+        // Test case: `index = 1, len = usize::MAX`
         assert_eq!(offset_to_index(1_i64, usize::MAX), Some(1_usize));
 
-        // Test case: index = 15, len = 10
+        // Test case: `index = 15, len = 10`
         assert_eq!(offset_to_index(15, 10), Some(15_usize));
 
-        // Test case: index = 123, len = 0
+        // Test case: `index = 123, len = 0`
         assert_eq!(offset_to_index(123_i64, 0_usize), Some(123_usize));
 
-        // Test case: index = 123, len = 1
+        // Test case: `index = 123, len = 1`
         assert_eq!(offset_to_index(123_i64, 1_usize), Some(123_usize));
 
-        // Test case: index = 123, len = 123
+        // Test case: `index = 123, len = 123`
         assert_eq!(offset_to_index(123_i64, 123_usize), Some(123_usize));
 
-        // Test case: index = 123, len = 123
+        // Test case: `index = 123, len = 123`
         assert_eq!(offset_to_index(123_i64, 124_usize), Some(123_usize));
 
-        // Test case: index = 123, len = 123
+        // Test case: `index = 123, len = 123`
         assert_eq!(offset_to_index(123_i64, 500_usize), Some(123_usize));
 
-        // Test case: index = 123, len = usize::MAX
+        // Test case: `index = 123, len = usize::MAX`
         assert_eq!(offset_to_index(123_i64, usize::MAX), Some(123_usize));
 
-        // Test case: index = i64::MAX, len = 5
+        // Test case: `index = i64::MAX, len = 5`
         #[cfg(target_pointer_width = "64")]
         assert_eq!(offset_to_index(i64::MAX, 5), Some(usize::try_from(i64::MAX).unwrap()));
 
-        // Test case: index = i64::MAX, len = usize::MAX
+        // Test case: `index = i64::MAX, len = usize::MAX`
         #[cfg(target_pointer_width = "64")]
         assert_eq!(
             offset_to_index(i64::MAX, usize::MAX),
             Some(usize::try_from(i64::MAX).unwrap())
         );
 
-        // Test case: index = 100, len = 1000
+        // Test case: `index = 100, len = 1000`
         assert_eq!(offset_to_index(100_i64, 1000_usize), Some(100_usize));
 
-        // Test case: index = 500, len = 500
+        // Test case: `index = 500, len = 500`
         assert_eq!(offset_to_index(500_i64, 500_usize), Some(500_usize));
 
-        // Test case: index = 999, len = 100
+        // Test case: `index = 999, len = 100`
         assert_eq!(offset_to_index(999_i64, 100_usize), Some(999_usize));
     }
 
     #[test]
     fn test_negative_index() {
-        // Test case: index = -1, len = 0
+        // Test case: `index = -1, len = 0`
         assert_eq!(offset_to_index(-1_i64, 0_usize), None);
 
-        // Test case: index = -1, len = 1
+        // Test case: `index = -1, len = 1`
         assert_eq!(offset_to_index(-1_i64, 1_usize), Some(0_usize));
 
-        // Test case: index = -1, len = 2
+        // Test case: `index = -1, len = 2`
         assert_eq!(offset_to_index(-1_i64, 2_usize), Some(1_usize));
 
-        // Test case: index = -1, len = 10
+        // Test case: `index = -1, len = 10`
         assert_eq!(offset_to_index(-1_i64, 10_usize), Some(9_usize));
 
-        // Test case: index = -1, len = 245
+        // Test case: `index = -1, len = 245`
         assert_eq!(offset_to_index(-1_i64, 245_usize), Some(244_usize));
 
-        // Test case: index = -10, len = 0
+        // Test case: `index = -10, len = 0`
         assert_eq!(offset_to_index(-10_i64, 0_usize), None);
 
-        // Test case: index = -10, len = 1
+        // Test case: `index = -10, len = 1`
         assert_eq!(offset_to_index(-10_i64, 1_usize), None);
 
-        // Test case: index = -10, len = 2
+        // Test case: `index = -10, len = 2`
         assert_eq!(offset_to_index(-10_i64, 2_usize), None);
 
-        // Test case: index = -10, len = 10
+        // Test case: `index = -10, len = 10`
         assert_eq!(offset_to_index(-10_i64, 10_usize), Some(0_usize));
 
-        // Test case: index = -10, len = 245
+        // Test case: `index = -10, len = 245`
         assert_eq!(offset_to_index(-10_i64, 245_usize), Some(235_usize));
 
-        // Test case: index = -123, len = 0
+        // Test case: `index = -123, len = 0`
         assert_eq!(offset_to_index(-123_i64, 0_usize), None);
 
-        // Test case: index = -123, len = 1
+        // Test case: `index = -123, len = 1`
         assert_eq!(offset_to_index(-123_i64, 1_usize), None);
 
-        // Test case: index = -123, len = 2
+        // Test case: `index = -123, len = 2`
         assert_eq!(offset_to_index(-123_i64, 2_usize), None);
 
-        // Test case: index = -123, len = 10
+        // Test case: `index = -123, len = 10`
         assert_eq!(offset_to_index(-123_i64, 10_usize), None);
 
-        // Test case: index = -123, len = 245
+        // Test case: `index = -123, len = 245`
         assert_eq!(offset_to_index(-123_i64, 245_usize), Some(122_usize));
 
-        // Test case: index = i64::MIN, len = 0
+        // Test case: `index = i64::MIN, len = 0`
         assert_eq!(offset_to_index(i64::MIN, 0_usize), None);
 
-        // Test case: index = i64::MIN, len = 1
+        // Test case: `index = i64::MIN, len = 1`
         assert_eq!(offset_to_index(i64::MIN, 1_usize), None);
 
-        // Test case: index = i64::MIN, len = 2
+        // Test case: `index = i64::MIN, len = 2`
         assert_eq!(offset_to_index(i64::MIN, 2_usize), None);
 
-        // Test case: index = i64::MIN, len = 10
+        // Test case: `index = i64::MIN, len = 10`
         assert_eq!(offset_to_index(i64::MIN, 10_usize), None);
 
-        // Test case: index = i64::MIN, len = 245
+        // Test case: `index = i64::MIN, len = 245`
         assert_eq!(offset_to_index(i64::MIN, 245_usize), None);
     }
 
@@ -406,19 +406,19 @@ mod tests {
         #[cfg(target_pointer_width = "64")]
         assert_eq!(offset_to_index(i64::MAX, 10), Some(usize::try_from(i64::MAX).unwrap()));
 
-        // Test case: index = 0, len = usize::MAX
+        // Test case: `index = 0, len = usize::MAX`
         assert_eq!(offset_to_index(0_i64, usize::MAX), Some(0_usize));
 
-        // Test case: index = 1, len = usize::MAX
+        // Test case: `index = 1, len = usize::MAX`
         assert_eq!(offset_to_index(1_i64, usize::MAX), Some(1_usize));
 
-        // Test case: index = -1, len = usize::MAX
+        // Test case: `index = -1, len = usize::MAX`
         assert_eq!(offset_to_index(-1_i64, usize::MAX), Some(usize::MAX - 1));
 
-        // Test case: index = 10, len = usize::MAX
+        // Test case: `index = 10, len = usize::MAX`
         assert_eq!(offset_to_index(10, usize::MAX), Some(10_usize));
 
-        // Test case: index = i64::MAX, len = usize::MAX
+        // Test case: `index = i64::MAX, len = usize::MAX`
         #[cfg(target_pointer_width = "64")]
         assert_eq!(
             offset_to_index(i64::MAX, usize::MAX),

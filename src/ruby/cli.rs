@@ -76,9 +76,9 @@ pub fn parse_args() -> Args {
 //
 // `ripgrep` is licensed with the MIT License Copyright (c) 2015 Andrew Gallant.
 //
-// https://github.com/BurntSushi/ripgrep/blob/9f924ee187d4c62aa6ebe4903d0cfc6507a5adb5/LICENSE-MIT
+// <https://github.com/BurntSushi/ripgrep/blob/9f924ee187d4c62aa6ebe4903d0cfc6507a5adb5/LICENSE-MIT>
 //
-// See https://github.com/artichoke/artichoke/issues/1301.
+// See <https://github.com/artichoke/artichoke/issues/1301>.
 
 /// Returns a clap matches object if the given arguments parse successfully.
 ///

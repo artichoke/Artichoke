@@ -46,8 +46,8 @@ fn is_unpaired_surrogate_path_explicit_relative(path: &OsStr) -> bool {
 }
 
 pub fn normalize_slashes(path: PathBuf) -> Result<Vec<u8>, PathBuf> {
-    // A verbatim path is a path that starts with "\\?\" or "\\?\UNC\" on Windows.
-    // These paths are treated as-is and should not be normalized.
+    // A verbatim path is a path that starts with `"\\?\"` or `"\\?\UNC\"` on
+    // Windows.  These paths are treated as-is and should not be normalized.
     if matches!(path.components().next(), Some(Component::Prefix(prefix)) if prefix.kind().is_verbatim()) {
         return Err(path);
     }

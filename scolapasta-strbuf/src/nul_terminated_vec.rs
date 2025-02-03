@@ -36,8 +36,8 @@ fn ensure_nul_terminated(vec: &mut Vec<u8>) -> Result<(), TryReserveError> {
     //
     // See:
     //
-    // - https://github.com/artichoke/artichoke/pull/1976#discussion_r932782264
-    // - https://github.com/artichoke/artichoke/blob/16c869a9ad29acfe143bfcc011917ef442ccac54/artichoke-backend/vendor/mruby/src/string.c#L36-L38
+    // - <https://github.com/artichoke/artichoke/pull/1976#discussion_r932782264>
+    // - <https://github.com/artichoke/artichoke/blob/16c869a9ad29acfe143bfcc011917ef442ccac54/artichoke-backend/vendor/mruby/src/string.c#L36-L38>
     match spare_capacity {
         [] => {}
         [next] => {
@@ -66,7 +66,7 @@ fn ensure_nul_terminated(vec: &mut Vec<u8>) -> Result<(), TryReserveError> {
     Ok(())
 }
 
-/// A contiguous growable byte string, written as `Buf`, short for 'buffer'.
+/// A contiguous growable byte string, written as `Buf`, short for "buffer".
 ///
 /// This buffer is a transparent wrapper around [`Vec<u8>`] with a minimized API
 /// sufficient for implementing the Ruby [`String`] type.
@@ -1086,7 +1086,7 @@ impl Buf {
     }
 
     /// Return the number of bytes in the buffer, also referred to as its
-    /// 'length' or 'bytesize'.
+    /// "length" or "bytesize".
     ///
     /// # Examples
     ///
@@ -1433,8 +1433,8 @@ mod proptests {
         }
     }
 
-    /// Returns whether the given vector’s spare capacity is nonempty and that both its
-    /// first and last bytes (of the spare capacity) are the NUL byte.
+    /// Returns whether the given vectors spare capacity is nonempty and that
+    /// both its first and last bytes (of the spare capacity) are the NUL byte.
     #[inline]
     fn is_nul_terminated(vec: &mut Vec<u8>) -> bool {
         let spare = vec.spare_capacity_mut();

@@ -247,7 +247,7 @@ pub fn asctime(interp: &mut Artichoke, time: Value) -> Result<Value, Error> {
 }
 
 pub fn to_string(interp: &mut Artichoke, mut time: Value) -> Result<Value, Error> {
-    // %z will always display a +/-HHMM value, however it's expected that UTC
+    // `%z` will always display a +/-HHMM value, however it's expected that UTC
     // is shown if it is UTC Time.
     let format = if unsafe { Time::unbox_from_value(&mut time, interp)? }.is_utc() {
         "%Y-%m-%d %H:%M:%S UTC"
@@ -492,8 +492,8 @@ fn strftime_with_encoding(
     let time = unsafe { Time::unbox_from_value(&mut time, interp)? };
 
     let bytes: Vec<u8> = time.strftime(format).map_err(|e| {
-        // InvalidFormatString is the only true ArgumentError, where as the
-        // rest that can be thrown from strftime are runtime failures.
+        // `InvalidFormatString` is the only true `ArgumentError`, where as the
+        // rest that can be thrown from `strftime` are runtime failures.
         //
         // ```console
         // [3.1.2]> Time.now.strftime("%")
@@ -504,8 +504,8 @@ fn strftime_with_encoding(
         // 	    from /home/ben/.rbenv/versions/3.1.2/bin/irb:25:in `<main>'
         // ```
         //
-        // Note: The errors which are re-thrown as RuntimeError include (but is
-        // not limited to: `InvalidTime`, `FmtError(Error)`,
+        // Note: The errors which are re-thrown as `RuntimeError` include (but
+        // is not limited to: `InvalidTime`, `FmtError(Error)`,
         // `OutOfMemory(TryReserveError)`
         match e {
             InvalidFormatString => {
@@ -514,7 +514,7 @@ fn strftime_with_encoding(
                 Error::from(ArgumentError::from(message))
             }
             FormattedStringTooLarge => {
-                // TODO: This should be an `Errno::ERANGE` not an ArgumentError
+                // TODO: This should be an `Errno::ERANGE` not an `ArgumentError`.
                 //
                 // ```console
                 // [3.1.2] > Time.now.strftime "%4718593m"
@@ -529,7 +529,7 @@ fn strftime_with_encoding(
                 Error::from(ArgumentError::from(message))
             }
             WriteZero => {
-                // TODO: This should be an `Errno::ERANGE` not an ArgumentError
+                // TODO: This should be an `Errno::ERANGE` not an `ArgumentError`.
                 //
                 // ```console
                 // [3.1.2] > Time.now.strftime "%2147483647m"
