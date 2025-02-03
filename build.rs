@@ -44,7 +44,7 @@ use std::str;
 
 use tz::UtcDateTime;
 
-#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy)]
 struct Date {
     pub year: i32,
     pub month: u32,
