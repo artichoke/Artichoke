@@ -166,7 +166,8 @@ impl Context {
         T: Into<Cow<'static, [u8]>>,
     {
         let filename = filename.into();
-        let cstring = CString::from_vec_unchecked(filename.clone().into_owned());
+        // SAFETY: callers must guarantee that `filename` is a valid C string.
+        let cstring = unsafe { CString::from_vec_unchecked(filename.clone().into_owned()) };
         Self {
             filename,
             filename_cstr: cstring.into_boxed_c_str(),

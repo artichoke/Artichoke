@@ -486,7 +486,9 @@ pub unsafe fn implicitly_convert_to_nilable_string<'a>(
     if value.is_nil() {
         Ok(None)
     } else {
-        let string = implicitly_convert_to_string(interp, value)?;
+        // SAFETY: `implicitly_convert_to_string` has the same safety contract
+        // as this function.
+        let string = unsafe { implicitly_convert_to_string(interp, value)? };
         Ok(Some(string))
     }
 }
@@ -588,7 +590,9 @@ pub unsafe fn implicitly_convert_to_spinoso_string<'a>(
     if let Ruby::Symbol = value.ruby_type() {
         return Err(TypeError::with_message("no implicit conversion of Symbol into String").into());
     }
-    if let Ok(s) = spinoso_string::String::unbox_from_value(value, interp) {
+    // SAFETY: caller must uphold that the value is bound to the same
+    // Artichoke interpreter.
+    if let Ok(s) = unsafe { spinoso_string::String::unbox_from_value(value, interp) } {
         return Ok(s);
     }
     let value = value_copy;
@@ -609,14 +613,19 @@ pub unsafe fn implicitly_convert_to_spinoso_string<'a>(
         // ArgumentError (a message)
         // ```
         let mut maybe = value.funcall(interp, "to_str", &[], None)?;
-        if let Ok(s) = spinoso_string::String::unbox_from_value(&mut maybe, interp) {
+        // SAFETY: caller must uphold that the value is bound to the same
+        // Artichoke interpreter.
+        if let Ok(s) = unsafe { spinoso_string::String::unbox_from_value(&mut maybe, interp) } {
             // successful conversion: `#to_str` returned a string.
             //
-            // XXX: lifetime extension.
-            Ok(mem::transmute::<
-                UnboxedValueGuard<'_, spinoso_string::String>,
-                UnboxedValueGuard<'a, spinoso_string::String>,
-            >(s))
+            // XXX: this transmute does a lifetime extension and is probably
+            // unsound.
+            unsafe {
+                Ok(mem::transmute::<
+                    UnboxedValueGuard<'_, spinoso_string::String>,
+                    UnboxedValueGuard<'a, spinoso_string::String>,
+                >(s))
+            }
         } else {
             // Non `String` types returned from `#to_str` result in a
             // `TypeError`:

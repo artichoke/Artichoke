@@ -34,9 +34,9 @@ impl TryConvert<Value, bool> for Artichoke {
     fn try_convert(&self, value: Value) -> Result<bool, Self::Error> {
         if let Ruby::Bool = value.ruby_type() {
             let inner = value.inner();
-            if unsafe { sys::mrb_sys_value_is_true(inner) } {
+            if sys::mrb_sys_value_is_true(inner) {
                 Ok(true)
-            } else if unsafe { sys::mrb_sys_value_is_false(inner) } {
+            } else if sys::mrb_sys_value_is_false(inner) {
                 Ok(false)
             } else {
                 // This branch is unreachable because `Ruby::Bool` typed values
@@ -102,9 +102,9 @@ mod tests {
         let value = interp.convert(true);
         let inner = value.inner();
         // When true, the inner value should be true and not false or nil.
-        assert!(!unsafe { sys::mrb_sys_value_is_false(inner) });
-        assert!(unsafe { sys::mrb_sys_value_is_true(inner) });
-        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+        assert!(!sys::mrb_sys_value_is_false(inner));
+        assert!(sys::mrb_sys_value_is_true(inner));
+        assert!(!sys::mrb_sys_value_is_nil(inner));
     }
 
     #[test]
@@ -113,9 +113,9 @@ mod tests {
         let value = interp.convert(false);
         let inner = value.inner();
         // When false, the inner value should be false and not true or nil.
-        assert!(unsafe { sys::mrb_sys_value_is_false(inner) });
-        assert!(!unsafe { sys::mrb_sys_value_is_true(inner) });
-        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+        assert!(sys::mrb_sys_value_is_false(inner));
+        assert!(!sys::mrb_sys_value_is_true(inner));
+        assert!(!sys::mrb_sys_value_is_nil(inner));
     }
 
     #[test]
@@ -124,9 +124,9 @@ mod tests {
         let value = interp.convert(Some(true));
         let inner = value.inner();
         // For Some(true), the inner value should be true.
-        assert!(!unsafe { sys::mrb_sys_value_is_false(inner) });
-        assert!(unsafe { sys::mrb_sys_value_is_true(inner) });
-        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+        assert!(!sys::mrb_sys_value_is_false(inner));
+        assert!(sys::mrb_sys_value_is_true(inner));
+        assert!(!sys::mrb_sys_value_is_nil(inner));
     }
 
     #[test]
@@ -135,9 +135,9 @@ mod tests {
         let value = interp.convert(Some(false));
         let inner = value.inner();
         // For Some(false), the inner value should be false.
-        assert!(unsafe { sys::mrb_sys_value_is_false(inner) });
-        assert!(!unsafe { sys::mrb_sys_value_is_true(inner) });
-        assert!(!unsafe { sys::mrb_sys_value_is_nil(inner) });
+        assert!(sys::mrb_sys_value_is_false(inner));
+        assert!(!sys::mrb_sys_value_is_true(inner));
+        assert!(!sys::mrb_sys_value_is_nil(inner));
     }
 
     #[test]
@@ -146,9 +146,9 @@ mod tests {
         let value = interp.convert(None::<bool>);
         let inner = value.inner();
         // For None, the converted value should be Ruby's nil.
-        assert!(!unsafe { sys::mrb_sys_value_is_false(inner) });
-        assert!(!unsafe { sys::mrb_sys_value_is_true(inner) });
-        assert!(unsafe { sys::mrb_sys_value_is_nil(inner) });
+        assert!(!sys::mrb_sys_value_is_false(inner));
+        assert!(!sys::mrb_sys_value_is_true(inner));
+        assert!(sys::mrb_sys_value_is_nil(inner));
     }
 
     #[test]

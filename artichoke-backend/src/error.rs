@@ -84,7 +84,10 @@ where
 
     // Pull out the raw pointer to the `mrb_state` so we can drop down to raw
     // `MRB_API` functions.
-    let mrb: *mut sys::mrb_state = guard.mrb.as_mut();
+    //
+    // SAFETY: The `Guard` ensures that the `mrb_state` is valid and
+    // initialized.
+    let mrb: *mut sys::mrb_state = unsafe { guard.mrb.as_mut() };
 
     // Ensure the Artichoke `State` is moved back into the `mrb_state`.
     drop(guard);
@@ -95,12 +98,19 @@ where
         drop(exception);
 
         // `mrb_exc_raise` will call longjmp which will unwind the stack.
-        sys::mrb_exc_raise(mrb, exc);
+        //
+        // SAFETY: all remaining live objects are `Copy` and the `mrb_state` is
+        // valid.
+        unsafe {
+            sys::mrb_exc_raise(mrb, exc);
+        }
 
         // SAFETY: This line is unreachable because `raise` will unwind the
         // stack with `longjmp` when calling `sys::mrb_exc_raise` in the
         // preceding line.
-        hint::unreachable_unchecked()
+        unsafe {
+            hint::unreachable_unchecked();
+        }
     }
 
     // Being unable to turn the given exception into an `mrb_value` is a bug, so
@@ -112,11 +122,18 @@ where
     drop(exception);
 
     // `mrb_sys_raise` will call longjmp which will unwind the stack.
-    sys::mrb_sys_raise(mrb, RUNTIME_ERROR_CSTR.as_ptr(), UNABLE_TO_RAISE_MESSAGE.as_ptr());
+    //
+    // SAFETY: all remaining live objects are `Copy` and the `mrb_state` is
+    // valid.
+    unsafe {
+        sys::mrb_sys_raise(mrb, RUNTIME_ERROR_CSTR.as_ptr(), UNABLE_TO_RAISE_MESSAGE.as_ptr());
+    }
 
     // SAFETY: This line is unreachable because `raise` will unwind the stack
     // with `longjmp` when calling `sys::mrb_exc_raise` in the preceding line.
-    hint::unreachable_unchecked()
+    unsafe {
+        hint::unreachable_unchecked();
+    }
 }
 
 /// Polymorphic exception type that corresponds to Ruby's `Exception`.

@@ -21,7 +21,7 @@ pub fn ruby_from_mrb_value(value: sys::mrb_value) -> Ruby {
         // `nil` is implemented with the `MRB_TT_FALSE` type tag in mruby
         // (since both values are falsy). The difference is that Booleans are
         // non-zero `Fixnum`s.
-        MRB_TT_FALSE if unsafe { sys::mrb_sys_value_is_nil(value) } => Ruby::Nil,
+        MRB_TT_FALSE if sys::mrb_sys_value_is_nil(value) => Ruby::Nil,
         MRB_TT_FALSE => Ruby::Bool,
         // `MRB_TT_FREE` is a marker type tag that indicates to the mruby
         // VM that an object is unreachable and should be deallocated by the

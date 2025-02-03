@@ -1,4 +1,4 @@
-#![warn(clippy::all, clippy::pedantic)]
+#![warn(clippy::all, clippy::pedantic, clippy::undocumented_unsafe_blocks)]
 #![allow(
     clippy::let_underscore_untyped,
     reason = "https://github.com/rust-lang/rust-clippy/pull/10442#issuecomment-1516570154"
@@ -25,14 +25,15 @@
 #![warn(
     missing_copy_implementations,
     missing_debug_implementations,
-    // missing_docs,
+    missing_docs,
     rust_2024_compatibility,
     trivial_casts,
     trivial_numeric_casts,
     unused_qualifications,
     variant_size_differences
 )]
-#![allow(unsafe_op_in_unsafe_fn, reason = "legacy code, many spots to fix")]
+#![expect(missing_docs, reason = "TODO: fully document crate")]
+#![expect(clippy::undocumented_unsafe_blocks, reason = "working through legacy code")]
 // Enable feature callouts in generated documentation:
 // https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html
 //

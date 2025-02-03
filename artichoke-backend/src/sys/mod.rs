@@ -34,9 +34,43 @@ pub(crate) mod protect;
 pub use self::args::*;
 pub use self::ffi::*;
 
+/// Check whether the given value is the singleton `nil`.
+#[must_use]
+pub fn mrb_sys_value_is_nil(value: mrb_value) -> bool {
+    // SAFETY: `mrb_sys_value_is_nil` only requires a valid `mrb_value` and type
+    // tag, of which `value` is both.
+    unsafe { ffi::mrb_sys_value_is_nil(value) }
+}
+
+/// Check whether the given value is the singleton `false`.
+#[must_use]
+pub fn mrb_sys_value_is_false(value: mrb_value) -> bool {
+    // SAFETY: `mrb_sys_value_is_false` only requires a valid `mrb_value` and type
+    // tag, of which `value` is both.
+    unsafe { ffi::mrb_sys_value_is_false(value) }
+}
+
+/// Check whether the given value is the singleton `true`.
+#[must_use]
+pub fn mrb_sys_value_is_true(value: mrb_value) -> bool {
+    // SAFETY: `mrb_sys_value_is_true` only requires a valid `mrb_value` and type
+    // tag, of which `value` is both.
+    unsafe { ffi::mrb_sys_value_is_true(value) }
+}
+
+/// Return a `nil` `mrb_value`.
+///
+/// The resulting value has `TT_FALSE` type tag and is an immediate value.
+#[must_use]
+pub fn mrb_sys_nil_value() -> mrb_value {
+    // SAFETY: `mrb_sys_nil_value` returns an immediate value and has no safety
+    // obligations to uphold.
+    unsafe { ffi::mrb_sys_nil_value() }
+}
+
 impl Default for mrb_value {
     fn default() -> Self {
-        unsafe { mrb_sys_nil_value() }
+        mrb_sys_nil_value()
     }
 }
 
@@ -44,13 +78,15 @@ impl fmt::Debug for mrb_value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match types::ruby_from_mrb_value(*self) {
             Ruby::Nil => f.write_str("nil"),
-            Ruby::Bool if unsafe { mrb_sys_value_is_true(*self) } => f.write_str("true"),
+            Ruby::Bool if mrb_sys_value_is_true(*self) => f.write_str("true"),
             Ruby::Bool => f.write_str("false"),
             Ruby::Fixnum => {
+                // SAFETY: value type tag is checked to be a fixnum.
                 let fixnum = unsafe { mrb_sys_fixnum_to_cint(*self) };
                 write!(f, "{fixnum}")
             }
             Ruby::Float => {
+                // SAFETY: value type tag is checked to be a float.
                 let float = unsafe { mrb_sys_float_to_cdouble(*self) };
                 write!(f, "{float}")
             }
@@ -65,10 +101,12 @@ pub fn mrb_sys_mruby_version(verbose: bool) -> String {
     if !verbose {
         return String::from(env!("CARGO_PKG_VERSION"));
     }
-    let engine = CStr::from_bytes_with_nul(MRUBY_RUBY_ENGINE);
-    let engine = engine.ok().and_then(|cstr| cstr.to_str().ok()).unwrap_or("unknown");
-    let version = CStr::from_bytes_with_nul(MRUBY_RUBY_VERSION);
-    let version = version.ok().and_then(|cstr| cstr.to_str().ok()).unwrap_or("0.0.0");
+
+    let engine = CStr::from_bytes_with_nul(MRUBY_RUBY_ENGINE).unwrap_or(c"unknown");
+    let engine = engine.to_str().unwrap_or("unknown");
+    let version = CStr::from_bytes_with_nul(MRUBY_RUBY_VERSION).unwrap_or(c"0.0.0");
+    let version = version.to_str().unwrap_or("0.0.0");
+
     let mut out = String::new();
     out.push_str(engine);
     out.push(' ');
@@ -91,10 +129,11 @@ pub fn mrb_sys_mruby_version(verbose: bool) -> String {
 /// This function is infallible and guaranteed not to panic.
 #[must_use]
 pub fn mrb_sys_state_debug(mrb: *mut mrb_state) -> String {
-    let engine = CStr::from_bytes_with_nul(MRUBY_RUBY_ENGINE);
-    let engine = engine.ok().and_then(|cstr| cstr.to_str().ok()).unwrap_or("unknown");
-    let version = CStr::from_bytes_with_nul(MRUBY_RUBY_VERSION);
-    let version = version.ok().and_then(|cstr| cstr.to_str().ok()).unwrap_or("0.0.0");
+    let engine = CStr::from_bytes_with_nul(MRUBY_RUBY_ENGINE).unwrap_or(c"unknown");
+    let engine = engine.to_str().unwrap_or("unknown");
+    let version = CStr::from_bytes_with_nul(MRUBY_RUBY_VERSION).unwrap_or(c"0.0.0");
+    let version = version.to_str().unwrap_or("0.0.0");
+
     let mut debug = String::new();
     // Explicitly suppressed error since we are only generating debug info and
     // cannot panic.
@@ -118,6 +157,7 @@ mod tests {
         // Since the introduction of Rust symbol table, `mrb_open` cannot be
         // called without an Artichoke `State`.
         let mut interp = interpreter();
+        // SAFETY: interpreter is initialized.
         unsafe {
             let mrb = interp.mrb.as_mut();
             let debug = sys::mrb_sys_state_debug(mrb);

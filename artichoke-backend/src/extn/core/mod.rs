@@ -1,4 +1,9 @@
 #![expect(clippy::too_many_lines, reason = "lots of big init functions in this module")]
+#![expect(
+    unsafe_op_in_unsafe_fn,
+    clippy::undocumented_unsafe_blocks,
+    reason = "working through legacy code"
+)]
 
 use crate::extn::prelude::*;
 

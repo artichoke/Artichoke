@@ -78,7 +78,7 @@ macro_rules! unwrap_interpreter {
         let mut $to = $crate::Guard::new(arena.interp());
     };
     ($mrb:ident, to => $to:ident) => {
-        unwrap_interpreter!($mrb, to => $to, or_else = unsafe { $crate::sys::mrb_sys_nil_value() })
+        unwrap_interpreter!($mrb, to => $to, or_else = $crate::sys::mrb_sys_nil_value())
     };
 }
 

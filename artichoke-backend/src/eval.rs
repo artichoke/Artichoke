@@ -20,6 +20,9 @@ impl Eval for Artichoke {
     type Error = Error;
 
     fn eval(&mut self, code: &[u8]) -> Result<Self::Value, Self::Error> {
+        // SAFETY: `protect::eval` requires an initialized mruby interpreter
+        // which is guaranteed by the `Artichoke` type. All dereferenced
+        // pointers are valid by `Artichoke` invariants.
         let result = unsafe {
             let state = self.state.as_deref_mut().ok_or_else(InterpreterExtractError::new)?;
             let parser = state.parser.as_mut().ok_or_else(InterpreterExtractError::new)?;

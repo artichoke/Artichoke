@@ -124,18 +124,26 @@ impl Rclass {
     ///
     /// This function must be called within an [`Artichoke::with_ffi_boundary`]
     /// closure because the FFI APIs called in this function may require access
-    /// to the Artichoke [`State`](crate::state::State).
+    /// to the Artichoke [`State`].
+    ///
+    /// [`State`]: crate::state::State
     pub unsafe fn resolve(&self, mrb: *mut sys::mrb_state) -> Option<NonNull<sys::RClass>> {
         let module_name = self.name.as_ptr();
         if let Some(ref scope) = self.enclosing_scope {
             // Short circuit if enclosing scope does not exist.
-            let mut scope = scope.rclass(mrb)?;
-            let is_defined_under =
-                sys::mrb_const_defined_at(mrb, sys::mrb_sys_obj_value(scope.cast::<c_void>().as_mut()), self.sym);
+            //
+            // SAFETY: callers must uphold that `mrb` is initialized.
+            let mut scope = unsafe { scope.rclass(mrb)? };
+            // SAFETY: the enclosing scope exists, callers must uphold that
+            // `mrb` is initialized.
+            let is_defined_under = unsafe {
+                sys::mrb_const_defined_at(mrb, sys::mrb_sys_obj_value(scope.cast::<c_void>().as_mut()), self.sym)
+            };
             if is_defined_under {
-                // Enclosing scope exists.
-                // Module is defined under the enclosing scope.
-                let module = sys::mrb_module_get_under(mrb, scope.as_mut(), module_name);
+                // SAFETY: the enclosing scope exists and the module is defined
+                // under the enclosing scope. Callers must uphold that `mrb` is
+                // initialized.
+                let module = unsafe { sys::mrb_module_get_under(mrb, scope.as_mut(), module_name) };
                 NonNull::new(module)
             } else {
                 // Enclosing scope exists.
@@ -143,14 +151,18 @@ impl Rclass {
                 None
             }
         } else {
-            let is_defined = sys::mrb_const_defined_at(
-                mrb,
-                sys::mrb_sys_obj_value((*mrb).object_class.cast::<c_void>()),
-                self.sym,
-            );
+            // SAFETY: callers must uphold that `mrb` is initialized.
+            let is_defined = unsafe {
+                sys::mrb_const_defined_at(
+                    mrb,
+                    sys::mrb_sys_obj_value((*mrb).object_class.cast::<c_void>()),
+                    self.sym,
+                )
+            };
             if is_defined {
-                // Module exists in root scope.
-                let module = sys::mrb_module_get(mrb, module_name);
+                // SAFETY: Module exists in root scope. Callers must uphold that
+                // `mrb` is initialized.
+                let module = unsafe { sys::mrb_module_get(mrb, module_name) };
                 NonNull::new(module)
             } else {
                 // Class does not exist in root scope.
