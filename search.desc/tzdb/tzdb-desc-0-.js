@@ -1,0 +1,1 @@
+searchState.loadedDescShard("tzdb", 0, "<code>tzdb</code> — Time Zone Database\nChanges between the versions\nFind the raw, unparsed time zone data by name, e.g. …\nFind a time zone by name, e.g. <code>&quot;Europe/Berlin&quot;</code> …")
