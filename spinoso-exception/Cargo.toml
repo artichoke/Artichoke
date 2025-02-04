@@ -1,6 +1,6 @@
 [package]
 name = "spinoso-exception"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Ryan Lopopolo <rjl@hyperbo.la>"]
 description = """
 Ruby Exception error structs
@@ -16,6 +16,10 @@ homepage.workspace = true
 documentation.workspace = true
 
 [dependencies]
+
+[dependencies.bstr]
+version = "1.2.0"
+default-features = false
 
 [dependencies.scolapasta-string-escape]
 version = "0.3.0"

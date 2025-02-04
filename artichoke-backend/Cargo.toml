@@ -107,7 +107,7 @@ optional = true
 default-features = false
 
 [dependencies.spinoso-exception]
-version = "0.2.0"
+version = "0.3.0"
 path = "../spinoso-exception"
 
 [dependencies.spinoso-math]
