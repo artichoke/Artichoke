@@ -3,9 +3,8 @@
 use alloc::borrow::Cow;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::error;
 use core::fmt;
-#[cfg(feature = "std")]
-use std::error;
 
 use scolapasta_string_escape::format_debug_escape_into;
 
@@ -164,7 +163,6 @@ impl fmt::Display for SecurityError {
     }
 }
 
-#[cfg(feature = "std")]
 impl error::Error for SecurityError {}
 
 impl RubyException for SecurityError {

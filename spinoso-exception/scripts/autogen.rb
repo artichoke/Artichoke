@@ -10,9 +10,8 @@ def render(exc:, type:)
     use alloc::borrow::Cow;
     use alloc::string::String;
     use alloc::vec::Vec;
+    use core::error;
     use core::fmt;
-    #[cfg(feature = "std")]
-    use std::error;
 
     use scolapasta_string_escape::format_debug_escape_into;
 
@@ -171,7 +170,6 @@ def render(exc:, type:)
         }
     }
 
-    #[cfg(feature = "std")]
     impl error::Error for #{type} {}
 
     impl RubyException for #{type} {
